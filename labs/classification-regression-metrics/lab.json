@@ -1,0 +1,12 @@
+{
+  "slug": "classification-regression-metrics",
+  "title": "Classification & Regression Metrics",
+  "description": "Understand classification decisions and numerical prediction error through confusion matrices, ROC-AUC, MAE, RMSE, and R². Explore live calculations and verify them in Python.",
+  "topics": [
+    "Classification",
+    "Regression",
+    "Model evaluation"
+  ],
+  "builder": "scripts/build_lab.py",
+  "preview": "assets/classification-regression-metrics.jpg"
+}

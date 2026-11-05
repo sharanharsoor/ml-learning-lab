@@ -1,0 +1,24 @@
+{
+  "title": "UCI Wine Quality red subset",
+  "source_url": "https://archive.ics.uci.edu/dataset/186/wine+quality",
+  "download_url": "https://archive.ics.uci.edu/static/public/186/wine+quality.zip",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "citation": "Cortez, P., Cerdeira, A., Almeida, F., Matos, T., and Reis, J. (2009). Wine Quality [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C56S3T.",
+  "rows_red": 1599,
+  "columns": [
+    "fixed acidity",
+    "volatile acidity",
+    "citric acid",
+    "residual sugar",
+    "chlorides",
+    "free sulfur dioxide",
+    "total sulfur dioxide",
+    "density",
+    "pH",
+    "sulphates",
+    "alcohol",
+    "quality"
+  ],
+  "positive_definition_for_optional_exercise": "quality >= 7, an educational label choice, not a universal definition of good wine"
+}

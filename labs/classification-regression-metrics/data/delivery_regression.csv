@@ -1,0 +1,6 @@
+case_id,actual_duration_minutes,predicted_duration_minutes,baseline_duration_minutes,worse_predicted_duration_minutes
+E01,20,25,40,60
+E02,30,35,40,60
+E03,40,45,40,60
+E04,50,55,40,60
+E05,60,65,40,60
