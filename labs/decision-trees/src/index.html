@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Trees | ML Learning Lab</title>
+<meta name="description" content="A guided decision tree lesson. Build, evaluate, and explain a tree with interactive examples and runnable Python.">
+<meta name="theme-color" content="#f4f2eb">
+<link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/">
+<style>
+{{CSS}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#parcel">Skip to the lesson</a>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="../"><span aria-hidden="true">∑</span> ML Learning Lab</a>
+    <button type="button" id="teaching-view" class="button secondary" aria-pressed="false">Teaching view</button>
+  </div>
+</header>
+<div class="shell layout">
+  <aside class="chapter-rail">
+    <nav aria-label="Lesson chapters">
+      <p class="eyebrow">Decision trees</p>
+      <ol class="chapters">
+        <li><a href="#parcel" aria-current="location">The parcel desk</a></li>
+        <li><a href="#entropy">Surprise and entropy</a></li>
+        <li><a href="#split">Find a split</a></li>
+        <li><a href="#tree">Grow the tree</a></li>
+        <li><a href="#evaluate">Evaluate on new data</a></li>
+        <li><a href="#importance">Feature importance</a></li>
+        <li><a href="#regression">Predict a number</a></li>
+        <li><a href="#python">Verify in Python</a></li>
+      </ol>
+    </nav>
+    <a class="guide-link" href="https://github.com/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/INSTRUCTOR_GUIDE.md">Instructor guide</a>
+  </aside>
+  <div class="chapter-controls" aria-label="Chapter controls">
+    <label for="chapter-select" class="sr-only">Go to a chapter</label>
+    <select id="chapter-select">
+      <option value="parcel">The parcel desk</option>
+      <option value="entropy">Surprise and entropy</option>
+      <option value="split">Find a split</option>
+      <option value="tree">Grow the tree</option>
+      <option value="evaluate">Evaluate on new data</option>
+      <option value="importance">Feature importance</option>
+      <option value="regression">Predict a number</option>
+      <option value="python">Verify in Python</option>
+    </select>
+    <div class="chapter-buttons">
+      <button class="button secondary" id="previous-chapter" type="button" disabled>Previous</button>
+      <button class="button secondary" id="next-chapter" type="button">Next</button>
+    </div>
+  </div>
+  <main class="lesson" id="lesson">
+    <section class="chapter hero" id="parcel" aria-labelledby="parcel-title">
+      <p class="eyebrow">Classification &amp; regression</p>
+      <h1 id="parcel-title">Decision trees</h1>
+      <p class="lede">At a fictional parcel desk, every parcel can go straight through <strong>Auto</strong> or to manual <strong>Review</strong>. Can two simple questions explain the routing?</p>
+      <div class="parcel-board">
+        <div class="panel-heading">
+          <div><h2>Eight training parcels</h2><p>Position shows weight <var>X</var>. Each row is a packaging code <var>Y</var>.</p></div>
+          <div class="legend" aria-label="Parcel labels"><span><i class="key auto" aria-hidden="true"></i>Auto</span><span><i class="key review" aria-hidden="true"></i>Review</span></div>
+        </div>
+        <div id="training-plot"></div>
+        <details class="data-details">
+          <summary>Show the training rows</summary>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Synthetic training parcels</caption>
+            <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Route label</th><th scope="col">Minutes</th></tr></thead>
+            <tbody id="training-rows"></tbody>
+          </table></div>
+        </details>
+      </div>
+      <div class="prediction-prompt">
+        <div><h2>Try a first rule</h2><p>A new parcel weighs 7 units and uses packaging A. Where would you route it?</p></div>
+        <div class="segmented" aria-label="Choose a route">
+          <button type="button" data-guess="0" aria-pressed="false">Auto</button>
+          <button type="button" data-guess="1" aria-pressed="false">Review</button>
+        </div>
+        <p class="prompt-result" id="guess-result" aria-live="polite"></p>
+      </div>
+      <p class="transition">To compare rules systematically, start by measuring how mixed the labels are before asking any question.</p>
+      <a class="button primary" href="#entropy">Start with surprise</a>
+    </section>
+
+    <section class="chapter" id="entropy" aria-labelledby="entropy-title">
+      <p class="eyebrow">Score one node</p>
+      <h2 id="entropy-title">From surprise to entropy</h2>
+      <p class="lede">Picture drawing one random parcel from a node. How surprising would its label be?</p>
+      <div class="explanation-grid">
+        <div>
+          <h3>Start with inverse probability</h3>
+          <p>Rarer labels give a larger <span class="formula">1/p</span>. For a certain label, <span class="formula">p = 1</span> gives <span class="formula">1/p = 1</span>. We want certainty to contribute zero information.</p>
+        </div>
+        <div>
+          <h3>Take the logarithm</h3>
+          <p><span class="formula">I(p) = log₂(1/p) = −log₂(p)</span>. It maps certainty to zero and makes the surprises of independent outcomes add, because their probabilities multiply. For two independent outcomes with probability ½ each, the joint probability is ¼ and the surprise is 2 bits. Base 2 gives the unit.</p>
+        </div>
+      </div>
+      <div class="panel entropy-panel">
+        <div class="panel-heading"><div><h3>Change the mix of labels</h3><p>The starting mix matches all eight training parcels.</p></div><button id="reset-entropy" class="button secondary" type="button">Reset to 50%</button></div>
+        <div class="entropy-layout">
+          <div class="entropy-data">
+            <label class="control-label" for="review-probability">Review share <output id="review-percent" for="review-probability">50%</output></label>
+            <input id="review-probability" type="range" min="0" max="100" value="50">
+            <div class="probability-bar" id="probability-bar" aria-hidden="true"><span></span></div>
+            <div class="table-wrap"><table>
+              <caption class="sr-only">Surprise and contribution by label</caption>
+              <thead><tr><th scope="col">Label</th><th scope="col">p</th><th scope="col">Surprise</th><th scope="col">p × surprise</th></tr></thead>
+              <tbody id="surprise-rows"></tbody>
+            </table></div>
+            <p class="equation"><span>Average surprise</span><strong id="entropy-total">1 bit</strong></p>
+          </div>
+          <div id="entropy-plot" class="entropy-plot"></div>
+        </div>
+      </div>
+      <p><strong>Entropy is the average surprise.</strong> If you averaged one surprise per row, a label that appears in four out of eight rows would show up four times. Grouping those rows gives <span class="formula">H = −Σ p(label) log₂ p(label)</span>. Sum over distinct labels. A label with probability zero contributes zero by the limit of <span class="formula">−p log₂ p</span>.</p>
+      <p class="transition">Now a candidate question can earn credit by lowering the average uncertainty about the label.</p>
+    </section>
+
+    <section class="chapter" id="split" aria-labelledby="split-title">
+      <p class="eyebrow">Compare candidate questions</p>
+      <h2 id="split-title">Find the first split</h2>
+      <p class="lede">A question puts each of the eight training rows into one child. Score each child, weight it by its share of this parent, then subtract the weighted score from the parent score.</p>
+      <div class="panel">
+        <div class="control-grid">
+          <label>Impurity <select id="criterion"><option value="entropy">Entropy</option><option value="gini">Gini impurity</option></select></label>
+          <label>Numeric search <select id="search-mode"><option value="exact">Exact midpoints</option><option value="bins">Coarse bin edges</option></select></label>
+          <label>Candidate question <select id="candidate"></select></label>
+        </div>
+        <div class="split-children" id="split-children"></div>
+        <div id="split-calculation" aria-live="polite"></div>
+        <details class="rank-details">
+          <summary id="rank-summary">Compare all candidate gains</summary>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Candidate questions ranked by impurity gain</caption>
+            <thead><tr><th scope="col">Question</th><th scope="col">Yes / no</th><th scope="col">Weighted impurity</th><th scope="col">Gain</th></tr></thead>
+            <tbody id="ranking"></tbody>
+          </table></div>
+        </details>
+        <button type="button" class="button secondary" id="best-candidate">Select the best candidate</button>
+      </div>
+      <div class="explanation-grid compact">
+        <div>
+          <h3>Why Gini uses squares</h3>
+          <p>Draw one label, replace it, then draw again. A class occurs first with probability <var>p</var> and the second label differs with probability <span class="formula">1 − p</span>. Averaging gives <span class="formula">Σ p(1 − p) = 1 − Σ p²</span>.</p>
+        </div>
+        <div>
+          <h3>How thresholds become candidates</h3>
+          <p>Exact search tries a midpoint per gap between distinct weights. Coarse search tries only 2.5, 4.5, and 6.5 here. It sums the label counts on both sides of each edge. Packaging A versus B adds its own candidate in either mode.</p>
+        </div>
+      </div>
+      <p class="transition">A child can still have mixed labels. It becomes a new parent, with its own counts and candidate search.</p>
+    </section>
+
+    <section class="chapter" id="tree" aria-labelledby="tree-title">
+      <p class="eyebrow">Repeat the search locally</p>
+      <h2 id="tree-title">Grow the classification tree</h2>
+      <p class="lede">Grow one level at a time. Select a node to see which rows reach it and how its score changes. The same impurity criterion carries over from the split explorer. This tree searches exact midpoints.</p>
+      <div class="panel">
+        <div class="control-grid tree-controls">
+          <label>Maximum depth <select id="tree-depth"><option value="0">0 · Root only</option><option value="1" selected>1 · One question</option><option value="2">2 · Up to two questions</option><option value="3">3 · Up to three questions</option></select></label>
+          <label>Minimum rows in a leaf <select id="min-leaf"><option value="1" selected>1 row</option><option value="2">2 rows</option><option value="3">3 rows</option><option value="4">4 rows</option></select></label>
+        </div>
+        <div class="tree-summary" id="tree-summary" aria-live="polite"></div>
+        <div id="tree-diagram" class="tree-diagram"></div>
+        <div class="tree-inspector" id="node-details" aria-live="polite"></div>
+      </div>
+      <p><strong>At a deeper node, the denominator is that node’s row count.</strong> Its ancestors have already determined which rows get there. A pure node stops. A mixed node can also stop at a depth limit or when no eligible split improves the score. The same numerical feature can appear again with a different threshold.</p>
+      <p class="transition">The tree learned from these eight parcels. The next six were kept out of training.</p>
+    </section>
+
+    <section class="chapter" id="evaluate" aria-labelledby="evaluate-title">
+      <p class="eyebrow">Check unseen examples</p>
+      <h2 id="evaluate-title">Read the confusion matrix</h2>
+      <p class="lede">Keep <strong>Review</strong> as the positive class. Try depth 1 and depth 2 in the <a href="#tree">tree controls</a> to compare predictions on six held-out parcels. Select a matrix cell to inspect those parcels.</p>
+      <div class="panel">
+        <div class="evaluation-grid">
+          <div>
+            <h3 id="matrix-label">Actual rows, predicted columns</h3>
+            <table class="matrix" aria-labelledby="matrix-label">
+              <thead><tr><th scope="col"><span class="sr-only">Actual route</span></th><th scope="col">Auto</th><th scope="col">Review</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Auto</th><td><button type="button" data-cell="tn" aria-pressed="false"><strong>0</strong><span>True negative</span></button></td><td><button type="button" data-cell="fp" aria-pressed="false"><strong>0</strong><span>False positive</span></button></td></tr>
+                <tr><th scope="row">Review</th><td><button type="button" data-cell="fn" aria-pressed="false"><strong>0</strong><span>False negative</span></button></td><td><button type="button" data-cell="tp" aria-pressed="false"><strong>0</strong><span>True positive</span></button></td></tr>
+              </tbody>
+            </table>
+            <div id="evaluation-metrics" class="metric-grid"></div>
+          </div>
+          <div>
+            <div class="panel-heading heldout-heading"><h3 id="heldout-title">All held-out parcels</h3><button type="button" class="button secondary" id="show-all" hidden>Show all</button></div>
+            <div class="table-wrap"><table>
+              <caption class="sr-only">Held-out predictions for the current tree</caption>
+              <thead><tr><th scope="col">Parcel</th><th scope="col">Actual</th><th scope="col">Predicted</th></tr></thead>
+              <tbody id="heldout-rows"></tbody>
+            </table></div>
+            <p class="small" id="heldout-note" aria-live="polite"></p>
+          </div>
+        </div>
+      </div>
+      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Try reading the two error cells out loud before you compare accuracy. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
+      <p class="transition">Now look back at the fitted tree and ask how much each feature contributed to the reduction in training impurity.</p>
+    </section>
+
+    <section class="chapter" id="importance" aria-labelledby="importance-title">
+      <p class="eyebrow">Attribute the reduction</p>
+      <h2 id="importance-title">Give each feature credit</h2>
+      <p class="lede">A feature earns credit every time the fitted tree uses it. Multiply the local gain by the share of <strong>all training rows</strong> that reached the node, then add the credits by feature.</p>
+      <div class="panel">
+        <div id="importance-bars"></div>
+        <div class="table-wrap"><table>
+          <caption class="sr-only">Each chosen split’s contribution to feature importance</caption>
+          <thead><tr><th scope="col">Chosen split</th><th scope="col">Root share</th><th scope="col">Local gain</th><th scope="col">Credit</th></tr></thead>
+          <tbody id="importance-rows"></tbody>
+        </table></div>
+        <p id="importance-note" class="small" aria-live="polite"></p>
+      </div>
+      <p>Divide each feature’s credit by the total credit to report its share. One strong split near the root can earn more than several small splits. This score describes how <em>this fitted tree</em> reduced impurity on its training data.</p>
+      <p class="transition">What changes if we ask the same parcels for a number, such as processing time?</p>
+    </section>
+
+    <section class="chapter" id="regression" aria-labelledby="regression-title">
+      <p class="eyebrow">Use the same inputs, change the target</p>
+      <h2 id="regression-title">Predict processing time</h2>
+      <p class="lede">Give each leaf one number. For squared error, the best constant prediction is the mean of the training times in that leaf. Its MSE is the average squared distance from that mean.</p>
+      <div class="explanation-grid compact">
+        <div><h3>Classification</h3><p class="formula">Gini = 1 − Σ p(class)²</p><p>Score label mix. The leaf predicts its majority class.</p></div>
+        <div><h3>Squared-error regression</h3><p class="formula">MSE = (1/n) Σ (time − mean)²</p><p>Score spread around a mean. The leaf predicts that mean.</p></div>
+      </div>
+      <div class="panel regression-panel">
+        <div class="panel-heading">
+          <div><h3>Compare time predictions</h3><p>At this root, all eight training parcels average 5 minutes.</p></div>
+          <label class="regression-control">Weight cutoff <select id="regression-cutoff"></select></label>
+        </div>
+        <div id="regression-plot"></div>
+        <div id="regression-calculation" aria-live="polite"></div>
+      </div>
+      <p>The cutoff search is the same: compare weighted child scores using only the rows in the immediate parent. The mean and MSE are recalculated inside each child. A fitted regression tree predicts one constant per leaf.</p>
+      <p class="transition">Use the same rows to verify the arithmetic and the predictions in code.</p>
+    </section>
+
+    <section class="chapter" id="python" aria-labelledby="python-title">
+      <p class="eyebrow">Reproduce the numbers</p>
+      <h2 id="python-title">Verify in Python</h2>
+      {{PYTHON_PANEL}}
+    </section>
+    <footer class="lesson-footer">
+      <p>All parcel rows are synthetic and created for this lesson.</p>
+      <a href="https://github.com/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/INSTRUCTOR_GUIDE.md">Instructor guide</a>
+      <a href="../">See all learning labs</a>
+    </footer>
+  </main>
+</div>
+<noscript><p class="shell">Enable JavaScript to use the interactive calculations.</p></noscript>
+<script>
+{{ENGINE}}
+</script>
+<script>
+{{JS}}
+</script>
+<script>
+{{PYTHON_JS}}
+</script>
+</body>
+</html>

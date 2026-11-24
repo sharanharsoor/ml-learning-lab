@@ -1,0 +1,120 @@
+<div class="python-demo">
+  <p>Reproduce the split scores, leaf predictions, and held-out results using Python’s standard library. The first run downloads the Python runtime and executes the code in this browser.</p>
+  <div class="demo-actions">
+    <button id="demo-run" type="button" aria-controls="demo-output">Run Python</button>
+    <button id="demo-copy" type="button">Copy Python</button>
+    <span id="demo-copy-status" role="status"></span>
+  </div>
+  <p class="demo-status" id="demo-status" role="status"></p>
+  <pre class="demo-output" id="demo-output" aria-label="Python output" hidden></pre>
+  <details class="demo-reference" id="demo-reference" hidden>
+    <summary>Reference output from the lesson data</summary>
+    <pre class="demo-output">Root entropy: 1.000000 bits
+X &lt;= 3.5: weighted entropy = 0.451205, gain = 0.548795
+Y == A: weighted entropy = 0.688722, gain = 0.311278
+Held-out predictions: [0, 0, 1, 1, 0, 1]
+Confusion matrix (actual rows, predicted columns): [[2, 1], [1, 2]]
+Leaf means at X &lt;= 3.5: 2.0 and 6.8 minutes
+Weighted child MSE: 1.600000 minutes squared
+MSE reduction: 5.400000 minutes squared</pre>
+  </details>
+  <details class="demo-source" id="demo-source">
+    <summary>Read the runnable Python</summary>
+    <pre class="demo-code"><code id="demo-code">from collections import Counter
+from math import log2
+from statistics import mean
+
+<span id="demo-data"># X, Y, class (0 = Auto, 1 = Review), processing time in minutes
+train = [
+    (1, "A", 0, 2), (2, "B", 0, 2), (3, "B", 0, 2), (4, "B", 1, 6),
+    (5, "B", 1, 8), (6, "B", 1, 8), (7, "A", 0, 4), (8, "B", 1, 8),
+]
+held_out = [
+    (2, "A", 0), (3, "B", 0), (5, "B", 1),
+    (8, "B", 1), (6, "A", 1), (7, "B", 0),
+]
+</span>
+
+def entropy(rows):
+    counts = Counter(row[2] for row in rows)
+    probabilities = [count / len(rows) for count in counts.values()]
+    return -sum(p * log2(p) for p in probabilities)
+
+def split(rows, goes_left):
+    left, right = [], []
+    for row in rows:
+        (left if goes_left(row) else right).append(row)
+    return left, right
+
+def weighted_score(children, score):
+    total = sum(map(len, children))
+    return sum(len(child) * score(child) for child in children) / total
+
+weight_cut = split(train, lambda row: row[0] &lt;= 3.5)
+package_cut = split(train, lambda row: row[1] == "A")
+print(f"Root entropy: {entropy(train):.6f} bits")
+for name, children in [("X &lt;= 3.5", weight_cut), ("Y == A", package_cut)]:
+    after = weighted_score(children, entropy)
+    gain = entropy(train) - after
+    print(f"{name}: weighted entropy = {after:.6f}, gain = {gain:.6f}")
+
+def predict_class(x, y):
+    if x &lt;= 3.5:
+        return 0
+    return 0 if y == "A" else 1
+
+predictions = [predict_class(x, y) for x, y, actual in held_out]
+matrix = [[0, 0], [0, 0]]
+for (_, _, actual), prediction in zip(held_out, predictions):
+    matrix[actual][prediction] += 1
+print(f"Held-out predictions: {predictions}")
+print(f"Confusion matrix (actual rows, predicted columns): {matrix}")
+
+def leaf_mean(rows):
+    return mean(row[3] for row in rows)
+
+def mse(rows):
+    center = leaf_mean(rows)
+    return mean((row[3] - center) ** 2 for row in rows)
+
+left_mean, right_mean = map(leaf_mean, weight_cut)
+print(f"Leaf means at X &lt;= 3.5: {left_mean:.1f} and {right_mean:.1f} minutes")
+after = weighted_score(weight_cut, mse)
+print(f"Weighted child MSE: {after:.6f} minutes squared")
+print(f"MSE reduction: {mse(train) - after:.6f} minutes squared")</code></pre>
+  </details>
+  <details class="demo-equivalent">
+    <summary>Try the scikit-learn equivalent</summary>
+    <p>Fit both trees with the same parcels. The second input column is a 0/1 indicator for packaging B. The first scikit-learn run also downloads its packages.</p>
+    <div class="demo-actions">
+      <button id="demo-sklearn-run" type="button" aria-controls="demo-sklearn-output">Run scikit-learn</button>
+    </div>
+    <p class="demo-status" id="demo-sklearn-status" role="status"></p>
+    <pre class="demo-output" id="demo-sklearn-output" aria-label="scikit-learn output" hidden></pre>
+    <details class="demo-reference" id="demo-sklearn-reference" hidden>
+      <summary>Reference output from the lesson data</summary>
+      <pre class="demo-output">Confusion matrix (actual rows, predicted columns): [[2, 1], [1, 2]]
+Regression leaf means: 2.0 and 6.8 minutes</pre>
+    </details>
+    <pre class="demo-code"><code id="demo-sklearn-code">from sklearn.metrics import confusion_matrix
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+
+def features(rows):
+    return [[row[0], int(row[1] == "B")] for row in rows]
+
+inputs = features(train)
+classifier = DecisionTreeClassifier(
+    criterion="entropy", max_depth=2, random_state=0
+).fit(inputs, [row[2] for row in train])
+labels = [row[2] for row in held_out]
+predicted = classifier.predict(features(held_out))
+matrix = confusion_matrix(labels, predicted, labels=[0, 1])
+print(f"Confusion matrix (actual rows, predicted columns): {matrix.tolist()}")
+
+regressor = DecisionTreeRegressor(
+    criterion="squared_error", max_depth=1, random_state=0
+).fit(inputs, [row[3] for row in train])
+low, high = regressor.predict(features([(1, "A"), (5, "B")]))
+print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
+  </details>
+</div>

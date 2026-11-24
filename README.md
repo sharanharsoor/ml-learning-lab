@@ -2,7 +2,7 @@
 
 Interactive playgrounds for understanding machine learning through visible calculations, experiments, and Python.
 
-**[Explore the learning labs](https://sharanharsoor.github.io/ml-learning-lab/)** · **[Open Classification & Regression Metrics](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/)**
+**[Explore the learning labs](https://sharanharsoor.github.io/ml-learning-lab/)** · **[Open Classification & Regression Metrics](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/)** · **[Open Decision Trees](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/)**
 
 ## Available labs
 
@@ -21,6 +21,17 @@ An interactive lesson connecting predictions, outcomes, error measures, and mode
 ![Classification and regression metrics playground](docs/assets/classification-regression-metrics.jpg)
 
 The classification and delivery examples are synthetic teaching data. Scores illustrate rankings and are not demonstrated calibrated probabilities. The optional trained-model notebook uses the attributed UCI Wine Quality dataset.
+
+### Decision Trees
+
+Teach a full decision-tree lesson with one fictional parcel-sorting dataset. Follow the guided chapters or turn on Teaching view to use larger text and chapter controls while screen-sharing.
+
+- Build entropy from inverse probability and average surprise, then compare it with Gini.
+- Rank exact and binned split candidates, grow the tree, and inspect the held-out confusion matrix.
+- Attribute split gains to features and switch to mean squared error for a numerical target.
+- Run Python in the browser to verify the calculations.
+
+[Open the playground](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) · [Instructor guide](labs/decision-trees/INSTRUCTOR_GUIDE.md)
 
 ## Run the website locally
 
@@ -52,10 +63,11 @@ Python 3 builds the static pages using only the standard library. Node.js 18 or 
 ```bash
 python3 scripts/build_site.py
 node labs/classification-regression-metrics/tests/check_metrics.mjs
+node labs/decision-trees/tests/check_tree.mjs
 python3 scripts/build_site.py --check
 ```
 
-The checks cover 106 classification cutoffs, confusion-matrix highlights, all 64 AUC score pairs, pair selection, a separate tie fixture, and five regression examples with live formulas and input bounds.
+The checks cover 106 classification cutoffs, confusion-matrix highlights, all 64 AUC score pairs, pair selection, a separate tie fixture, and five regression examples with live formulas and input bounds. The decision-tree checks independently verify split candidates, impurity, stopping rules, held-out predictions, and feature importance.
 
 GitHub Pages publishes the committed `docs/` directory from `main`. After changing a lab, rebuild, run its checks, and commit the generated pages with the source changes.
 

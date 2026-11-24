@@ -1,0 +1,12 @@
+{
+  "slug": "decision-trees",
+  "title": "Decision Trees",
+  "description": "Build a parcel-sorting tree step by step. Explore surprise, entropy, Gini, thresholds, model evaluation, feature importance, and regression with one synthetic dataset.",
+  "topics": [
+    "Classification",
+    "Regression",
+    "Interactive Python"
+  ],
+  "builder": "scripts/build_lab.py",
+  "preview": "assets/decision-trees.jpg"
+}
