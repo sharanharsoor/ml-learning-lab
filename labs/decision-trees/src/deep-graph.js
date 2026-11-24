@@ -25,21 +25,26 @@
     return levels;
   }
 
-  function drawNode({ node, path, answer }, depth, focused, { featureFocus, credits }) {
+  function drawNode({ node, path, answer }, depth, focused, { featureFocus, credits, criterion, tracedPaths }) {
     const creditMode = featureFocus != null;
+    const regression = !creditMode && criterion === 'mse';
+    const onPath = regression && tracedPaths.has(path);
     const feature = node.split?.feature;
     const selected = path === focused;
     const contributes = creditMode && feature === featureFocus;
     const state = creditMode ? 'context' : selected ? 'parent'
       : path === focused + 'l' || path === focused + 'r' ? 'child' : 'context';
     const note = { parent: 'Scoring parent', child: 'Scoring child', context: 'Context only' }[state];
+    const prediction = regression ? Number(node.stats.prediction.toFixed(3)) + ' min'
+      : node.stats.prediction === 1 ? 'Review' : 'Auto';
     const description = node.split
       ? feature.toUpperCase() + (feature === 'y' ? ' = ' : ' ≤ ') + node.split.threshold + '?'
-        : 'Predict ' + (node.stats.prediction === 1 ? 'Review' : 'Auto');
+        : 'Predict ' + prediction;
     const score = String(Number(node.stats.score.toFixed(3)));
     const count = node.stats.n + (node.stats.n === 1 ? ' parcel' : ' parcels');
     const role = path === 'root' ? 'Root' : node.split ? 'Decision node' : 'Leaf';
-    const entropy = 'Entropy ' + score + (score === '1' ? ' bit' : ' bits');
+    const scoreLabel = regression ? 'Mean squared error ' + score + ' minutes squared'
+      : 'Entropy ' + score + (score === '1' ? ' bit' : ' bits');
     const credit = creditMode && node.split ? credits?.get(path) : undefined;
     const creditLabel = Number.isFinite(credit) ? credit.toFixed(4) + ' bits' : '';
     const creditNote = [
@@ -48,14 +53,16 @@
       creditLabel && 'Root-weighted credit ' + creditLabel,
     ].filter(Boolean).join('. ');
     const summary = [role, 'Depth ' + depth, answer && answer + ' branch',
-      description.replace(/\?$/, ''), count, entropy, creditMode ? creditNote : note].filter(Boolean).join('. ');
+      description.replace(/\?$/, ''), count, scoreLabel, creditMode ? creditNote : note,
+      onPath && 'On the parcel path'].filter(Boolean).join('. ');
     const tag = node.split ? 'button' : 'div';
     const attributes = node.split
       ? ' type="button" data-deep-node="' + path + '" aria-pressed="' + selected + '"' +
         (creditMode ? ' data-feature="' + escapeHtml(feature) + '"' : '')
       : ' role="group"';
     const classes = 'deep-graph-card deep-graph-card--' + state +
-      (contributes ? ' is-contributor' : '') + (creditMode && selected ? ' is-focus' : '');
+      (contributes ? ' is-contributor' : '') + (creditMode && selected ? ' is-focus' : '') +
+      (onPath ? ' is-traced' : '');
     const cardNote = creditMode
       ? (creditLabel ? '<span class="deep-graph-card-note deep-graph-credit">Credit ' + creditLabel + '</span>' : '')
       : (state === 'context' ? '' : '<span class="deep-graph-card-note">' + note + '</span>');
@@ -63,32 +70,40 @@
       ' aria-label="' + escapeHtml(summary) + '">' +
       '<span class="deep-graph-card-title">' + escapeHtml(description) + '</span>' +
       '<span class="deep-graph-card-data"><span>' + count +
-      '</span><span><span aria-hidden="true">H </span>' + score + '</span></span>' +
-      cardNote + '</' + tag + '>';
+      '</span><span><span aria-hidden="true">' + (regression ? 'MSE ' : 'H ') + '</span>' + score +
+      (regression ? ' min²' : '') + '</span></span>' + cardNote +
+      (onPath ? '<span class="deep-graph-path">Parcel path</span>' : '') + '</' + tag + '>';
   }
 
-  function drawFork(children, active) {
+  function drawFork(children, active, tracedPaths) {
+    const lines = ['M25 0 V34', 'M25 0 V4 Q25 9 30 9 H71 Q75 9 75 14 V34'];
     return '<div class="deep-graph-fork' + (active ? ' deep-graph-fork--scored' : '') + '">' +
       '<div class="deep-graph-lines">' +
       '<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
-      '<path d="M25 0 V34" vector-effect="non-scaling-stroke"></path>' +
-      '<path d="M25 0 V4 Q25 9 30 9 H71 Q75 9 75 14 V34" vector-effect="non-scaling-stroke"></path>' +
+      children.map((child, i) => '<path' + (tracedPaths?.has(child.path) ? ' class="deep-graph-edge--traced"' : '') +
+        ' d="' + lines[i] + '" vector-effect="non-scaling-stroke"></path>').join('') +
       '</svg>' +
-      children.map(child => '<span class="deep-graph-answer">' + child.answer + '</span>').join('') +
+      children.map(child => '<span class="deep-graph-answer' +
+        (tracedPaths?.has(child.path) ? ' deep-graph-answer--traced' : '') + '">' + child.answer + '</span>').join('') +
       '</div></div>';
   }
 
   function render(tree, selectedPath = 'root', options = {}) {
-    const { featureFocus } = options;
+    const { featureFocus, criterion } = options;
     const creditMode = featureFocus != null;
+    const regression = !creditMode && criterion === 'mse';
+    const tracedPaths = regression ? new Set(options.tracedPaths) : null;
+    const nodeOptions = regression ? { ...options, tracedPaths } : options;
     const levels = spine(tree);
     const decisionPaths = levels.map(([first]) => first).filter(({ node }) => node.split).map(({ path }) => path);
     const focused = decisionPaths.includes(selectedPath) ? selectedPath : creditMode ? null : decisionPaths[0];
     const rows = levels.map((level, depth) => {
-      const fork = depth ? drawFork(level, !creditMode && levels[depth - 1][0].path === focused) : '';
+      const parentPath = depth ? levels[depth - 1][0].path : null;
+      const fork = depth ? drawFork(level, !creditMode && parentPath === focused,
+        tracedPaths?.has(parentPath) ? tracedPaths : null) : '';
       return fork + '<div class="deep-graph-row">' +
         '<span class="deep-graph-depth"><span>Depth</span><strong>' + depth + '</strong></span>' +
-        level.map(item => '<div class="deep-graph-slot">' + drawNode(item, depth, focused, options) + '</div>').join('') + '</div>';
+        level.map(item => '<div class="deep-graph-slot">' + drawNode(item, depth, focused, nodeOptions) + '</div>').join('') + '</div>';
     }).join('');
 
     if (creditMode) {
@@ -102,12 +117,17 @@
         '<div class="deep-graph-board">' + rows + '</div></figure>';
     }
 
-    return '<figure class="deep-graph" aria-label="Fitted entropy tree, with the three nodes used to score a split highlighted">' +
+    const diagramLabel = regression ? 'Fitted regression tree showing the scoring nodes and parcel path'
+      : 'Fitted entropy tree, with the three nodes used to score a split highlighted';
+    const metric = regression ? 'MSE is mean squared error, measured in min².' : 'H is entropy in bits.';
+    return '<figure class="deep-graph' + (regression ? ' deep-graph--regression' : '') +
+      '" aria-label="' + diagramLabel + '">' +
       '<figcaption class="deep-graph-key">' +
       '<span><i class="deep-graph-keymark deep-graph-keymark--parent" aria-hidden="true"></i>Scoring parent</span>' +
       '<span><i class="deep-graph-keymark deep-graph-keymark--child" aria-hidden="true"></i>Immediate children</span>' +
-      '<span><i class="deep-graph-keymark deep-graph-keymark--context" aria-hidden="true"></i>Context only</span>' +
-      '</figcaption><p class="deep-graph-caption">The first column follows the continuing splits. H is entropy in bits.</p>' +
+      (regression ? '<span><i class="deep-graph-keymark deep-graph-keymark--path" aria-hidden="true"></i>Parcel path</span>'
+        : '<span><i class="deep-graph-keymark deep-graph-keymark--context" aria-hidden="true"></i>Context only</span>') +
+      '</figcaption><p class="deep-graph-caption">The first column follows the continuing splits. ' + metric + '</p>' +
       '<div class="deep-graph-board">' + rows + '</div></figure>';
   }
 

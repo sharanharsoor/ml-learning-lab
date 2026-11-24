@@ -62,4 +62,8 @@ The root predicts **5 minutes** with MSE **7 minutes²**. At the same root cut, 
 
 Apply the same stopping controls to regression. A deeper tree can keep reducing training MSE by producing averages for smaller groups. Compare validation MSE or RMSE across depths before choosing one. The six held-out parcels have routing labels only, so they cannot measure processing-time error.
 
+Open [regression in a deeper tree](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#deep-regression) and inspect the selected scan-score split. Three parcels have a mean of 13 minutes and an MSE of $2/3$ minutes². Two have a mean of 15 minutes and an MSE of $0.25$ minutes². Weight the errors by 3/5 and 2/5 to get 0.50 minutes². The five parcels are the ones that reach this parent.
+
+Trace the starting parcel at depths 4 and 5. The prediction moves from the parent mean of 13.8 minutes to the No leaf mean of 15 minutes. Change the scan score to 2 and trace again to reach the Yes leaf mean of 13 minutes.
+
 Run the embedded Python example after learners have predicted its output. Compare the printed gains, held-out matrix, and weighted regression error with the browser view. Load the in-browser Python runtime before presenting if you plan to execute the code live.

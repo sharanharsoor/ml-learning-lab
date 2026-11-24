@@ -1,0 +1,43 @@
+    <section class="chapter" id="deep-regression" aria-labelledby="deep-regression-title">
+      <p class="eyebrow">Follow a numerical prediction</p>
+      <h2 id="deep-regression-title">Regression in a deeper tree</h2>
+      <p class="lede">Use the same 20 parcels from the deeper feature-importance example, now with synthetic processing times. Click a split to see the two means and how much the split reduces MSE. Trace a new parcel to see which leaf mean becomes its prediction.</p>
+
+      <div class="panel deep-regression-explorer">
+        <div class="panel-heading deep-regression-header">
+          <div><h3>Trace a new parcel</h3><p>Change its inputs, then follow the purple path to its leaf.</p></div>
+          <label class="regression-control">Maximum split depth
+            <select id="deep-regression-depth"><option value="4">4</option><option value="5" selected>5</option></select>
+          </label>
+        </div>
+        <form class="parcel-trace-form" id="deep-regression-form">
+          <label>Weight X <input name="x" type="number" min="0" step="any" required value="11.5"></label>
+          <label>Packaging Y <select name="y"><option value="A" selected>A</option><option value="B">B</option></select></label>
+          <label>Scan score Z <input name="z" type="number" min="0" step="any" required value="4"></label>
+          <button type="submit" class="button primary">Trace parcel</button>
+        </form>
+        <div class="regression-route-result" id="deep-regression-prediction" aria-live="polite"></div>
+        <details class="teaching-note">
+          <summary>Read the decisions on this parcel’s path</summary>
+          <ol class="regression-route-steps" id="deep-regression-route"></ol>
+        </details>
+        <a class="deep-regression-jump" href="#deep-regression-inspector">Jump to the split calculation</a>
+        <div class="deep-regression-layout">
+          <div id="deep-regression-diagram"></div>
+          <div>
+            <div id="deep-regression-inspector" aria-live="polite"></div>
+            <a class="deep-regression-jump" href="#deep-regression-diagram">Back to the tree</a>
+          </div>
+        </div>
+        <details class="teaching-note">
+          <summary>Show the 20 training rows and their processing times</summary>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Synthetic training parcels for the deeper regression tree</caption>
+            <thead><tr><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z</th><th scope="col">Time (min)</th></tr></thead>
+            <tbody id="deep-regression-training"></tbody>
+          </table></div>
+        </details>
+      </div>
+      <p>With the starting parcel, depth 4 stops at the <strong>13.8-minute</strong> leaf. At depth 5, the extra scan-score question sends it to a leaf predicting <strong>15 minutes</strong>. Change the scan score to 2 to reach the other leaf.</p>
+      <p class="transition">The Python chapter reproduces the arithmetic for the earlier, smaller parcel example.</p>
+    </section>

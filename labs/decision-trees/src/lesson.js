@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { TRAIN, HOLDOUT, entropy, stats, candidates, evaluate, rank, fit, predict, confusion, importance } = TreeLab;
+  const { TRAIN, HOLDOUT, entropy, stats, candidates, evaluate, rank, fit, predict, trace: traceTree, confusion, importance } = TreeLab;
   const get = id => document.getElementById(id);
   const all = selector => [...document.querySelectorAll(selector)];
   const write = (id, html) => { get(id).innerHTML = html; };
@@ -117,18 +117,10 @@
   }
 
   function trace(tree, row) {
-    const paths = ['root'];
-    const steps = [];
-    let node = tree;
-    while (node.split) {
-      const split = node.split;
-      const answer = split.feature === 'x' ? row.x <= split.threshold : row.y === split.threshold;
-      const feature = split.feature === 'x' ? 'X' : 'Y';
-      steps.push(question(split) + '? ' + (answer ? 'Yes' : 'No') + ' (' + feature + ' is ' + row[split.feature] + ')');
-      paths.push(paths[paths.length - 1] + (answer ? 'l' : 'r'));
-      node = answer ? node.left : node.right;
-    }
-    return { paths, steps, leaf: node.stats };
+    const traced = traceTree(tree, row);
+    const steps = traced.steps.map(({ split, yes }) => question(split) + '? ' + (yes ? 'Yes' : 'No') +
+      ' (' + split.feature.toUpperCase() + ' is ' + row[split.feature] + ')');
+    return { ...traced, steps };
   }
 
   function routeDetails(traced, row, includeLabel) {
@@ -276,7 +268,11 @@
 
   function renderWeightedVisual(result, criterion, target = 'weighted-visual', precision = 3) {
     const impurity = name(criterion);
-    const max = criterion === 'entropy' ? 1 : 0.5;
+    const regression = criterion === 'mse';
+    const max = regression ? Math.max(result.parent.score, result.leftStats.score, result.rightStats.score) || 1 :
+      criterion === 'entropy' ? 1 : 0.5;
+    const unit = regression ? ' min²' : '';
+    const scale = regression ? ' Full height is ' + number(max, precision) + unit + ' for this split.' : '';
     const total = result.parent.n;
     const bands = [['Yes', result.leftStats], ['No', result.rightStats]];
     const diagram = bands.map(([label, group]) => {
@@ -288,10 +284,11 @@
     const contributions = bands.map(([label, group]) => '<div class="weighted-legend-item"><span class="weighted-swatch weighted-' +
       label.toLowerCase() + '" aria-hidden="true"></span><span><strong>' + label + ' contribution</strong> <span class="arithmetic">' +
       group.n + '/' + total + ' × ' + number(group.score, precision) + ' ≈ ' +
-      number(group.n / total * group.score, precision) +
+      number(group.n / total * group.score, precision) + unit +
       '</span></span></div>').join('');
     write(target, '<figcaption><strong>See the weighted average</strong><span class="small">Width is the child’s share of rows. Height is its ' +
-      impurity.toLowerCase() + '. Each shaded area represents that child’s contribution.</span></figcaption>' +
+      (regression ? impurity : impurity.toLowerCase()) + '. Each shaded area represents that child’s contribution.' +
+      scale + '</span></figcaption>' +
       '<div class="weighted-areas" aria-hidden="true">' + diagram + '</div>' +
       '<div class="weighted-legend">' + contributions + '</div>');
   }
@@ -487,6 +484,7 @@
   renderEntropy();
   renderCandidates();
   TreeLabDeepExample.init(renderWeightedVisual);
+  TreeLabDeepRegression.init(renderWeightedVisual);
   traceInput.innerHTML = [[HOLDOUT, 'Held out'], [TRAIN, 'Training']].map(([rows, label]) =>
     '<optgroup label="' + label + '">' + rows.map(row => '<option value="' + row.id + '">' +
       row.id + ' · X ' + row.x + ', Y ' + row.y + '</option>').join('') + '</optgroup>').join('');

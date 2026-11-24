@@ -12,6 +12,7 @@
 {{TREE_DIAGRAM_CSS}}
 {{DEEP_GRAPH_CSS}}
 {{IMPORTANCE_CSS}}
+{{REGRESSION_CSS}}
 {{GINI_CSS}}
 </style>
 </head>
@@ -39,6 +40,7 @@
         <li><a href="#importance">Feature importance</a></li>
         <li><a href="#deep-importance">Feature credit at depth</a></li>
         <li><a href="#regression">Predict a number</a></li>
+        <li><a href="#deep-regression">Regression at depth</a></li>
         <li><a href="#python">Verify in Python</a></li>
       </ol>
     </nav>
@@ -58,6 +60,7 @@
       <option value="importance">Feature importance</option>
       <option value="deep-importance">Feature credit at depth</option>
       <option value="regression">Predict a number</option>
+      <option value="deep-regression">Regression at depth</option>
       <option value="python">Verify in Python</option>
     </select>
     <div class="chapter-buttons">
@@ -308,8 +311,10 @@
         <summary>Why does the mean minimize squared error?</summary>
         <p>For any constant prediction <var>c</var>, the average squared error equals <span class="formula">MSE at the mean + (c − mean)²</span>. That extra square is smallest at zero, which is exactly when <var>c</var> equals the mean. The tree uses that best constant separately in each child while choosing a split.</p>
       </details>
-      <p class="transition">Use the same rows to verify the arithmetic and the predictions in code.</p>
+      <p class="transition">See how those same calculations work <a href="#deep-regression">several levels down a regression tree</a>.</p>
     </section>
+
+    {{REGRESSION_EXAMPLE}}
 
     <section class="chapter" id="python" aria-labelledby="python-title">
       <p class="eyebrow">Reproduce the numbers</p>
@@ -339,6 +344,9 @@
 </script>
 <script>
 {{IMPORTANCE_JS}}
+</script>
+<script>
+{{REGRESSION_JS}}
 </script>
 <script>
 {{GINI_JS}}

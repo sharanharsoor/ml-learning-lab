@@ -29,6 +29,8 @@
     z: Number(importanceScanScores[index]),
     label: Number(label),
   }));
+  const processingTimes = [19, 19, 19, 10, 10, 10, 10, 19, 12, 19, 14.5, 13, 15.5, 19, 19, 14, 9, 9, 9, 9];
+  const REGRESSION_TRAIN = IMPORTANCE_TRAIN.map((row, index) => ({ ...row, minutes: processingTimes[index] }));
 
   function entropy(p) {
     if (p === 0 || p === 1) return 0;
@@ -140,12 +142,28 @@
     return grow(rows, maxDepth);
   }
 
-  function predict(tree, row) {
+  function terminalNode(tree, row, onSplit) {
     let node = tree;
     while (node.split) {
-      node = goesLeft(row, node.split) ? node.left : node.right;
+      const yes = goesLeft(row, node.split);
+      onSplit?.(node.split, yes);
+      node = yes ? node.left : node.right;
     }
-    return node.stats.prediction;
+    return node;
+  }
+
+  function predict(tree, row) {
+    return terminalNode(tree, row).stats.prediction;
+  }
+
+  function trace(tree, row) {
+    const paths = ['root'];
+    const steps = [];
+    const leaf = terminalNode(tree, row, (split, yes) => {
+      steps.push({ split, yes });
+      paths.push(paths[paths.length - 1] + (yes ? 'l' : 'r'));
+    });
+    return { paths, steps, leaf: leaf.stats };
   }
 
   function confusion(tree, rows) {
@@ -178,6 +196,7 @@
   }
 
   globalThis.TreeLab = {
-    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
+    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, REGRESSION_TRAIN,
+    entropy, gini, stats, candidates, evaluate, rank, fit, predict, trace, confusion, importance,
   };
 })();

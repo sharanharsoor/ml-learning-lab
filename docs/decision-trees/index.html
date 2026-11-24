@@ -1093,6 +1093,167 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
   .importance-explorer .importance-jump { display: none; }
 }
 
+.deep-regression-explorer {
+  --regression-path: #57407f;
+  --regression-path-light: #f0e9fa;
+  container: regression-explorer / inline-size;
+}
+
+.deep-regression-explorer .parcel-trace-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: .55rem .7rem;
+  margin-bottom: .65rem;
+}
+
+.deep-regression-explorer .parcel-trace-form > label {
+  display: grid;
+  gap: .25rem;
+  min-width: 0;
+  font-size: .92rem;
+  font-weight: 650;
+}
+
+.deep-regression-explorer .parcel-trace-form input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.65rem;
+  padding: .4rem .6rem;
+  border: 1px solid var(--line);
+  border-radius: .4rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.deep-regression-explorer .parcel-trace-form .button {
+  justify-self: start;
+  max-width: 100%;
+}
+
+.deep-regression-explorer .regression-route-result {
+  display: block;
+  margin-block: .65rem .2rem;
+  padding: .5rem .75rem;
+  border-inline-start: 3px solid var(--regression-path);
+  border-radius: .3rem;
+  background: var(--regression-path-light);
+  color: var(--regression-path);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.deep-regression-explorer .regression-route-steps {
+  margin: .05rem 0 .75rem;
+  padding-inline-start: 1.45rem;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.deep-regression-explorer .regression-route-steps li + li {
+  margin-top: .14rem;
+}
+
+.deep-regression-explorer .regression-route-steps li::marker {
+  color: var(--regression-path);
+  font-weight: 650;
+}
+
+.deep-regression-explorer .deep-regression-layout {
+  display: grid;
+  align-items: start;
+  gap: 1.15rem;
+  margin-top: .8rem;
+}
+
+.deep-regression-explorer .deep-regression-layout > * {
+  min-width: 0;
+}
+
+.deep-regression-explorer #deep-regression-inspector {
+  container: regression-inspector / inline-size;
+}
+
+#deep-regression-diagram, #deep-regression-inspector {
+  scroll-margin-top: 9rem;
+}
+
+.deep-regression-explorer .regression-child-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .5rem;
+  margin-block: .65rem;
+}
+
+.deep-regression-explorer .regression-child-summary .child {
+  padding: .55rem .7rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.deep-regression-explorer .regression-child-summary .child > * {
+  margin-block: .16rem;
+}
+
+.deep-regression-explorer .deep-regression-jump {
+  display: inline-block;
+  margin-top: .45rem;
+}
+
+.deep-regression-explorer .deep-graph--regression .deep-graph-card.is-traced {
+  box-shadow: 0 0 0 2px var(--regression-path);
+}
+
+.deep-regression-explorer .deep-graph--regression .deep-graph-path {
+  justify-self: start;
+  padding: .1rem .33rem;
+  border-radius: .24rem;
+  background: var(--regression-path-light);
+  color: var(--regression-path);
+  font-size: .77rem;
+  font-weight: 700;
+}
+
+.deep-regression-explorer .deep-graph--regression .deep-graph-lines svg .deep-graph-edge--traced {
+  stroke: var(--regression-path);
+  stroke-width: 2.65px;
+}
+
+.deep-regression-explorer .deep-graph--regression .deep-graph-answer--traced {
+  border-color: var(--regression-path);
+  background: var(--regression-path-light);
+  color: var(--regression-path);
+}
+
+.deep-regression-explorer .deep-graph--regression .deep-graph-keymark--path {
+  border: 2px solid var(--regression-path);
+  background: var(--regression-path-light);
+}
+
+@container regression-explorer (min-width: 34rem) {
+  .deep-regression-explorer .parcel-trace-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  }
+}
+
+@container regression-explorer (min-width: 43rem) {
+  .deep-regression-explorer .deep-regression-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: clamp(1.15rem, 2cqw, 1.65rem);
+  }
+  .deep-regression-explorer .deep-regression-jump {
+    display: none;
+  }
+}
+
+@container regression-inspector (min-width: 20rem) {
+  .deep-regression-explorer .regression-child-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .gini-controls { margin-bottom: 1.25rem; max-width: 37rem; }
 .gini-presets { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .75rem; }
 .gini-presets .button[aria-pressed="true"] { background: var(--light); border-color: var(--teal); }
@@ -1146,6 +1307,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
         <li><a href="#importance">Feature importance</a></li>
         <li><a href="#deep-importance">Feature credit at depth</a></li>
         <li><a href="#regression">Predict a number</a></li>
+        <li><a href="#deep-regression">Regression at depth</a></li>
         <li><a href="#python">Verify in Python</a></li>
       </ol>
     </nav>
@@ -1165,6 +1327,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
       <option value="importance">Feature importance</option>
       <option value="deep-importance">Feature credit at depth</option>
       <option value="regression">Predict a number</option>
+      <option value="deep-regression">Regression at depth</option>
       <option value="python">Verify in Python</option>
     </select>
     <div class="chapter-buttons">
@@ -1572,8 +1735,53 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
         <summary>Why does the mean minimize squared error?</summary>
         <p>For any constant prediction <var>c</var>, the average squared error equals <span class="formula">MSE at the mean + (c − mean)²</span>. That extra square is smallest at zero, which is exactly when <var>c</var> equals the mean. The tree uses that best constant separately in each child while choosing a split.</p>
       </details>
-      <p class="transition">Use the same rows to verify the arithmetic and the predictions in code.</p>
+      <p class="transition">See how those same calculations work <a href="#deep-regression">several levels down a regression tree</a>.</p>
     </section>
+
+        <section class="chapter" id="deep-regression" aria-labelledby="deep-regression-title">
+      <p class="eyebrow">Follow a numerical prediction</p>
+      <h2 id="deep-regression-title">Regression in a deeper tree</h2>
+      <p class="lede">Use the same 20 parcels from the deeper feature-importance example, now with synthetic processing times. Click a split to see the two means and how much the split reduces MSE. Trace a new parcel to see which leaf mean becomes its prediction.</p>
+
+      <div class="panel deep-regression-explorer">
+        <div class="panel-heading deep-regression-header">
+          <div><h3>Trace a new parcel</h3><p>Change its inputs, then follow the purple path to its leaf.</p></div>
+          <label class="regression-control">Maximum split depth
+            <select id="deep-regression-depth"><option value="4">4</option><option value="5" selected>5</option></select>
+          </label>
+        </div>
+        <form class="parcel-trace-form" id="deep-regression-form">
+          <label>Weight X <input name="x" type="number" min="0" step="any" required value="11.5"></label>
+          <label>Packaging Y <select name="y"><option value="A" selected>A</option><option value="B">B</option></select></label>
+          <label>Scan score Z <input name="z" type="number" min="0" step="any" required value="4"></label>
+          <button type="submit" class="button primary">Trace parcel</button>
+        </form>
+        <div class="regression-route-result" id="deep-regression-prediction" aria-live="polite"></div>
+        <details class="teaching-note">
+          <summary>Read the decisions on this parcel’s path</summary>
+          <ol class="regression-route-steps" id="deep-regression-route"></ol>
+        </details>
+        <a class="deep-regression-jump" href="#deep-regression-inspector">Jump to the split calculation</a>
+        <div class="deep-regression-layout">
+          <div id="deep-regression-diagram"></div>
+          <div>
+            <div id="deep-regression-inspector" aria-live="polite"></div>
+            <a class="deep-regression-jump" href="#deep-regression-diagram">Back to the tree</a>
+          </div>
+        </div>
+        <details class="teaching-note">
+          <summary>Show the 20 training rows and their processing times</summary>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Synthetic training parcels for the deeper regression tree</caption>
+            <thead><tr><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z</th><th scope="col">Time (min)</th></tr></thead>
+            <tbody id="deep-regression-training"></tbody>
+          </table></div>
+        </details>
+      </div>
+      <p>With the starting parcel, depth 4 stops at the <strong>13.8-minute</strong> leaf. At depth 5, the extra scan-score question sends it to a leaf predicting <strong>15 minutes</strong>. Change the scan score to 2 to reach the other leaf.</p>
+      <p class="transition">The Python chapter reproduces the arithmetic for the earlier, smaller parcel example.</p>
+    </section>
+
 
     <section class="chapter" id="python" aria-labelledby="python-title">
       <p class="eyebrow">Reproduce the numbers</p>
@@ -1741,6 +1949,8 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     z: Number(importanceScanScores[index]),
     label: Number(label),
   }));
+  const processingTimes = [19, 19, 19, 10, 10, 10, 10, 19, 12, 19, 14.5, 13, 15.5, 19, 19, 14, 9, 9, 9, 9];
+  const REGRESSION_TRAIN = IMPORTANCE_TRAIN.map((row, index) => ({ ...row, minutes: processingTimes[index] }));
 
   function entropy(p) {
     if (p === 0 || p === 1) return 0;
@@ -1852,12 +2062,28 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     return grow(rows, maxDepth);
   }
 
-  function predict(tree, row) {
+  function terminalNode(tree, row, onSplit) {
     let node = tree;
     while (node.split) {
-      node = goesLeft(row, node.split) ? node.left : node.right;
+      const yes = goesLeft(row, node.split);
+      onSplit?.(node.split, yes);
+      node = yes ? node.left : node.right;
     }
-    return node.stats.prediction;
+    return node;
+  }
+
+  function predict(tree, row) {
+    return terminalNode(tree, row).stats.prediction;
+  }
+
+  function trace(tree, row) {
+    const paths = ['root'];
+    const steps = [];
+    const leaf = terminalNode(tree, row, (split, yes) => {
+      steps.push({ split, yes });
+      paths.push(paths[paths.length - 1] + (yes ? 'l' : 'r'));
+    });
+    return { paths, steps, leaf: leaf.stats };
   }
 
   function confusion(tree, rows) {
@@ -1890,7 +2116,8 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   globalThis.TreeLab = {
-    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
+    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, REGRESSION_TRAIN,
+    entropy, gini, stats, candidates, evaluate, rank, fit, predict, trace, confusion, importance,
   };
 })();
 
@@ -2021,21 +2248,26 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     return levels;
   }
 
-  function drawNode({ node, path, answer }, depth, focused, { featureFocus, credits }) {
+  function drawNode({ node, path, answer }, depth, focused, { featureFocus, credits, criterion, tracedPaths }) {
     const creditMode = featureFocus != null;
+    const regression = !creditMode && criterion === 'mse';
+    const onPath = regression && tracedPaths.has(path);
     const feature = node.split?.feature;
     const selected = path === focused;
     const contributes = creditMode && feature === featureFocus;
     const state = creditMode ? 'context' : selected ? 'parent'
       : path === focused + 'l' || path === focused + 'r' ? 'child' : 'context';
     const note = { parent: 'Scoring parent', child: 'Scoring child', context: 'Context only' }[state];
+    const prediction = regression ? Number(node.stats.prediction.toFixed(3)) + ' min'
+      : node.stats.prediction === 1 ? 'Review' : 'Auto';
     const description = node.split
       ? feature.toUpperCase() + (feature === 'y' ? ' = ' : ' ≤ ') + node.split.threshold + '?'
-        : 'Predict ' + (node.stats.prediction === 1 ? 'Review' : 'Auto');
+        : 'Predict ' + prediction;
     const score = String(Number(node.stats.score.toFixed(3)));
     const count = node.stats.n + (node.stats.n === 1 ? ' parcel' : ' parcels');
     const role = path === 'root' ? 'Root' : node.split ? 'Decision node' : 'Leaf';
-    const entropy = 'Entropy ' + score + (score === '1' ? ' bit' : ' bits');
+    const scoreLabel = regression ? 'Mean squared error ' + score + ' minutes squared'
+      : 'Entropy ' + score + (score === '1' ? ' bit' : ' bits');
     const credit = creditMode && node.split ? credits?.get(path) : undefined;
     const creditLabel = Number.isFinite(credit) ? credit.toFixed(4) + ' bits' : '';
     const creditNote = [
@@ -2044,14 +2276,16 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
       creditLabel && 'Root-weighted credit ' + creditLabel,
     ].filter(Boolean).join('. ');
     const summary = [role, 'Depth ' + depth, answer && answer + ' branch',
-      description.replace(/\?$/, ''), count, entropy, creditMode ? creditNote : note].filter(Boolean).join('. ');
+      description.replace(/\?$/, ''), count, scoreLabel, creditMode ? creditNote : note,
+      onPath && 'On the parcel path'].filter(Boolean).join('. ');
     const tag = node.split ? 'button' : 'div';
     const attributes = node.split
       ? ' type="button" data-deep-node="' + path + '" aria-pressed="' + selected + '"' +
         (creditMode ? ' data-feature="' + escapeHtml(feature) + '"' : '')
       : ' role="group"';
     const classes = 'deep-graph-card deep-graph-card--' + state +
-      (contributes ? ' is-contributor' : '') + (creditMode && selected ? ' is-focus' : '');
+      (contributes ? ' is-contributor' : '') + (creditMode && selected ? ' is-focus' : '') +
+      (onPath ? ' is-traced' : '');
     const cardNote = creditMode
       ? (creditLabel ? '<span class="deep-graph-card-note deep-graph-credit">Credit ' + creditLabel + '</span>' : '')
       : (state === 'context' ? '' : '<span class="deep-graph-card-note">' + note + '</span>');
@@ -2059,32 +2293,40 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
       ' aria-label="' + escapeHtml(summary) + '">' +
       '<span class="deep-graph-card-title">' + escapeHtml(description) + '</span>' +
       '<span class="deep-graph-card-data"><span>' + count +
-      '</span><span><span aria-hidden="true">H </span>' + score + '</span></span>' +
-      cardNote + '</' + tag + '>';
+      '</span><span><span aria-hidden="true">' + (regression ? 'MSE ' : 'H ') + '</span>' + score +
+      (regression ? ' min²' : '') + '</span></span>' + cardNote +
+      (onPath ? '<span class="deep-graph-path">Parcel path</span>' : '') + '</' + tag + '>';
   }
 
-  function drawFork(children, active) {
+  function drawFork(children, active, tracedPaths) {
+    const lines = ['M25 0 V34', 'M25 0 V4 Q25 9 30 9 H71 Q75 9 75 14 V34'];
     return '<div class="deep-graph-fork' + (active ? ' deep-graph-fork--scored' : '') + '">' +
       '<div class="deep-graph-lines">' +
       '<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
-      '<path d="M25 0 V34" vector-effect="non-scaling-stroke"></path>' +
-      '<path d="M25 0 V4 Q25 9 30 9 H71 Q75 9 75 14 V34" vector-effect="non-scaling-stroke"></path>' +
+      children.map((child, i) => '<path' + (tracedPaths?.has(child.path) ? ' class="deep-graph-edge--traced"' : '') +
+        ' d="' + lines[i] + '" vector-effect="non-scaling-stroke"></path>').join('') +
       '</svg>' +
-      children.map(child => '<span class="deep-graph-answer">' + child.answer + '</span>').join('') +
+      children.map(child => '<span class="deep-graph-answer' +
+        (tracedPaths?.has(child.path) ? ' deep-graph-answer--traced' : '') + '">' + child.answer + '</span>').join('') +
       '</div></div>';
   }
 
   function render(tree, selectedPath = 'root', options = {}) {
-    const { featureFocus } = options;
+    const { featureFocus, criterion } = options;
     const creditMode = featureFocus != null;
+    const regression = !creditMode && criterion === 'mse';
+    const tracedPaths = regression ? new Set(options.tracedPaths) : null;
+    const nodeOptions = regression ? { ...options, tracedPaths } : options;
     const levels = spine(tree);
     const decisionPaths = levels.map(([first]) => first).filter(({ node }) => node.split).map(({ path }) => path);
     const focused = decisionPaths.includes(selectedPath) ? selectedPath : creditMode ? null : decisionPaths[0];
     const rows = levels.map((level, depth) => {
-      const fork = depth ? drawFork(level, !creditMode && levels[depth - 1][0].path === focused) : '';
+      const parentPath = depth ? levels[depth - 1][0].path : null;
+      const fork = depth ? drawFork(level, !creditMode && parentPath === focused,
+        tracedPaths?.has(parentPath) ? tracedPaths : null) : '';
       return fork + '<div class="deep-graph-row">' +
         '<span class="deep-graph-depth"><span>Depth</span><strong>' + depth + '</strong></span>' +
-        level.map(item => '<div class="deep-graph-slot">' + drawNode(item, depth, focused, options) + '</div>').join('') + '</div>';
+        level.map(item => '<div class="deep-graph-slot">' + drawNode(item, depth, focused, nodeOptions) + '</div>').join('') + '</div>';
     }).join('');
 
     if (creditMode) {
@@ -2098,12 +2340,17 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
         '<div class="deep-graph-board">' + rows + '</div></figure>';
     }
 
-    return '<figure class="deep-graph" aria-label="Fitted entropy tree, with the three nodes used to score a split highlighted">' +
+    const diagramLabel = regression ? 'Fitted regression tree showing the scoring nodes and parcel path'
+      : 'Fitted entropy tree, with the three nodes used to score a split highlighted';
+    const metric = regression ? 'MSE is mean squared error, measured in min².' : 'H is entropy in bits.';
+    return '<figure class="deep-graph' + (regression ? ' deep-graph--regression' : '') +
+      '" aria-label="' + diagramLabel + '">' +
       '<figcaption class="deep-graph-key">' +
       '<span><i class="deep-graph-keymark deep-graph-keymark--parent" aria-hidden="true"></i>Scoring parent</span>' +
       '<span><i class="deep-graph-keymark deep-graph-keymark--child" aria-hidden="true"></i>Immediate children</span>' +
-      '<span><i class="deep-graph-keymark deep-graph-keymark--context" aria-hidden="true"></i>Context only</span>' +
-      '</figcaption><p class="deep-graph-caption">The first column follows the continuing splits. H is entropy in bits.</p>' +
+      (regression ? '<span><i class="deep-graph-keymark deep-graph-keymark--path" aria-hidden="true"></i>Parcel path</span>'
+        : '<span><i class="deep-graph-keymark deep-graph-keymark--context" aria-hidden="true"></i>Context only</span>') +
+      '</figcaption><p class="deep-graph-caption">The first column follows the continuing splits. ' + metric + '</p>' +
       '<div class="deep-graph-board">' + rows + '</div></figure>';
   }
 
@@ -2345,6 +2592,107 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 </script>
 <script>
 (() => {
+  'use strict';
+
+  const { REGRESSION_TRAIN, evaluate, fit, trace } = TreeLab;
+  const number = value => Number(value.toFixed(4)).toString();
+  const question = split => split.feature.toUpperCase() +
+    (split.feature === 'y' ? ' = ' : ' ≤ ') + split.threshold + '?';
+  const names = { x: 'Weight', y: 'Packaging', z: 'Scan score' };
+  const trees = new Map([4, 5].map(depth => [depth, fit(REGRESSION_TRAIN, 'mse', depth)]));
+
+  function indexTree(tree, rows, nodes, path = 'root', depth = 0) {
+    const result = tree.split ? evaluate(rows, tree.split, 'mse') : null;
+    nodes.set(path, { rows, depth, result });
+    if (result) {
+      indexTree(tree.left, result.left, nodes, path + 'l', depth + 1);
+      indexTree(tree.right, result.right, nodes, path + 'r', depth + 1);
+    }
+  }
+
+  function init(renderWeightedVisual) {
+    const get = id => document.getElementById(id);
+    const depthInput = get('deep-regression-depth');
+    const form = get('deep-regression-form');
+    const graph = get('deep-regression-diagram');
+    const inspector = get('deep-regression-inspector');
+    const prediction = get('deep-regression-prediction');
+    const routeList = get('deep-regression-route');
+
+    let parcel = readParcel();
+    let selectedPath = 'rootlrrl';
+
+    function readParcel() {
+      const data = new FormData(form);
+      return { x: Number(data.get('x')), y: data.get('y'), z: Number(data.get('z')) };
+    }
+
+    function renderSplit({ result, depth }) {
+      const { parent, leftStats, rightStats, weighted, gain } = result;
+      const child = (label, group) => '<div class="child ' + label.toLowerCase() + '"><h4>' + label + ' child</h4>' +
+        '<p><strong>Mean ' + number(group.mean) + ' min</strong> · ' + group.n + ' parcels</p>' +
+        '<p class="arithmetic">' + number(group.mean * group.n) + '/' + group.n + ' = ' +
+        number(group.mean) + ' min</p><p>MSE <strong>' + number(group.score) + ' min²</strong></p></div>';
+      const term = group => '(' + group.n + '/' + parent.n + ') × ' + number(group.score);
+      inspector.innerHTML = '<h3>Depth ' + depth + ' · ' + question(result.split) + '</h3>' +
+        '<p class="small">Parent: ' + parent.n + ' parcels, mean ' + number(parent.mean) +
+        ' min, MSE ' + number(parent.score) + ' min².</p>' +
+        '<div class="regression-child-summary">' + child('Yes', leftStats) + child('No', rightStats) + '</div>' +
+        '<figure id="deep-regression-weighted" class="weighted-visual"></figure>' +
+        '<div class="calc-lines"><p><strong>Weighted child MSE</strong> <span class="arithmetic">' +
+        term(leftStats) + ' + ' + term(rightStats) + ' ≈ ' + number(weighted) +
+        ' min²</span></p><p><strong>MSE reduction</strong> <span class="arithmetic">' +
+        number(parent.score) + ' − ' + number(weighted) + ' ≈ ' + number(gain) + ' min²</span></p>' +
+        '<p class="small">The weights use the ' + parent.n + ' rows at this parent. Scores are calculated before rounding.</p></div>';
+      renderWeightedVisual(result, 'mse', 'deep-regression-weighted', 4);
+    }
+
+    function render() {
+      const tree = trees.get(Number(depthInput.value));
+      const nodes = new Map();
+      indexTree(tree, REGRESSION_TRAIN, nodes);
+      while (!nodes.get(selectedPath)?.result) selectedPath = selectedPath.slice(0, -1);
+      const traced = trace(tree, parcel);
+      const leafPath = traced.paths[traced.paths.length - 1];
+      const { rows, depth } = nodes.get(leafPath);
+      const times = rows.map(row => row.minutes);
+      graph.innerHTML = TreeLabDeepDiagram.render(tree, selectedPath, { criterion: 'mse', tracedPaths: traced.paths });
+      prediction.innerHTML = '<p><strong>Prediction ' + number(traced.leaf.prediction) +
+        ' min</strong> · Leaf at depth ' + depth + '</p><p class="small">For X = ' + parcel.x + ', Y = ' +
+        parcel.y + ', Z = ' + parcel.z + '. The leaf averages ' + times.length + ' training times.</p>' +
+        '<p class="arithmetic">(' + times.join(' + ') + ') / ' + times.length + ' = ' +
+        number(traced.leaf.mean) + ' min</p>';
+      routeList.innerHTML = traced.steps.map(({ split, yes }) => '<li><span>' + question(split) +
+        ' ' + names[split.feature] + ' is ' + parcel[split.feature] + '.</span> <strong>' +
+        (yes ? 'Yes' : 'No') + '</strong></li>').join('');
+      renderSplit(nodes.get(selectedPath));
+    }
+
+    get('deep-regression-training').innerHTML = REGRESSION_TRAIN.map(row =>
+      '<tr><th scope="row">' + row.x + '</th><td>' + row.y + '</td><td>' + row.z + '</td><td>' +
+      row.minutes + '</td></tr>').join('');
+    depthInput.addEventListener('change', render);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      parcel = readParcel();
+      render();
+    });
+    graph.addEventListener('click', event => {
+      const button = event.target.closest('[data-deep-node]');
+      if (!button) return;
+      selectedPath = button.dataset.deepNode;
+      render();
+      graph.querySelector('[data-deep-node="' + selectedPath + '"]').focus({ preventScroll: true });
+    });
+    render();
+  }
+
+  globalThis.TreeLabDeepRegression = { init };
+})();
+
+</script>
+<script>
+(() => {
   "use strict";
 
   const { TRAIN, entropy, gini, evaluate } = TreeLab;
@@ -2462,7 +2810,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 (() => {
   'use strict';
 
-  const { TRAIN, HOLDOUT, entropy, stats, candidates, evaluate, rank, fit, predict, confusion, importance } = TreeLab;
+  const { TRAIN, HOLDOUT, entropy, stats, candidates, evaluate, rank, fit, predict, trace: traceTree, confusion, importance } = TreeLab;
   const get = id => document.getElementById(id);
   const all = selector => [...document.querySelectorAll(selector)];
   const write = (id, html) => { get(id).innerHTML = html; };
@@ -2578,18 +2926,10 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   function trace(tree, row) {
-    const paths = ['root'];
-    const steps = [];
-    let node = tree;
-    while (node.split) {
-      const split = node.split;
-      const answer = split.feature === 'x' ? row.x <= split.threshold : row.y === split.threshold;
-      const feature = split.feature === 'x' ? 'X' : 'Y';
-      steps.push(question(split) + '? ' + (answer ? 'Yes' : 'No') + ' (' + feature + ' is ' + row[split.feature] + ')');
-      paths.push(paths[paths.length - 1] + (answer ? 'l' : 'r'));
-      node = answer ? node.left : node.right;
-    }
-    return { paths, steps, leaf: node.stats };
+    const traced = traceTree(tree, row);
+    const steps = traced.steps.map(({ split, yes }) => question(split) + '? ' + (yes ? 'Yes' : 'No') +
+      ' (' + split.feature.toUpperCase() + ' is ' + row[split.feature] + ')');
+    return { ...traced, steps };
   }
 
   function routeDetails(traced, row, includeLabel) {
@@ -2737,7 +3077,11 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 
   function renderWeightedVisual(result, criterion, target = 'weighted-visual', precision = 3) {
     const impurity = name(criterion);
-    const max = criterion === 'entropy' ? 1 : 0.5;
+    const regression = criterion === 'mse';
+    const max = regression ? Math.max(result.parent.score, result.leftStats.score, result.rightStats.score) || 1 :
+      criterion === 'entropy' ? 1 : 0.5;
+    const unit = regression ? ' min²' : '';
+    const scale = regression ? ' Full height is ' + number(max, precision) + unit + ' for this split.' : '';
     const total = result.parent.n;
     const bands = [['Yes', result.leftStats], ['No', result.rightStats]];
     const diagram = bands.map(([label, group]) => {
@@ -2749,10 +3093,11 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     const contributions = bands.map(([label, group]) => '<div class="weighted-legend-item"><span class="weighted-swatch weighted-' +
       label.toLowerCase() + '" aria-hidden="true"></span><span><strong>' + label + ' contribution</strong> <span class="arithmetic">' +
       group.n + '/' + total + ' × ' + number(group.score, precision) + ' ≈ ' +
-      number(group.n / total * group.score, precision) +
+      number(group.n / total * group.score, precision) + unit +
       '</span></span></div>').join('');
     write(target, '<figcaption><strong>See the weighted average</strong><span class="small">Width is the child’s share of rows. Height is its ' +
-      impurity.toLowerCase() + '. Each shaded area represents that child’s contribution.</span></figcaption>' +
+      (regression ? impurity : impurity.toLowerCase()) + '. Each shaded area represents that child’s contribution.' +
+      scale + '</span></figcaption>' +
       '<div class="weighted-areas" aria-hidden="true">' + diagram + '</div>' +
       '<div class="weighted-legend">' + contributions + '</div>');
   }
@@ -2948,6 +3293,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   renderEntropy();
   renderCandidates();
   TreeLabDeepExample.init(renderWeightedVisual);
+  TreeLabDeepRegression.init(renderWeightedVisual);
   traceInput.innerHTML = [[HOLDOUT, 'Held out'], [TRAIN, 'Training']].map(([rows, label]) =>
     '<optgroup label="' + label + '">' + rows.map(row => '<option value="' + row.id + '">' +
       row.id + ' · X ' + row.x + ', Y ' + row.y + '</option>').join('') + '</optgroup>').join('');

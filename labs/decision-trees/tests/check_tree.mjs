@@ -5,8 +5,10 @@ import vm from 'node:vm';
 const source = new URL('../src/engine.js', import.meta.url);
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(source, 'utf8'), context, { filename: source.pathname });
-const { TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance } =
-  context.TreeLab;
+const {
+  TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, REGRESSION_TRAIN,
+  entropy, gini, stats, candidates, evaluate, rank, fit, predict, trace, confusion, importance,
+} = context.TreeLab;
 
 // Convert objects from the script's realm before comparing prototypes in Node.
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -187,4 +189,31 @@ const creditGraph = context.TreeLabDeepDiagram.render(importanceTree, 'rootlr', 
 assert.equal((creditGraph.match(/is-contributor/g) || []).length, 3);
 assert.equal((creditGraph.match(/is-focus/g) || []).length, 1);
 assert.match(creditGraph, /Credit 0.2340 bits/);
-console.log('PASS: split scores, stopping, evaluation, depth-five entropy, and repeated feature credit.');
+
+const regressionFour = fit(REGRESSION_TRAIN, 'mse', 4);
+const regressionFive = fit(REGRESSION_TRAIN, 'mse', 5);
+const newParcel = { x: 11.5, y: 'A', z: 4 };
+const routeFour = trace(regressionFour, newParcel);
+const routeFive = trace(regressionFive, newParcel);
+assert.deepEqual(Array.from(routeFive.steps, ({ split }) => split.feature), ['x', 'x', 'x', 'y', 'z']);
+assert.deepEqual(Array.from(routeFive.steps, ({ yes }) => yes), [true, false, false, true, false]);
+assert.equal(routeFour.paths.length, 5);
+close(routeFour.leaf.prediction, 13.8, 'The four-split route returns its leaf mean');
+assert.equal(routeFive.leaf.prediction, 15);
+assert.equal(predict(regressionFive, newParcel), routeFive.leaf.prediction);
+assert.equal(trace(regressionFive, { ...newParcel, z: 3 }).leaf.prediction, 13);
+
+const lastSplit = regressionFive.left.right.right.left;
+assert.deepEqual(plain(lastSplit.split), { feature: 'z', threshold: 3 });
+assert.deepEqual([lastSplit.stats.n, lastSplit.left.stats.n, lastSplit.right.stats.n], [5, 3, 2]);
+assert.deepEqual([lastSplit.left.stats.mean, lastSplit.right.stats.mean], [13, 15]);
+close(lastSplit.left.stats.score, 2 / 3, 'The Yes child MSE');
+close(lastSplit.right.stats.score, .25, 'The No child MSE');
+close(lastSplit.stats.score - lastSplit.gain, .5, 'The weighted child MSE at depth four');
+close(lastSplit.gain, .96, 'The local MSE reduction at depth four');
+const regressionGraph = context.TreeLabDeepDiagram.render(regressionFive, 'rootlrrl', {
+  criterion: 'mse', tracedPaths: routeFive.paths,
+});
+assert.equal((regressionGraph.match(/deep-graph-edge--traced/g) || []).length, 5);
+assert.match(regressionGraph, /Predict 15 min/);
+console.log('PASS: split scores, stopping, evaluation, deep entropy, feature credit, and deep regression tracing.');
