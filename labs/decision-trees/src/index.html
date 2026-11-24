@@ -32,6 +32,7 @@
         <li><a href="#split">Find a split</a></li>
         <li><a href="#tree">Grow the tree</a></li>
         <li><a href="#evaluate">Evaluate on new data</a></li>
+        <li><a href="#stopping">Where to stop</a></li>
         <li><a href="#importance">Feature importance</a></li>
         <li><a href="#regression">Predict a number</a></li>
         <li><a href="#python">Verify in Python</a></li>
@@ -48,6 +49,7 @@
       <option value="split">Find a split</option>
       <option value="tree">Grow the tree</option>
       <option value="evaluate">Evaluate on new data</option>
+      <option value="stopping">Where to stop</option>
       <option value="importance">Feature importance</option>
       <option value="regression">Predict a number</option>
       <option value="python">Verify in Python</option>
@@ -143,6 +145,7 @@
         </div>
         <div id="split-plot" class="split-plot"></div>
         <div class="split-children" id="split-children"></div>
+        <figure id="weighted-visual" class="weighted-visual"></figure>
         <div id="split-calculation" aria-live="polite"></div>
         <details class="rank-details">
           <summary id="rank-summary">Compare all candidate gains</summary>
@@ -223,11 +226,28 @@
         </div>
       </div>
       <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Select an error cell, then use a parcel’s <strong>Trace</strong> link to see the decision that led there. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
-      <details class="panel depth-comparison">
-        <summary>Compare training and held-out accuracy by depth</summary>
+      <p class="transition">Try one question and then two. A tree can get better on its training rows and worse on new rows.</p>
+    </section>
+
+    <section class="chapter" id="stopping" aria-labelledby="stopping-title">
+      <p class="eyebrow">Control model complexity</p>
+      <h2 id="stopping-title">Where should the tree stop?</h2>
+      <p class="lede">Add questions when they help on unseen data. A tree <strong>underfits</strong> when it misses useful patterns. It can <strong>overfit</strong> when extra questions capture details specific to the training rows.</p>
+      <div class="panel depth-comparison">
+        <div class="panel-heading">
+          <div><h3>Compare depths on the same parcels</h3><p>Select a depth to update the tree and confusion matrix.</p></div>
+          <label class="regression-control">Minimum leaf size
+            <select id="stop-min-leaf"><option value="1">1 row</option><option value="2">2 rows</option><option value="3">3 rows</option><option value="4">4 rows</option></select>
+          </label>
+        </div>
         <div id="depth-comparison"></div>
-        <p class="small">A shallow tree can miss useful structure. A deeper tree can fit patterns specific to its training rows. This six-parcel holdout illustrates the tradeoff. Use validation on a larger sample to choose depth.</p>
-      </details>
+        <p id="depth-reading" class="small" aria-live="polite"></p>
+      </div>
+      <div class="explanation-grid">
+        <div><h3>When growth stops at a node</h3><p>A pure node can stop. A mixed node can also stop if it reaches the depth limit, can’t give both children the required number of rows, or has no eligible split with enough gain. These rules limit growth during fitting.</p></div>
+        <div><h3>How to choose the limit</h3><p>Compare depth and leaf-size settings using validation data or cross-validation. Keep an independent test set for the final estimate. When you use the six held-out parcels here to choose depth, they serve as validation data.</p></div>
+      </div>
+      <p><strong>Pruning is another option.</strong> Fit a larger tree, then remove branches whose improvement is too small to justify their added leaves. Tune how much to prune on validation data.</p>
       <p class="transition">Now look back at the fitted tree and ask how much each feature contributed to the reduction in training impurity.</p>
     </section>
 
@@ -235,6 +255,10 @@
       <p class="eyebrow">Attribute the reduction</p>
       <h2 id="importance-title">Give each feature credit</h2>
       <p class="lede">A feature earns credit every time the fitted tree uses it. Multiply the local gain by the share of <strong>all training rows</strong> that reached the node, then add the credits by feature.</p>
+      <div class="explanation-grid">
+        <div><h3>Why multiply by the root share?</h3><p>Pick one training row at random. It reaches a node of size <var>n</var> with probability <span class="formula">n/N</span>, where <var>N</var> is the root size. The split improves the label mix by its local gain for the rows that reach it. Averaged over all rows, its contribution is <span class="formula">(n/N) × local gain</span>.</p></div>
+        <div><h3>What do all those credits add up to?</h3><p>Each split replaces the parent’s impurity contribution with its children’s contributions. When you add the reductions, internal nodes cancel. What remains is the <strong>root impurity minus the weighted impurity of the final leaves</strong>.</p></div>
+      </div>
       <div class="panel">
         <div id="importance-bars"></div>
         <div class="table-wrap"><table>
@@ -242,6 +266,7 @@
           <thead><tr><th scope="col">Chosen split</th><th scope="col">Root share</th><th scope="col">Local gain</th><th scope="col">Credit</th></tr></thead>
           <tbody id="importance-rows"></tbody>
         </table></div>
+        <div id="importance-math" class="calc-lines" aria-live="polite"></div>
         <p id="importance-note" class="small" aria-live="polite"></p>
       </div>
       <p>Divide each feature’s credit by the total credit to report its share. One strong split near the root can earn more than several small splits. This score describes how <em>this fitted tree</em> reduced impurity on its training data.</p>
@@ -269,6 +294,10 @@
         </details>
       </div>
       <p>The cutoff search is the same: compare weighted child scores using only the rows in the immediate parent. The mean and MSE are recalculated inside each child. A fitted regression tree predicts one constant per leaf.</p>
+      <details class="teaching-note">
+        <summary>Why does the mean minimize squared error?</summary>
+        <p>For any constant prediction <var>c</var>, the average squared error equals <span class="formula">MSE at the mean + (c − mean)²</span>. That extra square is smallest at zero, which is exactly when <var>c</var> equals the mean. The tree uses that best constant separately in each child while choosing a split.</p>
+      </details>
       <p class="transition">Use the same rows to verify the arithmetic and the predictions in code.</p>
     </section>
 

@@ -24,6 +24,7 @@
   const candidateInput = get('candidate');
   const depthInput = get('tree-depth');
   const minLeafInput = get('min-leaf');
+  const stopLeafInput = get('stop-min-leaf');
   const traceInput = get('trace-parcel');
   const probabilityInput = get('review-probability');
   const regressionInput = get('regression-cutoff');
@@ -221,6 +222,7 @@
     const criterion = criterionInput.value;
     const result = results.find(entry => key(entry.split) === selected.candidate);
     renderSplitPlot(result);
+    renderWeightedVisual(result, criterion);
     const child = (label, rows, group) => '<div class="child ' + label.toLowerCase() + '"><h3>' + label +
       ' · ' + rowCount(group.n) + '</h3>' + chips(rows) + '<p>' + counts(group) + '</p>' +
       '<p class="arithmetic">' + groupFormula(group, criterion) + ' ≈ ' + number(group.score) + '</p></div>';
@@ -272,8 +274,30 @@
       TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X', 335, 173) + '</svg>');
   }
 
+  function renderWeightedVisual(result, criterion) {
+    const impurity = name(criterion);
+    const max = criterion === 'entropy' ? 1 : 0.5;
+    const total = result.parent.n;
+    const bands = [['Yes', result.leftStats], ['No', result.rightStats]];
+    const diagram = bands.map(([label, group]) => {
+      const share = group.n / total;
+      return '<div class="weighted-segment weighted-' + label.toLowerCase() + '" style="width:' +
+        (share * 100) + '%"><span class="weighted-fill" style="height:' + (group.score / max * 100) +
+        '%"></span><span class="weighted-edge-label">' + label + '</span></div>';
+    }).join('');
+    const contributions = bands.map(([label, group]) => '<div class="weighted-legend-item"><span class="weighted-swatch weighted-' +
+      label.toLowerCase() + '" aria-hidden="true"></span><span><strong>' + label + ' contribution</strong> <span class="arithmetic">' +
+      group.n + '/' + total + ' × ' + number(group.score) + ' ≈ ' + number(group.n / total * group.score) +
+      '</span></span></div>').join('');
+    write('weighted-visual', '<figcaption><strong>See the weighted average</strong><span class="small">Width is the child’s share of rows. Height is its ' +
+      impurity.toLowerCase() + '. Each shaded area represents that child’s contribution.</span></figcaption>' +
+      '<div class="weighted-areas" aria-hidden="true">' + diagram + '</div>' +
+      '<div class="weighted-legend">' + contributions + '</div>');
+  }
+
   function rebuildTree() {
     currentTree = fit(TRAIN, criterionInput.value, Number(depthInput.value), Number(minLeafInput.value));
+    stopLeafInput.value = minLeafInput.value;
     selected.node = 'root';
     const criterion = criterionInput.value;
     const correct = correctCount(currentTree, TRAIN);
@@ -331,16 +355,28 @@
       return '<span class="accuracy-bar" aria-hidden="true"><span style="width:' + percent(correct / size) +
         '"></span></span><span>' + correct + '/' + size + '</span>';
     }
-    const rows = [0, 1, 2].map(depth => {
+    const depths = [0, 1, 2, 3].map(depth => {
       const tree = fit(TRAIN, criterion, depth, minLeaf);
-      return '<tr' + (depth === Number(depthInput.value) ? ' class="is-selected"' : '') +
-        '><th scope="row">' + depth + '</th><td>' + metric(correctCount(tree, TRAIN), TRAIN.length) +
-        '</td><td>' + metric(correctCount(tree, HOLDOUT), HOLDOUT.length) + '</td></tr>';
+      return { depth, training: correctCount(tree, TRAIN), holdout: correctCount(tree, HOLDOUT) };
+    });
+    const rows = depths.map(({ depth, training, holdout }) => {
+      const active = depth === Number(depthInput.value);
+      return '<tr' + (active ? ' class="is-selected"' : '') +
+        '><th scope="row"><button type="button" class="depth-button" data-stop-depth="' + depth +
+        '" aria-label="Set maximum depth to ' + depth + '" aria-pressed="' + active + '">' + depth +
+        '</button></th><td>' + metric(training, TRAIN.length) +
+        '</td><td>' + metric(holdout, HOLDOUT.length) + '</td></tr>';
     });
     write('depth-comparison', '<div class="table-wrap"><table><caption class="sr-only">' +
       'Accuracy by maximum depth with current impurity criterion and minimum leaf size</caption>' +
       '<thead><tr><th scope="col">Max depth</th><th scope="col">Training</th><th scope="col">Held out</th></tr></thead><tbody>' +
       rows.join('') + '</tbody></table></div>');
+    const [, shallow, deeper] = depths;
+    get('depth-reading').textContent = shallow.training < deeper.training && shallow.holdout > deeper.holdout
+      ? 'Look at depths 1 and 2. Training improves from ' + shallow.training + '/' + TRAIN.length + ' to ' +
+        deeper.training + '/' + TRAIN.length + ', while held-out accuracy drops from ' + shallow.holdout + '/' +
+        HOLDOUT.length + ' to ' + deeper.holdout + '/' + HOLDOUT.length + '. Choose depth 1 between these two settings on this sample.'
+      : 'Changing the minimum leaf size can block some splits even when the depth limit would allow them. Compare held-out results across the settings.';
   }
 
   function renderEvaluation() {
@@ -381,18 +417,23 @@
     }).join(''));
     const nodes = [];
     function collect(node) {
-      if (!node.split) return;
+      if (!node.split) return node.stats.n / TRAIN.length * node.stats.score;
       nodes.push(node);
-      collect(node.left);
-      collect(node.right);
+      return collect(node.left) + collect(node.right);
     }
-    collect(currentTree);
+    const leafImpurity = collect(currentTree);
     write('importance-rows', nodes.length ? nodes.map(node => '<tr><th scope="row">' + question(node.split) +
-      '</th><td>' + node.stats.n + '/' + TRAIN.length + '</td><td>' + number(node.gain) + '</td><td>' +
+      '</th><td>' + node.stats.n + '/' + TRAIN.length + '</td><td>' + number(node.gain) + '</td><td class="arithmetic">' +
+      '(' + node.stats.n + '/' + TRAIN.length + ') × ' + number(node.gain) + ' ≈ ' +
       number(node.gain * node.stats.n / TRAIN.length) + '</td></tr>').join('') :
       '<tr><td colspan="4">The current tree has no splits to credit.</td></tr>');
-    get('importance-note').textContent = credit.total ? 'Total root-weighted credit: ' + number(credit.total) +
-      '. Feature shares use this total as their denominator.' : 'Increase depth to see how a split earns credit.';
+    const chosen = credit.y > 0 ? ['Packaging Y', credit.y] : ['Weight X', credit.x];
+    const share = credit.total ? '<p><strong>' + chosen[0] + ' share</strong> <span class="arithmetic">' +
+      number(chosen[1]) + ' ÷ ' + number(credit.total) + ' ≈ ' + percent(chosen[1] / credit.total) + '</span></p>' : '';
+    write('importance-math', '<p><strong>Root score − weighted leaf score</strong> <span class="arithmetic">' +
+      number(currentTree.stats.score) + ' − ' + number(leafImpurity) + ' ≈ ' + number(credit.total) + '</span></p>' + share);
+    get('importance-note').textContent = credit.total ? 'The tree-wide reduction is the sum of the split credits. Each feature’s percentage uses that sum as its denominator.' :
+      'With no impurity reduction to divide up, there are no percentage shares.';
   }
 
   function renderRegression() {
@@ -472,6 +513,17 @@
   });
   depthInput.addEventListener('change', rebuildTree);
   minLeafInput.addEventListener('change', rebuildTree);
+  stopLeafInput.addEventListener('change', () => {
+    minLeafInput.value = stopLeafInput.value;
+    rebuildTree();
+  });
+  get('depth-comparison').addEventListener('click', event => {
+    const button = event.target.closest('[data-stop-depth]');
+    if (!button) return;
+    depthInput.value = button.dataset.stopDepth;
+    rebuildTree();
+    get('depth-comparison').querySelector('[data-stop-depth="' + depthInput.value + '"]').focus({ preventScroll: true });
+  });
   traceInput.addEventListener('change', renderTree);
   get('tree-diagram').addEventListener('click', event => {
     const button = event.target.closest('[data-node]');

@@ -182,6 +182,41 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
 .split-chart .mark-auto { fill: var(--teal); }
 .split-chart .mark-review { fill: var(--rust); }
 .split-chart .grid { stroke: color-mix(in srgb, var(--line) 70%, var(--ink)); }
+.weighted-visual {
+  margin: 1.05rem 0;
+  padding: .75rem .85rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+}
+.weighted-visual figcaption > * { display: block; }
+.weighted-areas {
+  display: flex;
+  height: 5.25rem;
+  margin: .65rem 0;
+  border-block: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 55%, var(--surface));
+}
+.weighted-segment { position: relative; min-width: 0; }
+.weighted-segment + .weighted-segment { border-left: 1px dashed var(--muted); }
+.weighted-yes { --area: var(--teal); }
+.weighted-no { --area: var(--rust); }
+.weighted-fill {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--area) 37%, var(--surface));
+}
+.weighted-edge-label {
+  position: absolute;
+  inset: .15rem 0 auto;
+  text-align: center;
+  font-size: .85rem;
+  font-weight: 650;
+}
+.weighted-legend { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .35rem .8rem; }
+.weighted-legend-item { display: flex; align-items: baseline; gap: .35rem; font-size: .92rem; }
+.weighted-legend-item .arithmetic { display: block; }
+.weighted-swatch { flex: 0 0 .55rem; height: .55rem; background: var(--area); border-radius: .1rem; }
 .child { min-width: 0; padding: .8rem .85rem; background: var(--light); border-radius: .5rem; }
 .child.no { background: var(--warm); }
 .child h3 { margin-bottom: .35rem; }
@@ -230,10 +265,19 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
 .metric-grid strong { color: var(--teal); }
 .heldout-heading { align-items: baseline; margin-bottom: .3rem; }
 #heldout-note, #importance-note { margin-top: .7rem; }
-.depth-comparison { padding-block: .75rem; }
-.depth-comparison[open] { padding-bottom: 1rem; }
 .depth-comparison p { margin-top: .65rem; }
 .depth-comparison td { font-variant-numeric: tabular-nums; }
+.depth-button {
+  min-width: 2.2rem;
+  min-height: 2.05rem;
+  padding: .12rem .3rem;
+  color: var(--teal);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .3rem;
+  font-weight: 650;
+}
+.depth-button:hover, .depth-button[aria-pressed="true"] { border-color: var(--teal); background: var(--light); }
 .accuracy-bar {
   display: inline-block; width: clamp(2rem, 12vw, 7rem); height: .5rem;
   margin-right: .5rem; overflow: hidden; background: var(--line);
@@ -579,6 +623,7 @@ button.dt-node:focus-visible {
         <li><a href="#split">Find a split</a></li>
         <li><a href="#tree">Grow the tree</a></li>
         <li><a href="#evaluate">Evaluate on new data</a></li>
+        <li><a href="#stopping">Where to stop</a></li>
         <li><a href="#importance">Feature importance</a></li>
         <li><a href="#regression">Predict a number</a></li>
         <li><a href="#python">Verify in Python</a></li>
@@ -595,6 +640,7 @@ button.dt-node:focus-visible {
       <option value="split">Find a split</option>
       <option value="tree">Grow the tree</option>
       <option value="evaluate">Evaluate on new data</option>
+      <option value="stopping">Where to stop</option>
       <option value="importance">Feature importance</option>
       <option value="regression">Predict a number</option>
       <option value="python">Verify in Python</option>
@@ -766,6 +812,7 @@ button.dt-node:focus-visible {
         </div>
         <div id="split-plot" class="split-plot"></div>
         <div class="split-children" id="split-children"></div>
+        <figure id="weighted-visual" class="weighted-visual"></figure>
         <div id="split-calculation" aria-live="polite"></div>
         <details class="rank-details">
           <summary id="rank-summary">Compare all candidate gains</summary>
@@ -846,11 +893,28 @@ button.dt-node:focus-visible {
         </div>
       </div>
       <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Select an error cell, then use a parcel’s <strong>Trace</strong> link to see the decision that led there. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
-      <details class="panel depth-comparison">
-        <summary>Compare training and held-out accuracy by depth</summary>
+      <p class="transition">Try one question and then two. A tree can get better on its training rows and worse on new rows.</p>
+    </section>
+
+    <section class="chapter" id="stopping" aria-labelledby="stopping-title">
+      <p class="eyebrow">Control model complexity</p>
+      <h2 id="stopping-title">Where should the tree stop?</h2>
+      <p class="lede">Add questions when they help on unseen data. A tree <strong>underfits</strong> when it misses useful patterns. It can <strong>overfit</strong> when extra questions capture details specific to the training rows.</p>
+      <div class="panel depth-comparison">
+        <div class="panel-heading">
+          <div><h3>Compare depths on the same parcels</h3><p>Select a depth to update the tree and confusion matrix.</p></div>
+          <label class="regression-control">Minimum leaf size
+            <select id="stop-min-leaf"><option value="1">1 row</option><option value="2">2 rows</option><option value="3">3 rows</option><option value="4">4 rows</option></select>
+          </label>
+        </div>
         <div id="depth-comparison"></div>
-        <p class="small">A shallow tree can miss useful structure. A deeper tree can fit patterns specific to its training rows. This six-parcel holdout illustrates the tradeoff. Use validation on a larger sample to choose depth.</p>
-      </details>
+        <p id="depth-reading" class="small" aria-live="polite"></p>
+      </div>
+      <div class="explanation-grid">
+        <div><h3>When growth stops at a node</h3><p>A pure node can stop. A mixed node can also stop if it reaches the depth limit, can’t give both children the required number of rows, or has no eligible split with enough gain. These rules limit growth during fitting.</p></div>
+        <div><h3>How to choose the limit</h3><p>Compare depth and leaf-size settings using validation data or cross-validation. Keep an independent test set for the final estimate. When you use the six held-out parcels here to choose depth, they serve as validation data.</p></div>
+      </div>
+      <p><strong>Pruning is another option.</strong> Fit a larger tree, then remove branches whose improvement is too small to justify their added leaves. Tune how much to prune on validation data.</p>
       <p class="transition">Now look back at the fitted tree and ask how much each feature contributed to the reduction in training impurity.</p>
     </section>
 
@@ -858,6 +922,10 @@ button.dt-node:focus-visible {
       <p class="eyebrow">Attribute the reduction</p>
       <h2 id="importance-title">Give each feature credit</h2>
       <p class="lede">A feature earns credit every time the fitted tree uses it. Multiply the local gain by the share of <strong>all training rows</strong> that reached the node, then add the credits by feature.</p>
+      <div class="explanation-grid">
+        <div><h3>Why multiply by the root share?</h3><p>Pick one training row at random. It reaches a node of size <var>n</var> with probability <span class="formula">n/N</span>, where <var>N</var> is the root size. The split improves the label mix by its local gain for the rows that reach it. Averaged over all rows, its contribution is <span class="formula">(n/N) × local gain</span>.</p></div>
+        <div><h3>What do all those credits add up to?</h3><p>Each split replaces the parent’s impurity contribution with its children’s contributions. When you add the reductions, internal nodes cancel. What remains is the <strong>root impurity minus the weighted impurity of the final leaves</strong>.</p></div>
+      </div>
       <div class="panel">
         <div id="importance-bars"></div>
         <div class="table-wrap"><table>
@@ -865,6 +933,7 @@ button.dt-node:focus-visible {
           <thead><tr><th scope="col">Chosen split</th><th scope="col">Root share</th><th scope="col">Local gain</th><th scope="col">Credit</th></tr></thead>
           <tbody id="importance-rows"></tbody>
         </table></div>
+        <div id="importance-math" class="calc-lines" aria-live="polite"></div>
         <p id="importance-note" class="small" aria-live="polite"></p>
       </div>
       <p>Divide each feature’s credit by the total credit to report its share. One strong split near the root can earn more than several small splits. This score describes how <em>this fitted tree</em> reduced impurity on its training data.</p>
@@ -892,6 +961,10 @@ button.dt-node:focus-visible {
         </details>
       </div>
       <p>The cutoff search is the same: compare weighted child scores using only the rows in the immediate parent. The mean and MSE are recalculated inside each child. A fitted regression tree predicts one constant per leaf.</p>
+      <details class="teaching-note">
+        <summary>Why does the mean minimize squared error?</summary>
+        <p>For any constant prediction <var>c</var>, the average squared error equals <span class="formula">MSE at the mean + (c − mean)²</span>. That extra square is smallest at zero, which is exactly when <var>c</var> equals the mean. The tree uses that best constant separately in each child while choosing a split.</p>
+      </details>
       <p class="transition">Use the same rows to verify the arithmetic and the predictions in code.</p>
     </section>
 
@@ -1440,6 +1513,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   const candidateInput = get('candidate');
   const depthInput = get('tree-depth');
   const minLeafInput = get('min-leaf');
+  const stopLeafInput = get('stop-min-leaf');
   const traceInput = get('trace-parcel');
   const probabilityInput = get('review-probability');
   const regressionInput = get('regression-cutoff');
@@ -1637,6 +1711,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     const criterion = criterionInput.value;
     const result = results.find(entry => key(entry.split) === selected.candidate);
     renderSplitPlot(result);
+    renderWeightedVisual(result, criterion);
     const child = (label, rows, group) => '<div class="child ' + label.toLowerCase() + '"><h3>' + label +
       ' · ' + rowCount(group.n) + '</h3>' + chips(rows) + '<p>' + counts(group) + '</p>' +
       '<p class="arithmetic">' + groupFormula(group, criterion) + ' ≈ ' + number(group.score) + '</p></div>';
@@ -1688,8 +1763,30 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
       TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X', 335, 173) + '</svg>');
   }
 
+  function renderWeightedVisual(result, criterion) {
+    const impurity = name(criterion);
+    const max = criterion === 'entropy' ? 1 : 0.5;
+    const total = result.parent.n;
+    const bands = [['Yes', result.leftStats], ['No', result.rightStats]];
+    const diagram = bands.map(([label, group]) => {
+      const share = group.n / total;
+      return '<div class="weighted-segment weighted-' + label.toLowerCase() + '" style="width:' +
+        (share * 100) + '%"><span class="weighted-fill" style="height:' + (group.score / max * 100) +
+        '%"></span><span class="weighted-edge-label">' + label + '</span></div>';
+    }).join('');
+    const contributions = bands.map(([label, group]) => '<div class="weighted-legend-item"><span class="weighted-swatch weighted-' +
+      label.toLowerCase() + '" aria-hidden="true"></span><span><strong>' + label + ' contribution</strong> <span class="arithmetic">' +
+      group.n + '/' + total + ' × ' + number(group.score) + ' ≈ ' + number(group.n / total * group.score) +
+      '</span></span></div>').join('');
+    write('weighted-visual', '<figcaption><strong>See the weighted average</strong><span class="small">Width is the child’s share of rows. Height is its ' +
+      impurity.toLowerCase() + '. Each shaded area represents that child’s contribution.</span></figcaption>' +
+      '<div class="weighted-areas" aria-hidden="true">' + diagram + '</div>' +
+      '<div class="weighted-legend">' + contributions + '</div>');
+  }
+
   function rebuildTree() {
     currentTree = fit(TRAIN, criterionInput.value, Number(depthInput.value), Number(minLeafInput.value));
+    stopLeafInput.value = minLeafInput.value;
     selected.node = 'root';
     const criterion = criterionInput.value;
     const correct = correctCount(currentTree, TRAIN);
@@ -1747,16 +1844,28 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
       return '<span class="accuracy-bar" aria-hidden="true"><span style="width:' + percent(correct / size) +
         '"></span></span><span>' + correct + '/' + size + '</span>';
     }
-    const rows = [0, 1, 2].map(depth => {
+    const depths = [0, 1, 2, 3].map(depth => {
       const tree = fit(TRAIN, criterion, depth, minLeaf);
-      return '<tr' + (depth === Number(depthInput.value) ? ' class="is-selected"' : '') +
-        '><th scope="row">' + depth + '</th><td>' + metric(correctCount(tree, TRAIN), TRAIN.length) +
-        '</td><td>' + metric(correctCount(tree, HOLDOUT), HOLDOUT.length) + '</td></tr>';
+      return { depth, training: correctCount(tree, TRAIN), holdout: correctCount(tree, HOLDOUT) };
+    });
+    const rows = depths.map(({ depth, training, holdout }) => {
+      const active = depth === Number(depthInput.value);
+      return '<tr' + (active ? ' class="is-selected"' : '') +
+        '><th scope="row"><button type="button" class="depth-button" data-stop-depth="' + depth +
+        '" aria-label="Set maximum depth to ' + depth + '" aria-pressed="' + active + '">' + depth +
+        '</button></th><td>' + metric(training, TRAIN.length) +
+        '</td><td>' + metric(holdout, HOLDOUT.length) + '</td></tr>';
     });
     write('depth-comparison', '<div class="table-wrap"><table><caption class="sr-only">' +
       'Accuracy by maximum depth with current impurity criterion and minimum leaf size</caption>' +
       '<thead><tr><th scope="col">Max depth</th><th scope="col">Training</th><th scope="col">Held out</th></tr></thead><tbody>' +
       rows.join('') + '</tbody></table></div>');
+    const [, shallow, deeper] = depths;
+    get('depth-reading').textContent = shallow.training < deeper.training && shallow.holdout > deeper.holdout
+      ? 'Look at depths 1 and 2. Training improves from ' + shallow.training + '/' + TRAIN.length + ' to ' +
+        deeper.training + '/' + TRAIN.length + ', while held-out accuracy drops from ' + shallow.holdout + '/' +
+        HOLDOUT.length + ' to ' + deeper.holdout + '/' + HOLDOUT.length + '. Choose depth 1 between these two settings on this sample.'
+      : 'Changing the minimum leaf size can block some splits even when the depth limit would allow them. Compare held-out results across the settings.';
   }
 
   function renderEvaluation() {
@@ -1797,18 +1906,23 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     }).join(''));
     const nodes = [];
     function collect(node) {
-      if (!node.split) return;
+      if (!node.split) return node.stats.n / TRAIN.length * node.stats.score;
       nodes.push(node);
-      collect(node.left);
-      collect(node.right);
+      return collect(node.left) + collect(node.right);
     }
-    collect(currentTree);
+    const leafImpurity = collect(currentTree);
     write('importance-rows', nodes.length ? nodes.map(node => '<tr><th scope="row">' + question(node.split) +
-      '</th><td>' + node.stats.n + '/' + TRAIN.length + '</td><td>' + number(node.gain) + '</td><td>' +
+      '</th><td>' + node.stats.n + '/' + TRAIN.length + '</td><td>' + number(node.gain) + '</td><td class="arithmetic">' +
+      '(' + node.stats.n + '/' + TRAIN.length + ') × ' + number(node.gain) + ' ≈ ' +
       number(node.gain * node.stats.n / TRAIN.length) + '</td></tr>').join('') :
       '<tr><td colspan="4">The current tree has no splits to credit.</td></tr>');
-    get('importance-note').textContent = credit.total ? 'Total root-weighted credit: ' + number(credit.total) +
-      '. Feature shares use this total as their denominator.' : 'Increase depth to see how a split earns credit.';
+    const chosen = credit.y > 0 ? ['Packaging Y', credit.y] : ['Weight X', credit.x];
+    const share = credit.total ? '<p><strong>' + chosen[0] + ' share</strong> <span class="arithmetic">' +
+      number(chosen[1]) + ' ÷ ' + number(credit.total) + ' ≈ ' + percent(chosen[1] / credit.total) + '</span></p>' : '';
+    write('importance-math', '<p><strong>Root score − weighted leaf score</strong> <span class="arithmetic">' +
+      number(currentTree.stats.score) + ' − ' + number(leafImpurity) + ' ≈ ' + number(credit.total) + '</span></p>' + share);
+    get('importance-note').textContent = credit.total ? 'The tree-wide reduction is the sum of the split credits. Each feature’s percentage uses that sum as its denominator.' :
+      'With no impurity reduction to divide up, there are no percentage shares.';
   }
 
   function renderRegression() {
@@ -1888,6 +2002,17 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   });
   depthInput.addEventListener('change', rebuildTree);
   minLeafInput.addEventListener('change', rebuildTree);
+  stopLeafInput.addEventListener('change', () => {
+    minLeafInput.value = stopLeafInput.value;
+    rebuildTree();
+  });
+  get('depth-comparison').addEventListener('click', event => {
+    const button = event.target.closest('[data-stop-depth]');
+    if (!button) return;
+    depthInput.value = button.dataset.stopDepth;
+    rebuildTree();
+    get('depth-comparison').querySelector('[data-stop-depth="' + depthInput.value + '"]').focus({ preventScroll: true });
+  });
   traceInput.addEventListener('change', renderTree);
   get('tree-diagram').addEventListener('click', event => {
     const button = event.target.closest('[data-node]');

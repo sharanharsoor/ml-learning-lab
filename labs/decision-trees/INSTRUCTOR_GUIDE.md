@@ -28,14 +28,30 @@ For an exact numeric search, sort the distinct weights and test a midpoint betwe
 
 Follow the five parcels with $X>3.5$. Ask whether packaging becomes useful here even though it lost at the root. In this branch, A sends the remaining Auto parcel to one child and B sends all four Review parcels to the other. The left branch of the root was already pure. Select the internal node to compare its weighted child score and local gain. Change the depth between one split and two levels to show when another question is allowed. Trace H5 from the matrix to show that 100% Auto in a leaf may represent just one training row.
 
-Evaluate on the six held-out parcels. With Review as the positive class, the two-level tree gives **TN 2, FP 1, FN 1, TP 2** and accuracy **4/6**. A Review parcel at $X=6$, $Y=A$ is missed. An Auto parcel at $X=7$, $Y=B$ is flagged. The stump gives **TN 2, FP 1, FN 0, TP 3** and accuracy **5/6**. The deeper tree fits the training labels better and scores lower on this small held-out set. Ask which kind of mistake matters more at this desk before moving to the [metrics playground](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/) in a later lesson.
+Evaluate on the six held-out parcels. With Review as the positive class, the two-level tree gives **TN 2, FP 1, FN 1, TP 2**. A Review parcel at $X=6$, $Y=A$ is missed. An Auto parcel at $X=7$, $Y=B$ is flagged. Ask which kind of mistake matters more at this desk before moving to the [metrics playground](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/) in a later lesson.
+
+## Decide where to stop
+
+Open [Where to stop](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#stopping). Compare the same training and held-out parcels at each depth.
+
+- **Depth 0:** One leaf predicts Auto by the lab's tie rule. Training accuracy is **4/8**, and held-out accuracy is **3/6**. A single class for every parcel misses useful structure.
+- **Depth 1:** The weight question raises training accuracy to **7/8** and held-out accuracy to **5/6**. Its held-out matrix is **TN 2, FP 1, FN 0, TP 3**.
+- **Depth 2:** The extra packaging question gives **8/8** on training and **4/6** on held-out parcels. The perfectly pure one-row leaf illustrates how a more detailed rule can fit the training set and still do worse on new cases.
+
+In class, ask what a minimum of two rows per leaf would do to that packaging split. A depth limit, minimum leaf size, or required improvement can stop growth early. Pruning starts with a larger tree and cuts back weak branches. These six parcels illustrate the tradeoff. If learners use their scores to choose depth or pruning, those parcels serve as validation data. Reserve an independent test set for the final evaluation.
 
 ## Give each feature credit
 
-An impurity-based importance score adds the gains at a feature's splits, weighting each local gain by the fraction of training rows that reached that node. For the two-level entropy tree, X gets **0.5488** at the root. Y gets $(5/8)(0.7219)\approx0.4512$ on the right. These sum to 1 bit, so the normalized shares are **54.88% X** and **45.12% Y**. Ask what would happen if the Y split handled fewer parcels with the same local gain. The shares describe how this fitted tree reduced training impurity.
+An impurity-based importance score asks how much each feature reduced impurity across the original training set. Choose a training parcel at random. A split low in the tree improves the score only for the fraction of parcels that reach its node. A node with $n$ out of $N$ training rows therefore contributes $(n/N)$ times its local improvement. Credit that value to the feature used at the node and add all its contributions.
+
+For the two-level entropy tree, X gets $(8/8)(1-0.4512)\approx\mathbf{0.5488}$ bits. Y gets $(5/8)(0.7219-0)\approx\mathbf{0.4512}$ bits. When the gains are added, the impurity of each intermediate node cancels against its contribution to its parent's child score. The total is root impurity minus the root-weighted impurity of the leaves. Here the leaves are pure, so the total is $1-0=1$ bit. Divide each feature's credit by the total gain to get **54.88% X** and **45.12% Y**. Those percentages describe the tree's training impurity reduction.
 
 ## Predict minutes and run the code
 
-Switch the target to processing time. Each leaf now predicts the mean of the minutes it contains. The root predicts **5 minutes** and its mean squared error is **7 minutes²**. At the same root cut, the two means are **2** and **6.8 minutes**. The child errors are **0** and **2.56 minutes²**, so the weighted error is **1.6 minutes²** and the reduction is **5.4 minutes²**. Keep the weight question visible while changing the target so learners can see that the partition stays the same and the score and predictions change.
+Switch the target to processing time. Each leaf predicts the mean of the minutes it contains. For any constant guess $c$, its MSE equals the MSE at the mean plus $(c-\bar y)^2$. Guessing the mean makes that extra term zero.
+
+The root predicts **5 minutes** with MSE **7 minutes²**. At the same root cut, the two child predictions are **2** and **6.8 minutes**. The child errors are **0** and **2.56 minutes²**, so the weighted error is $(3/8)(0)+(5/8)(2.56)=\mathbf{1.6}$ minutes². The reduction is **5.4 minutes²**. Keep the weight question visible while changing the target so learners can see that the partition stays the same and the score and predictions change.
+
+Apply the same stopping controls to regression. A deeper tree can keep reducing training MSE by producing averages for smaller groups. Compare validation MSE or RMSE across depths before choosing one. The six held-out parcels have routing labels only, so they cannot measure processing-time error.
 
 Run the embedded Python example after learners have predicted its output. Compare the printed gains, held-out matrix, and weighted regression error with the browser view. Load the in-browser Python runtime before presenting if you plan to execute the code live.

@@ -172,6 +172,41 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
 .split-chart .mark-auto { fill: var(--teal); }
 .split-chart .mark-review { fill: var(--rust); }
 .split-chart .grid { stroke: color-mix(in srgb, var(--line) 70%, var(--ink)); }
+.weighted-visual {
+  margin: 1.05rem 0;
+  padding: .75rem .85rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+}
+.weighted-visual figcaption > * { display: block; }
+.weighted-areas {
+  display: flex;
+  height: 5.25rem;
+  margin: .65rem 0;
+  border-block: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 55%, var(--surface));
+}
+.weighted-segment { position: relative; min-width: 0; }
+.weighted-segment + .weighted-segment { border-left: 1px dashed var(--muted); }
+.weighted-yes { --area: var(--teal); }
+.weighted-no { --area: var(--rust); }
+.weighted-fill {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--area) 37%, var(--surface));
+}
+.weighted-edge-label {
+  position: absolute;
+  inset: .15rem 0 auto;
+  text-align: center;
+  font-size: .85rem;
+  font-weight: 650;
+}
+.weighted-legend { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .35rem .8rem; }
+.weighted-legend-item { display: flex; align-items: baseline; gap: .35rem; font-size: .92rem; }
+.weighted-legend-item .arithmetic { display: block; }
+.weighted-swatch { flex: 0 0 .55rem; height: .55rem; background: var(--area); border-radius: .1rem; }
 .child { min-width: 0; padding: .8rem .85rem; background: var(--light); border-radius: .5rem; }
 .child.no { background: var(--warm); }
 .child h3 { margin-bottom: .35rem; }
@@ -220,10 +255,19 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
 .metric-grid strong { color: var(--teal); }
 .heldout-heading { align-items: baseline; margin-bottom: .3rem; }
 #heldout-note, #importance-note { margin-top: .7rem; }
-.depth-comparison { padding-block: .75rem; }
-.depth-comparison[open] { padding-bottom: 1rem; }
 .depth-comparison p { margin-top: .65rem; }
 .depth-comparison td { font-variant-numeric: tabular-nums; }
+.depth-button {
+  min-width: 2.2rem;
+  min-height: 2.05rem;
+  padding: .12rem .3rem;
+  color: var(--teal);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .3rem;
+  font-weight: 650;
+}
+.depth-button:hover, .depth-button[aria-pressed="true"] { border-color: var(--teal); background: var(--light); }
 .accuracy-bar {
   display: inline-block; width: clamp(2rem, 12vw, 7rem); height: .5rem;
   margin-right: .5rem; overflow: hidden; background: var(--line);
