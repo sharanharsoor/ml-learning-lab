@@ -770,6 +770,329 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
   .deep-graph-depth strong { font-size: 1.5rem; }
 }
 
+.importance-explorer {
+  --importance-tone: var(--teal);
+  --importance-z: #574981;
+  container: importance-explorer / inline-size;
+}
+
+.importance-explorer[data-feature="x"],
+.importance-explorer :is([data-feature="x"], [data-importance-feature="x"]) {
+  --importance-tone: var(--teal);
+}
+
+.importance-explorer[data-feature="y"],
+.importance-explorer :is([data-feature="y"], [data-importance-feature="y"]) {
+  --importance-tone: var(--rust);
+}
+
+.importance-explorer[data-feature="z"],
+.importance-explorer :is([data-feature="z"], [data-importance-feature="z"]) {
+  --importance-tone: var(--importance-z);
+}
+
+.importance-explorer .importance-explorer-layout {
+  display: grid;
+  align-items: start;
+  gap: 1.2rem;
+}
+
+.importance-explorer .importance-explorer-layout > * {
+  min-width: 0;
+}
+
+.importance-explorer .deep-graph-card[data-feature] {
+  border-inline-start: 3px solid var(--importance-tone);
+}
+
+.importance-explorer .deep-graph-card[data-feature].is-contributor {
+  border-color: var(--importance-tone);
+  border-style: solid;
+  background: color-mix(in srgb, var(--importance-tone) 9%, var(--surface));
+  color: var(--ink);
+}
+
+.importance-explorer .deep-graph-card[data-feature].is-focus {
+  border-color: var(--importance-tone);
+  border-style: solid;
+  background: var(--importance-tone);
+  color: var(--surface);
+}
+
+.importance-explorer .deep-graph-card[data-feature].is-focus :is(.deep-graph-card-title, .deep-graph-card-note) {
+  color: inherit;
+}
+
+.importance-explorer .deep-graph-keymark--focus {
+  background: var(--importance-tone);
+}
+
+.importance-explorer .deep-graph-keymark--contributor {
+  border: 2px solid var(--importance-tone);
+  background: color-mix(in srgb, var(--importance-tone) 9%, var(--surface));
+}
+
+.importance-explorer .deep-graph-card[data-feature] .deep-graph-credit {
+  color: var(--importance-tone);
+  font-variant-numeric: tabular-nums;
+}
+
+.importance-explorer .deep-graph-card[data-feature].is-focus .deep-graph-credit {
+  color: inherit;
+}
+
+.importance-explorer .importance-feature-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .65rem 0;
+}
+
+.importance-explorer [data-importance-feature] {
+  min-height: 2.75rem;
+  border: 1px solid var(--line);
+  border-radius: .42rem;
+  padding: .35rem .65rem;
+  background: var(--surface);
+  color: var(--importance-tone);
+  font-size: .9rem;
+  font-weight: 670;
+  line-height: 1.2;
+}
+
+.importance-explorer [data-importance-feature]:hover {
+  border-color: var(--importance-tone);
+  box-shadow: none;
+}
+
+.importance-explorer [data-importance-feature][aria-pressed="true"] {
+  border-color: var(--importance-tone);
+  background: var(--importance-tone);
+  color: var(--surface);
+}
+
+.importance-explorer .importance-calculations {
+  display: grid;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.importance-explorer .importance-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: .2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.importance-explorer .importance-factor {
+  display: grid;
+  align-content: center;
+  gap: .08rem;
+  min-width: 0;
+  padding: .44rem .31rem;
+  border: 1px solid var(--line);
+  border-radius: .38rem;
+  background: var(--surface);
+  text-align: center;
+  color: var(--muted);
+  font-size: .81rem;
+  line-height: 1.23;
+  overflow-wrap: anywhere;
+}
+
+.importance-explorer .importance-factor strong {
+  color: var(--ink);
+  font-size: clamp(.92rem, 3.2cqw, 1.13rem);
+}
+
+.importance-explorer .importance-factor small {
+  font-size: .76rem;
+}
+
+.importance-explorer .importance-factor:last-child {
+  border-color: var(--importance-tone);
+  background: color-mix(in srgb, var(--importance-tone) 8%, var(--surface));
+  color: var(--importance-tone);
+}
+
+.importance-explorer .importance-factor:last-child strong {
+  color: inherit;
+}
+
+.importance-explorer .importance-operator {
+  align-self: center;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.importance-explorer .importance-reach {
+  display: block;
+  height: .58rem;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: var(--line);
+}
+
+.importance-explorer .importance-reach-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--importance-tone);
+}
+
+.importance-explorer .importance-credits {
+  display: grid;
+  gap: .32rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.importance-explorer .importance-credit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .16rem .55rem;
+  min-width: 0;
+  width: 100%;
+  padding: .39rem .52rem;
+  border: 1px solid var(--line);
+  border-radius: .38rem;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  font-size: .91rem;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+.importance-explorer button.importance-credit-row:hover,
+.importance-explorer .importance-credit-row[aria-current="true"] {
+  border-color: var(--importance-tone);
+}
+
+.importance-explorer .importance-credit-row.is-contributor {
+  border-inline-start: 3px solid var(--importance-tone);
+  background: color-mix(in srgb, var(--importance-tone) 8%, var(--surface));
+}
+
+.importance-explorer .importance-credit-row strong {
+  color: var(--importance-tone);
+}
+
+.importance-explorer .importance-credit-label {
+  justify-self: start;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.importance-explorer .importance-credit-rule { text-decoration: underline; text-underline-offset: .17em; }
+.importance-explorer .importance-credit-inputs { display: block; color: var(--muted); font-size: .81rem; }
+
+.importance-explorer .importance-credit-label:hover,
+.importance-explorer .importance-credit-label[aria-pressed="true"] {
+  color: var(--importance-tone);
+}
+
+.importance-explorer .importance-credit-meter {
+  display: block;
+  grid-column: 1 / -1;
+  height: .48rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--line) 55%, var(--surface));
+}
+
+.importance-explorer .importance-credit-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--importance-tone);
+}
+
+.importance-explorer .importance-feature-total {
+  padding: .65rem .78rem;
+  border-inline-start: 3px solid var(--importance-tone);
+  border-radius: .38rem;
+  background: color-mix(in srgb, var(--importance-tone) 8%, var(--surface));
+  font-variant-numeric: tabular-nums;
+}
+
+.importance-explorer .importance-feature-total :is(strong, .arithmetic) {
+  color: var(--importance-tone);
+}
+
+.importance-explorer .importance-feature-total .arithmetic {
+  overflow-wrap: anywhere;
+}
+
+.importance-explorer .importance-sum-meter {
+  display: flex;
+  height: .6rem;
+  margin: .48rem 0;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: var(--line);
+}
+.importance-explorer .importance-sum-meter > span {
+  flex: none;
+  background: var(--importance-tone);
+  box-shadow: inset -1px 0 var(--surface);
+  opacity: .7;
+}
+.importance-explorer .importance-sum-meter > span:nth-child(2n) { opacity: 1; }
+
+@container importance-explorer (min-width: 43rem) {
+  .importance-explorer .importance-explorer-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: clamp(1.15rem, 2cqw, 1.65rem);
+  }
+
+  .importance-explorer .importance-flow {
+    gap: .34rem;
+  }
+
+  .importance-explorer .importance-factor {
+    font-size: .88rem;
+  }
+}
+
+@media (min-height: 62rem) {
+  @container importance-explorer (min-width: 43rem) {
+    .importance-explorer .importance-calculations {
+      position: sticky;
+      top: 5.25rem;
+    }
+
+    .teaching .importance-explorer .importance-calculations {
+      top: 8.65rem;
+    }
+  }
+}
+
+.importance-explorer .importance-root-share {
+  display: grid;
+  gap: .15rem;
+  margin-top: .5rem;
+}
+
+.importance-explorer .importance-flow { margin-top: .55rem; }
+.importance-explorer .importance-header { align-items: end; }
+.importance-explorer .importance-jump { display: inline-block; margin: 0 0 .65rem; }
+#importance-calculations, #importance-diagram { scroll-margin-top: 9rem; }
+@container importance-explorer (min-width: 43rem) {
+  .importance-explorer .importance-jump { display: none; }
+}
+
 .gini-controls { margin-bottom: 1.25rem; max-width: 37rem; }
 .gini-presets { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .75rem; }
 .gini-presets .button[aria-pressed="true"] { background: var(--light); border-color: var(--teal); }
@@ -821,6 +1144,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
         <li><a href="#evaluate">Evaluate on new data</a></li>
         <li><a href="#stopping">Where to stop</a></li>
         <li><a href="#importance">Feature importance</a></li>
+        <li><a href="#deep-importance">Feature credit at depth</a></li>
         <li><a href="#regression">Predict a number</a></li>
         <li><a href="#python">Verify in Python</a></li>
       </ol>
@@ -839,6 +1163,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
       <option value="evaluate">Evaluate on new data</option>
       <option value="stopping">Where to stop</option>
       <option value="importance">Feature importance</option>
+      <option value="deep-importance">Feature credit at depth</option>
       <option value="regression">Predict a number</option>
       <option value="python">Verify in Python</option>
     </select>
@@ -1171,8 +1496,56 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
         <p id="importance-note" class="small" aria-live="polite"></p>
       </div>
       <p>Divide each feature’s credit by the total credit to report its share. One strong split near the root can earn more than several small splits. This score describes how <em>this fitted tree</em> reduced impurity on its training data.</p>
-      <p class="transition">What changes if we ask the same parcels for a number, such as processing time?</p>
+      <p class="transition">Now follow a feature that <a href="#deep-importance">appears three times in a deeper tree</a> and add up its contributions.</p>
     </section>
+
+        <section class="chapter" id="deep-importance" aria-labelledby="deep-importance-title">
+      <p class="eyebrow">Add repeated split contributions</p>
+      <h2 id="deep-importance-title">Feature importance in a deeper tree</h2>
+      <p class="lede">A new batch of 20 synthetic parcels has three features: weight <var>X</var>, packaging <var>Y</var>, and scan score <var>Z</var>. Click a split to see its credit. Choose a feature to see all of its split credits add up.</p>
+
+      <div class="panel importance-explorer">
+        <div class="panel-heading importance-header">
+          <div>
+            <h3>Which splits earn credit?</h3>
+            <p>Root at depth 0. Each split’s credit is its local entropy gain × its share of root rows.</p>
+          </div>
+          <label class="regression-control">Maximum split depth
+            <select id="importance-depth"><option value="4">4</option><option value="5" selected>5</option></select>
+          </label>
+        </div>
+        <div class="importance-feature-buttons" role="group" aria-label="Select a feature to total">
+          <button type="button" data-importance-feature="x" aria-pressed="true">Weight X <span></span></button>
+          <button type="button" data-importance-feature="y" aria-pressed="false">Packaging Y <span></span></button>
+          <button type="button" data-importance-feature="z" aria-pressed="false">Scan score Z <span></span></button>
+        </div>
+        <a class="importance-jump" href="#importance-calculations">Jump to the calculation</a>
+        <div class="importance-explorer-layout">
+          <div id="importance-diagram"></div>
+          <div class="importance-calculations" id="importance-calculations">
+            <div id="importance-selected-split" aria-live="polite"></div>
+            <div>
+              <h3>Credit from each split</h3>
+              <p class="small">The bars use the same scale. Select a row to inspect that split.</p>
+            </div>
+            <ul id="importance-split-credits" class="importance-credits"></ul>
+            <div id="importance-feature-total" class="importance-feature-total" aria-live="polite"></div>
+            <a class="importance-jump" href="#importance-diagram">Back to the tree</a>
+          </div>
+        </div>
+        <details class="teaching-note">
+          <summary>Show the 20 training rows</summary>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Synthetic training parcels for the feature importance example</caption>
+            <thead><tr><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z</th><th scope="col">Route</th></tr></thead>
+            <tbody id="importance-training-rows"></tbody>
+          </table></div>
+        </details>
+      </div>
+      <p>Try keeping <strong>Weight X</strong> selected while switching from depth 4 to depth 5. Its three splits keep the same combined credit. The scan split adds to the tree’s total credit, so Weight’s percentage gets smaller.</p>
+      <p class="transition">Next, see how a tree changes when the target is a number.</p>
+    </section>
+
 
     <section class="chapter" id="regression" aria-labelledby="regression-title">
       <p class="eyebrow">Use the same inputs, change the target</p>
@@ -1360,6 +1733,14 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   ];
   const DEEP_TRAIN = [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]
     .map((label, index) => ({ id: 'D' + (index + 1), x: index + 1, y: 'A', label }));
+  const importancePackaging = 'AABAABBBABAAABBAAAAA';
+  const importanceScanScores = '33242422224244223423';
+  const IMPORTANCE_TRAIN = Array.from('11100001011011101111', (label, index) => ({
+    x: index + 1,
+    y: importancePackaging[index],
+    z: Number(importanceScanScores[index]),
+    label: Number(label),
+  }));
 
   function entropy(p) {
     if (p === 0 || p === 1) return 0;
@@ -1392,12 +1773,16 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   function candidates(rows) {
-    const values = [...new Set(rows.map(row => row.x))].sort((a, b) => a - b);
-    const splits = values.slice(1).map((next, index) => {
-      const previous = values[index];
-      const midpoint = previous / 2 + next / 2;
-      const threshold = midpoint >= previous && midpoint < next ? midpoint : previous;
-      return { feature: 'x', threshold };
+    const splits = ['x', 'z'].flatMap(feature => {
+      const readings = rows.map(row => row[feature]);
+      if (!readings.every(Number.isFinite)) return [];
+      const values = [...new Set(readings)].sort((a, b) => a - b);
+      return values.slice(1).map((next, index) => {
+        const previous = values[index];
+        const midpoint = previous / 2 + next / 2;
+        const threshold = midpoint >= previous && midpoint < next ? midpoint : previous;
+        return { feature, threshold };
+      });
     });
     if (rows.some(row => row.y === 'A') && rows.some(row => row.y === 'B')) {
       splits.push({ feature: 'y', threshold: 'A' });
@@ -1406,7 +1791,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   function goesLeft(row, split) {
-    return split.feature === 'x' ? row.x <= split.threshold : row.y === split.threshold;
+    return split.feature === 'y' ? row.y === split.threshold : row[split.feature] <= split.threshold;
   }
 
   function evaluate(rows, split, criterion) {
@@ -1429,7 +1814,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   function rank(rows, criterion) {
-    // A stable sort keeps the ascending numerical order for tied gains.
+    // A stable sort preserves feature and threshold order for tied gains.
     return candidates(rows)
       .map(split => evaluate(rows, split, criterion))
       .filter(result => result !== null)
@@ -1493,18 +1878,19 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 
     function visit(node) {
       if (!node.split) return;
-      gains[node.split.feature] += (node.stats.n / tree.stats.n) * node.gain;
+      const feature = node.split.feature;
+      gains[feature] = (gains[feature] ?? 0) + (node.stats.n / tree.stats.n) * node.gain;
       visit(node.left);
       visit(node.right);
     }
 
     visit(tree);
-    gains.total = gains.x + gains.y;
+    gains.total = Object.values(gains).reduce((sum, credit) => sum + credit, 0);
     return gains;
   }
 
   globalThis.TreeLab = {
-    TRAIN, HOLDOUT, DEEP_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
+    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
   };
 })();
 
@@ -1635,30 +2021,46 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     return levels;
   }
 
-  function drawNode({ node, path, answer }, depth, focused) {
-    const state = path === focused ? 'parent'
+  function drawNode({ node, path, answer }, depth, focused, { featureFocus, credits }) {
+    const creditMode = featureFocus != null;
+    const feature = node.split?.feature;
+    const selected = path === focused;
+    const contributes = creditMode && feature === featureFocus;
+    const state = creditMode ? 'context' : selected ? 'parent'
       : path === focused + 'l' || path === focused + 'r' ? 'child' : 'context';
     const note = { parent: 'Scoring parent', child: 'Scoring child', context: 'Context only' }[state];
-    const description = node.split?.feature === 'x' ? 'X ≤ ' + node.split.threshold + '?'
-      : node.split ? 'Y = ' + node.split.threshold + '?'
+    const description = node.split
+      ? feature.toUpperCase() + (feature === 'y' ? ' = ' : ' ≤ ') + node.split.threshold + '?'
         : 'Predict ' + (node.stats.prediction === 1 ? 'Review' : 'Auto');
     const score = String(Number(node.stats.score.toFixed(3)));
     const count = node.stats.n + (node.stats.n === 1 ? ' parcel' : ' parcels');
     const role = path === 'root' ? 'Root' : node.split ? 'Decision node' : 'Leaf';
     const entropy = 'Entropy ' + score + (score === '1' ? ' bit' : ' bits');
+    const credit = creditMode && node.split ? credits?.get(path) : undefined;
+    const creditLabel = Number.isFinite(credit) ? credit.toFixed(4) + ' bits' : '';
+    const creditNote = [
+      selected && 'Selected split',
+      contributes && 'Contributes to ' + featureFocus.toUpperCase(),
+      creditLabel && 'Root-weighted credit ' + creditLabel,
+    ].filter(Boolean).join('. ');
     const summary = [role, 'Depth ' + depth, answer && answer + ' branch',
-      description.replace(/\?$/, ''), count, entropy, note].filter(Boolean).join('. ');
+      description.replace(/\?$/, ''), count, entropy, creditMode ? creditNote : note].filter(Boolean).join('. ');
     const tag = node.split ? 'button' : 'div';
     const attributes = node.split
-      ? ' type="button" data-deep-node="' + path + '" aria-pressed="' + String(state === 'parent') + '"'
+      ? ' type="button" data-deep-node="' + path + '" aria-pressed="' + selected + '"' +
+        (creditMode ? ' data-feature="' + escapeHtml(feature) + '"' : '')
       : ' role="group"';
-    return '<' + tag + ' class="deep-graph-card deep-graph-card--' + state + '"' + attributes +
+    const classes = 'deep-graph-card deep-graph-card--' + state +
+      (contributes ? ' is-contributor' : '') + (creditMode && selected ? ' is-focus' : '');
+    const cardNote = creditMode
+      ? (creditLabel ? '<span class="deep-graph-card-note deep-graph-credit">Credit ' + creditLabel + '</span>' : '')
+      : (state === 'context' ? '' : '<span class="deep-graph-card-note">' + note + '</span>');
+    return '<' + tag + ' class="' + classes + '"' + attributes +
       ' aria-label="' + escapeHtml(summary) + '">' +
       '<span class="deep-graph-card-title">' + escapeHtml(description) + '</span>' +
       '<span class="deep-graph-card-data"><span>' + count +
       '</span><span><span aria-hidden="true">H </span>' + score + '</span></span>' +
-      (state === 'context' ? '' : '<span class="deep-graph-card-note">' + note + '</span>') +
-      '</' + tag + '>';
+      cardNote + '</' + tag + '>';
   }
 
   function drawFork(children, active) {
@@ -1672,16 +2074,29 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
       '</div></div>';
   }
 
-  function render(tree, selectedPath = 'root') {
+  function render(tree, selectedPath = 'root', options = {}) {
+    const { featureFocus } = options;
+    const creditMode = featureFocus != null;
     const levels = spine(tree);
     const decisionPaths = levels.map(([first]) => first).filter(({ node }) => node.split).map(({ path }) => path);
-    const focused = decisionPaths.includes(selectedPath) ? selectedPath : decisionPaths[0];
+    const focused = decisionPaths.includes(selectedPath) ? selectedPath : creditMode ? null : decisionPaths[0];
     const rows = levels.map((level, depth) => {
-      const fork = depth ? drawFork(level, levels[depth - 1][0].path === focused) : '';
+      const fork = depth ? drawFork(level, !creditMode && levels[depth - 1][0].path === focused) : '';
       return fork + '<div class="deep-graph-row">' +
         '<span class="deep-graph-depth"><span>Depth</span><strong>' + depth + '</strong></span>' +
-        level.map(item => '<div class="deep-graph-slot">' + drawNode(item, depth, focused) + '</div>').join('') + '</div>';
+        level.map(item => '<div class="deep-graph-slot">' + drawNode(item, depth, focused, options) + '</div>').join('') + '</div>';
     }).join('');
+
+    if (creditMode) {
+      return '<figure class="deep-graph deep-graph--credits" data-feature="' + escapeHtml(featureFocus) +
+        '" aria-label="Fitted entropy tree showing root-weighted credit at each split">' +
+        '<figcaption class="deep-graph-key">' +
+        '<span><i class="deep-graph-keymark deep-graph-keymark--focus" aria-hidden="true"></i>Selected split</span>' +
+        '<span><i class="deep-graph-keymark deep-graph-keymark--contributor" aria-hidden="true"></i>Uses ' +
+        escapeHtml(featureFocus.toUpperCase()) + '</span></figcaption>' +
+        '<p class="deep-graph-caption">The first column follows the continuing splits. H is entropy in bits.</p>' +
+        '<div class="deep-graph-board">' + rows + '</div></figure>';
+    }
 
     return '<figure class="deep-graph" aria-label="Fitted entropy tree, with the three nodes used to score a split highlighted">' +
       '<figcaption class="deep-graph-key">' +
@@ -1787,6 +2202,144 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   globalThis.TreeLabDeepExample = { init };
+})();
+
+</script>
+<script>
+(() => {
+  'use strict';
+
+  const { IMPORTANCE_TRAIN, fit, importance } = TreeLab;
+  const scope = document.getElementById('deep-importance');
+  const limit = scope.querySelector('#importance-depth');
+  const graph = scope.querySelector('#importance-diagram');
+  const selectedSplit = scope.querySelector('#importance-selected-split');
+  const creditList = scope.querySelector('#importance-split-credits');
+  const featureTotal = scope.querySelector('#importance-feature-total');
+  const featureButtons = [...scope.querySelectorAll('[data-importance-feature]')];
+  const names = { x: 'Weight X', y: 'Packaging Y', z: 'Scan score Z' };
+  const rootCount = IMPORTANCE_TRAIN.length;
+  const number = value => value.toFixed(4);
+  const percent = (value, digits = 2) => (100 * value).toFixed(digits) + '%';
+  const question = split => split.feature.toUpperCase() +
+    (split.feature === 'y' ? ' = ' : ' ≤ ') + split.threshold + '?';
+
+  function splitRecords(tree) {
+    const records = [];
+    function visit(node, path, depth) {
+      if (!node.split) return;
+      records.push({
+        node, path, depth, feature: node.split.feature,
+        credit: node.stats.n / tree.stats.n * node.gain,
+      });
+      visit(node.left, path + 'l', depth + 1);
+      visit(node.right, path + 'r', depth + 1);
+    }
+    visit(tree, 'root', 0);
+    return records;
+  }
+
+  const trees = new Map([4, 5].map(depth => [depth, fit(IMPORTANCE_TRAIN, 'entropy', depth)]));
+  const maxCredit = Math.max(...splitRecords(trees.get(5)).map(record => record.credit));
+  let selectedFeature = 'x';
+  let selectedPath = 'rootlr';
+  let records = [];
+
+  function renderSplit(record) {
+    if (!record) {
+      selectedSplit.innerHTML = '<h3>' + names[selectedFeature] + '</h3><p>No split uses this feature at this depth limit.</p>';
+      return;
+    }
+    const { node, depth, feature, credit } = record;
+    const n = node.stats.n;
+    const left = node.left.stats;
+    const right = node.right.stats;
+    const reach = n / rootCount;
+    const term = child => '(' + child.n + '/' + n + ') × ' + number(child.score);
+    const factor = (label, value, detail) => '<div class="importance-factor"><span>' + label +
+      '</span><strong>' + value + '</strong><small>' + detail + '</small></div>';
+    selectedSplit.innerHTML = '<h3>Depth ' + depth + ' · ' + question(node.split) + '</h3>' +
+      '<p class="small">Local gain uses the ' + n + ' rows at this node. Subtract its children’s weighted entropy from its own entropy.</p>' +
+      '<p class="arithmetic">' + number(node.stats.score) + ' − [' + term(left) + ' + ' + term(right) + '] ≈ ' +
+      number(node.gain) + ' bits</p>' +
+      '<div class="importance-flow" data-feature="' + feature + '">' +
+      factor('Local gain', number(node.gain), 'bits') + '<span class="importance-operator">×</span>' +
+      factor('Root share', n + '/' + rootCount, percent(reach, 0)) + '<span class="importance-operator">≈</span>' +
+      factor('Split credit', number(credit), 'bits') + '</div>' +
+      '<div class="importance-root-share" data-feature="' + feature + '"><span class="small">' + n +
+      ' of ' + rootCount + ' root rows reach this split</span><span class="importance-reach" aria-hidden="true">' +
+      '<span class="importance-reach-fill" style="width:' + (100 * reach) + '%"></span></span></div>';
+  }
+
+  function render() {
+    const tree = trees.get(Number(limit.value));
+    records = splitRecords(tree);
+    const gains = importance(tree);
+    const matching = records.filter(record => record.feature === selectedFeature);
+    if (!matching.some(record => record.path === selectedPath)) selectedPath = matching[0]?.path ?? null;
+    const selected = matching.find(record => record.path === selectedPath);
+    const credits = new Map(records.map(record => [record.path, record.credit]));
+    graph.innerHTML = TreeLabDeepDiagram.render(tree, selectedPath, { featureFocus: selectedFeature, credits });
+    renderSplit(selected);
+
+    const share = feature => (gains[feature] ?? 0) / gains.total;
+    featureButtons.forEach(button => {
+      const feature = button.dataset.importanceFeature;
+      button.setAttribute('aria-pressed', String(feature === selectedFeature));
+      button.querySelector('span').textContent = ' ' + percent(share(feature));
+    });
+
+    creditList.innerHTML = records.map(record => {
+      const { depth, feature, path, node, credit } = record;
+      const active = path === selectedPath;
+      return '<li class="importance-credit-row' + (feature === selectedFeature ? ' is-contributor' : '') +
+        '" data-feature="' + feature + '"' + (active ? ' aria-current="true"' : '') + '>' +
+        '<button type="button" class="importance-credit-label" data-credit-node="' + path +
+        '" aria-pressed="' + active + '"><span class="importance-credit-rule">Depth ' + depth + ' · ' +
+        question(node.split) + '</span><small class="importance-credit-inputs">' + number(node.gain) +
+        ' × ' + node.stats.n + '/' + rootCount + '</small>' +
+        '</button><strong>' + number(credit) + ' bits</strong><span class="importance-credit-meter" aria-hidden="true">' +
+        '<span style="width:' + (credit / maxCredit * 100) + '%"></span></span></li>';
+    }).join('');
+
+    featureTotal.dataset.feature = selectedFeature;
+    const rawCredit = gains[selectedFeature] ?? 0;
+    const addends = matching.map(record => number(record.credit));
+    const rawLine = addends.length
+      ? '<p class="arithmetic">' + addends.join(' + ') + ' ≈ ' + number(rawCredit) + ' bits</p>'
+      : '<p class="arithmetic">0 bits</p>';
+    const sumBar = matching.map(record => '<span style="width:' +
+      (100 * record.credit / gains.total) + '%"></span>').join('');
+    featureTotal.innerHTML = '<h3>' + names[selectedFeature] + ' total · ' + matching.length +
+      (matching.length === 1 ? ' split' : ' splits') + '</h3>' + rawLine +
+      '<div class="importance-sum-meter" aria-hidden="true">' + sumBar + '</div>' +
+      '<p>Share of all split credit <strong class="arithmetic">' + number(rawCredit) + ' ÷ ' +
+      number(gains.total) + ' ≈ ' + percent(share(selectedFeature)) + '</strong></p>' +
+      '<p class="small">Calculated before rounding.</p>';
+  }
+
+  scope.querySelector('#importance-training-rows').innerHTML = IMPORTANCE_TRAIN.map(row =>
+    '<tr><th scope="row">' + row.x + '</th><td>' + row.y + '</td><td>' + row.z +
+    '</td><td>' + (row.label ? 'Review' : 'Auto') + '</td></tr>').join('');
+
+  limit.addEventListener('change', render);
+  featureButtons.forEach(button => button.addEventListener('click', () => {
+    selectedFeature = button.dataset.importanceFeature;
+    render();
+  }));
+  function selectNode(event, container, attribute) {
+    const button = event.target.closest('[' + attribute + ']');
+    if (!button) return;
+    const path = button.getAttribute(attribute);
+    const record = records.find(candidate => candidate.path === path);
+    selectedPath = path;
+    selectedFeature = record.feature;
+    render();
+    container.querySelector('[' + attribute + '="' + path + '"]').focus({ preventScroll: true });
+  }
+  graph.addEventListener('click', event => selectNode(event, graph, 'data-deep-node'));
+  creditList.addEventListener('click', event => selectNode(event, creditList, 'data-credit-node'));
+  render();
 })();
 
 </script>

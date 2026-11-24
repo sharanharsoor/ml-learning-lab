@@ -50,6 +50,10 @@ An impurity-based importance score asks how much each feature reduced impurity a
 
 For the two-level entropy tree, X gets $(8/8)(1-0.4512)\approx\mathbf{0.5488}$ bits. Y gets $(5/8)(0.7219-0)\approx\mathbf{0.4512}$ bits. When the gains are added, the impurity of each intermediate node cancels against its contribution to its parent's child score. The total is root impurity minus the root-weighted impurity of the leaves. Here the leaves are pure, so the total is $1-0=1$ bit. Divide each feature's credit by the total gain to get **54.88% X** and **45.12% Y**. Those percentages describe the tree's training impurity reduction.
 
+Open [feature importance in a deeper tree](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#deep-importance) and keep Weight X selected. Its three splits reach 20, 16, and 13 of the 20 training rows. Ask why the third split multiplies its local gain of 0.3600 by 13/20. The three credited reductions add to 0.5208 bits.
+
+Switch between maximum depths 4 and 5. Weight keeps the same raw credit. At depth 5, Scan score Z contributes 0.2427 bits, so Weight’s normalized share falls from 75.34% to 55.76%. Ask learners to explain what changed in the denominator.
+
 ## Predict minutes and run the code
 
 Switch the target to processing time. Each leaf predicts the mean of the minutes it contains. For any constant guess $c$, its MSE equals the MSE at the mean plus $(c-\bar y)^2$. Guessing the mean makes that extra term zero.

@@ -21,6 +21,14 @@
   ];
   const DEEP_TRAIN = [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]
     .map((label, index) => ({ id: 'D' + (index + 1), x: index + 1, y: 'A', label }));
+  const importancePackaging = 'AABAABBBABAAABBAAAAA';
+  const importanceScanScores = '33242422224244223423';
+  const IMPORTANCE_TRAIN = Array.from('11100001011011101111', (label, index) => ({
+    x: index + 1,
+    y: importancePackaging[index],
+    z: Number(importanceScanScores[index]),
+    label: Number(label),
+  }));
 
   function entropy(p) {
     if (p === 0 || p === 1) return 0;
@@ -53,12 +61,16 @@
   }
 
   function candidates(rows) {
-    const values = [...new Set(rows.map(row => row.x))].sort((a, b) => a - b);
-    const splits = values.slice(1).map((next, index) => {
-      const previous = values[index];
-      const midpoint = previous / 2 + next / 2;
-      const threshold = midpoint >= previous && midpoint < next ? midpoint : previous;
-      return { feature: 'x', threshold };
+    const splits = ['x', 'z'].flatMap(feature => {
+      const readings = rows.map(row => row[feature]);
+      if (!readings.every(Number.isFinite)) return [];
+      const values = [...new Set(readings)].sort((a, b) => a - b);
+      return values.slice(1).map((next, index) => {
+        const previous = values[index];
+        const midpoint = previous / 2 + next / 2;
+        const threshold = midpoint >= previous && midpoint < next ? midpoint : previous;
+        return { feature, threshold };
+      });
     });
     if (rows.some(row => row.y === 'A') && rows.some(row => row.y === 'B')) {
       splits.push({ feature: 'y', threshold: 'A' });
@@ -67,7 +79,7 @@
   }
 
   function goesLeft(row, split) {
-    return split.feature === 'x' ? row.x <= split.threshold : row.y === split.threshold;
+    return split.feature === 'y' ? row.y === split.threshold : row[split.feature] <= split.threshold;
   }
 
   function evaluate(rows, split, criterion) {
@@ -90,7 +102,7 @@
   }
 
   function rank(rows, criterion) {
-    // A stable sort keeps the ascending numerical order for tied gains.
+    // A stable sort preserves feature and threshold order for tied gains.
     return candidates(rows)
       .map(split => evaluate(rows, split, criterion))
       .filter(result => result !== null)
@@ -154,17 +166,18 @@
 
     function visit(node) {
       if (!node.split) return;
-      gains[node.split.feature] += (node.stats.n / tree.stats.n) * node.gain;
+      const feature = node.split.feature;
+      gains[feature] = (gains[feature] ?? 0) + (node.stats.n / tree.stats.n) * node.gain;
       visit(node.left);
       visit(node.right);
     }
 
     visit(tree);
-    gains.total = gains.x + gains.y;
+    gains.total = Object.values(gains).reduce((sum, credit) => sum + credit, 0);
     return gains;
   }
 
   globalThis.TreeLab = {
-    TRAIN, HOLDOUT, DEEP_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
+    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
   };
 })();

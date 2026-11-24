@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const source = new URL('../src/engine.js', import.meta.url);
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(source, 'utf8'), context, { filename: source.pathname });
-const { TRAIN, HOLDOUT, DEEP_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance } =
+const { TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance } =
   context.TreeLab;
 
 // Convert objects from the script's realm before comparing prototypes in Node.
@@ -158,4 +158,33 @@ const graph = context.TreeLabDeepDiagram.render(deepTree, 'rootllr');
 assert.equal((graph.match(/data-deep-node=/g) || []).length, 5);
 assert.equal((graph.match(/deep-graph-card--parent/g) || []).length, 1);
 assert.equal((graph.match(/deep-graph-card--child/g) || []).length, 2);
-console.log('PASS: split scores, stopping, evaluation, feature credit, and depth-five worked example.');
+
+const importanceTree = fit(IMPORTANCE_TRAIN, 'entropy', 5);
+const firstWeight = importanceTree;
+const secondWeight = firstWeight.left;
+const thirdWeight = secondWeight.right;
+const packaging = thirdWeight.right;
+const scan = packaging.left;
+assert.deepEqual([firstWeight, secondWeight, thirdWeight, packaging, scan].map(node => node.split.feature),
+  ['x', 'x', 'x', 'y', 'z']);
+assert.deepEqual([firstWeight, secondWeight, thirdWeight, packaging, scan].map(node => node.stats.n),
+  [20, 16, 13, 9, 5]);
+assert.equal(scan.split.threshold, 3);
+const creditAtFive = importance(importanceTree);
+const creditAtFour = importance(fit(IMPORTANCE_TRAIN, 'entropy', 4));
+close(creditAtFive.x, 0.5208349300509707, 'Repeated Weight credits across three splits');
+close(creditAtFive.y, 0.17049547671085313, 'Packaging credit from nine of twenty rows');
+close(creditAtFive.z, 0.24273764861366714, 'Scan credit from five of twenty rows');
+close(creditAtFive.total, importanceTree.stats.score, 'All six leaves are pure at depth five');
+close(creditAtFour.x, creditAtFive.x, 'Weight raw credit is unchanged at depth four');
+assert.equal(creditAtFour.z ?? 0, 0);
+assert.ok(creditAtFour.x / creditAtFour.total > creditAtFive.x / creditAtFive.total);
+assert.equal(IMPORTANCE_TRAIN.filter(row => predict(importanceTree, row) === row.label).length, 20);
+const creditGraph = context.TreeLabDeepDiagram.render(importanceTree, 'rootlr', {
+  featureFocus: 'x',
+  credits: new Map([['rootlr', 13 / 20 * thirdWeight.gain]]),
+});
+assert.equal((creditGraph.match(/is-contributor/g) || []).length, 3);
+assert.equal((creditGraph.match(/is-focus/g) || []).length, 1);
+assert.match(creditGraph, /Credit 0.2340 bits/);
+console.log('PASS: split scores, stopping, evaluation, depth-five entropy, and repeated feature credit.');

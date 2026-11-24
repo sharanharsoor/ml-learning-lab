@@ -11,6 +11,7 @@
 {{CSS}}
 {{TREE_DIAGRAM_CSS}}
 {{DEEP_GRAPH_CSS}}
+{{IMPORTANCE_CSS}}
 {{GINI_CSS}}
 </style>
 </head>
@@ -36,6 +37,7 @@
         <li><a href="#evaluate">Evaluate on new data</a></li>
         <li><a href="#stopping">Where to stop</a></li>
         <li><a href="#importance">Feature importance</a></li>
+        <li><a href="#deep-importance">Feature credit at depth</a></li>
         <li><a href="#regression">Predict a number</a></li>
         <li><a href="#python">Verify in Python</a></li>
       </ol>
@@ -54,6 +56,7 @@
       <option value="evaluate">Evaluate on new data</option>
       <option value="stopping">Where to stop</option>
       <option value="importance">Feature importance</option>
+      <option value="deep-importance">Feature credit at depth</option>
       <option value="regression">Predict a number</option>
       <option value="python">Verify in Python</option>
     </select>
@@ -275,8 +278,10 @@
         <p id="importance-note" class="small" aria-live="polite"></p>
       </div>
       <p>Divide each feature’s credit by the total credit to report its share. One strong split near the root can earn more than several small splits. This score describes how <em>this fitted tree</em> reduced impurity on its training data.</p>
-      <p class="transition">What changes if we ask the same parcels for a number, such as processing time?</p>
+      <p class="transition">Now follow a feature that <a href="#deep-importance">appears three times in a deeper tree</a> and add up its contributions.</p>
     </section>
+
+    {{IMPORTANCE_EXAMPLE}}
 
     <section class="chapter" id="regression" aria-labelledby="regression-title">
       <p class="eyebrow">Use the same inputs, change the target</p>
@@ -331,6 +336,9 @@
 </script>
 <script>
 {{DEEP_EXAMPLE_JS}}
+</script>
+<script>
+{{IMPORTANCE_JS}}
 </script>
 <script>
 {{GINI_JS}}
