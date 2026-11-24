@@ -26,8 +26,8 @@ The classification and delivery examples are synthetic teaching data. Scores ill
 
 Teach a full decision-tree lesson with one fictional parcel-sorting dataset. Follow the guided chapters or turn on Teaching view to use larger text and chapter controls while screen-sharing.
 
-- Build entropy from inverse probability and average surprise, then compare it with Gini.
-- Rank exact and binned split candidates, grow the tree, and inspect the held-out confusion matrix.
+- Build entropy from average surprise, compare it with Gini’s label mismatch probability, and explore a case where the criteria disagree.
+- Rank exact and binned split candidates, trace parcels through the labeled tree, and connect their paths to the held-out confusion matrix.
 - Attribute split gains to features and switch to mean squared error for a numerical target.
 - Run Python in the browser to verify the calculations.
 

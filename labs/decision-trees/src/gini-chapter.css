@@ -1,0 +1,26 @@
+.gini-controls { margin-bottom: 1.25rem; max-width: 37rem; }
+.gini-presets { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .75rem; }
+.gini-presets .button[aria-pressed="true"] { background: var(--light); border-color: var(--teal); }
+.gini-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem 1.65rem; align-items: start; }
+.gini-outcomes th, .gini-outcomes td { padding: .55rem .5rem; }
+.gini-outcomes td span, .gini-share { display: block; font-size: .84rem; color: var(--muted); }
+.gini-outcomes .gini-mismatch { background: var(--light); color: var(--teal); }
+.gini-calculation { margin-top: .75rem; font-variant-numeric: tabular-nums; }
+.gini-calculation strong { color: var(--teal); }
+.gini-figure { margin: 0; min-width: 0; }
+.gini-figure .chart { min-height: 10rem; }
+.gini-figure figcaption { margin-top: .25rem; }
+.gini-figure .entropy-curve { fill: none; stroke: var(--rust); stroke-width: 3; stroke-dasharray: 5 4; }
+.gini-figure .gini-curve { fill: none; stroke: var(--teal); stroke-width: 3; }
+.gini-figure .gini-pointer { stroke: var(--muted); stroke-dasharray: 3 3; }
+.gini-figure .gini-point { fill: var(--teal); }
+.gini-figure .entropy-point { fill: var(--rust); }
+.gini-figure .gini-svg-label { text-anchor: middle; font-size: 11px; }
+.gini-figure .gini-svg-label-end { text-anchor: end; }
+.gini-figure .gini-svg-label-start { text-anchor: start; }
+.gini-choice { grid-column: 1 / -1; }
+.gini-note { margin-top: .8rem; }
+.gini-counterexample { margin-top: .8rem; border-top: 1px solid var(--line); }
+.gini-counterexample table { margin-block: .25rem .6rem; }
+.gini-counterexample .gini-winning { color: var(--teal); }
+@media (max-width: 760px) { .gini-grid { grid-template-columns: minmax(0, 1fr); } }

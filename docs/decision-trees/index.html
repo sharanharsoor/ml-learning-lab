@@ -131,6 +131,11 @@ var { font-family: var(--serif); }
 .prediction-prompt h2 { font: 1.4rem var(--serif); margin-bottom: .2rem; }
 .prediction-prompt p, .small { font-size: .93rem; color: var(--muted); }
 .prompt-result { grid-column: 1 / -1; min-height: 1.5em; color: var(--teal) !important; margin-top: 0; }
+.parcel-walkthrough { padding-block: .75rem; }
+.parcel-walkthrough[open] { padding-bottom: 1.25rem; }
+.parcel-walkthrough .tree-diagram { margin-block: .35rem .85rem; }
+.teaching-note { border-block: 1px solid var(--line); padding-bottom: .2rem; margin-block: 1rem; }
+.teaching-note > p { margin: 0 0 .8rem; max-width: 53rem; }
 .segmented { display: inline-flex; gap: .25rem; border: 1px solid var(--line); border-radius: .5rem; padding: .25rem; background: var(--surface); }
 .segmented button { border: 0; padding: .4rem .65rem; background: transparent; color: var(--ink); border-radius: .3rem; font-size: .92rem; }
 .segmented button:hover { background: var(--light); }
@@ -167,10 +172,16 @@ summary { padding: .7rem 0; font-size: .93rem; font-weight: 650; color: var(--te
 .equation { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .25rem 1rem; margin-top: .7rem; padding-top: .7rem; border-top: 1px solid var(--line); }
 .equation strong { color: var(--teal); font-variant-numeric: tabular-nums; }
 .control-grid { display: grid; grid-template-columns: .85fr 1.05fr 1.25fr; gap: .65rem; margin-bottom: 1.2rem; }
-.control-grid.tree-controls { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.control-grid.tree-controls { grid-template-columns: repeat(3,minmax(0,1fr)); }
 .control-grid label, .regression-control { display: grid; gap: .25rem; font-size: .92rem; font-weight: 650; }
 select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4rem .6rem; color: var(--ink); border: 1px solid var(--line); border-radius: .4rem; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%23076b60' fill='none' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right .6rem center / 1rem; appearance: none; font-size: .92rem; }
 .split-children { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .85rem; margin-bottom: .9rem; }
+.split-plot { max-width: 47rem; margin: 0 auto .75rem; }
+.split-chart .region-yes { fill: var(--light); }
+.split-chart .region-no { fill: var(--warm); }
+.split-chart .mark-auto { fill: var(--teal); }
+.split-chart .mark-review { fill: var(--rust); }
+.split-chart .grid { stroke: color-mix(in srgb, var(--line) 70%, var(--ink)); }
 .child { min-width: 0; padding: .8rem .85rem; background: var(--light); border-radius: .5rem; }
 .child.no { background: var(--warm); }
 .child h3 { margin-bottom: .35rem; }
@@ -183,23 +194,21 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
 .calc-lines .small { margin-top: .25rem; }
 .rank-details { margin-block: .2rem .85rem; }
 .tree-summary { border-bottom: 1px solid var(--line); padding-bottom: .7rem; margin-bottom: 1rem; }
-.tree-diagram { display: flex; justify-content: center; padding-block: .25rem .85rem; }
-.tree-node { display: flex; flex-direction: column; align-items: center; gap: .25rem; min-width: 0; width: 100%; }
-.tree-node button {
-  display: grid; gap: .16rem; max-width: 100%; padding: .45rem .6rem; background: var(--surface);
-  color: var(--ink); border: 1px solid var(--line); border-radius: .45rem; text-align: center;
+.tree-diagram { padding-block: .25rem .45rem; }
+.trace-result {
+  margin-block: .65rem 1rem;
+  padding: .75rem .9rem;
+  background: var(--warm);
+  border-left: 3px solid var(--rust);
+  border-radius: .35rem;
 }
-.tree-node button:hover, .tree-node button[aria-pressed="true"] { border-color: var(--teal); background: var(--light); }
-.tree-node button strong { line-height: 1.18; }
-.tree-node button span, .branch-name { color: var(--muted); font-size: .86rem; }
-.tree-node.leaf button strong { color: var(--teal); }
-.tree-node .branch-name { position: relative; z-index: 1; background: var(--surface); padding-inline: .22rem; }
-.tree-children { position: relative; display: grid; width: 100%; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .4rem; padding-top: 1rem; }
-.tree-children::before { content: ""; position: absolute; top: .4rem; left: 25%; width: 50%; border-top: 1px solid var(--line); }
-.tree-children::after { content: ""; position: absolute; height: .4rem; border-left: 1px solid var(--line); top: 0; left: 50%; }
-.tree-inspector { min-height: 7.2rem; border-top: 1px solid var(--line); padding-top: .85rem; }
+.trace-result h3 { margin-bottom: .35rem; }
+.route-steps ol { margin: .15rem 0 .4rem; padding-left: 1.35rem; }
+.route-steps p + p { margin-top: .15rem; }
+.tree-inspector { border-top: 1px solid var(--line); padding-top: .85rem; }
 .tree-inspector h3 { margin-bottom: .4rem; }
 .tree-inspector .parcel-chips { margin-top: .48rem; }
+.node-calculation { margin-top: .55rem; border-bottom: 0; padding-bottom: 0; }
 .evaluation-grid h3 { margin-bottom: .5rem; }
 .matrix { table-layout: fixed; }
 .matrix th { width: 27%; text-align: center; vertical-align: middle; }
@@ -221,6 +230,17 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
 .metric-grid strong { color: var(--teal); }
 .heldout-heading { align-items: baseline; margin-bottom: .3rem; }
 #heldout-note, #importance-note { margin-top: .7rem; }
+.depth-comparison { padding-block: .75rem; }
+.depth-comparison[open] { padding-bottom: 1rem; }
+.depth-comparison p { margin-top: .65rem; }
+.depth-comparison td { font-variant-numeric: tabular-nums; }
+.accuracy-bar {
+  display: inline-block; width: clamp(2rem, 12vw, 7rem); height: .5rem;
+  margin-right: .5rem; overflow: hidden; background: var(--line);
+  border-radius: 1rem; vertical-align: middle;
+}
+.accuracy-bar span { display: block; height: 100%; background: var(--teal); }
+.depth-comparison td:last-child .accuracy-bar span { background: var(--rust); }
 .importance-row { display: grid; grid-template-columns: 9rem 1fr 4rem; align-items: center; gap: .75rem; margin-bottom: .65rem; }
 .importance-meter { height: .7rem; border-radius: .5rem; background: var(--light); overflow: hidden; }
 .importance-meter span { height: 100%; display: block; border-radius: inherit; background: var(--teal); }
@@ -267,18 +287,276 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
 @media (max-width: 650px) {
   .shell { width: calc(100% - 1.4rem); }
   .explanation-grid, .entropy-layout, .evaluation-grid { grid-template-columns: minmax(0,1fr); }
-  .control-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .control-grid:not(.tree-controls) > label:last-child { grid-column: 1 / -1; }
+  .control-grid, .control-grid.tree-controls { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .control-grid > label:last-child { grid-column: 1 / -1; }
   .prediction-prompt { grid-template-columns: minmax(0,1fr); }
   .segmented { justify-self: start; }
   .panel-heading { flex-wrap: wrap; gap: .65rem; }
   .chapter-buttons .button { padding-inline: .52rem; }
-  .training-chart text { font-size: 22px; }
-  .tree-node button { padding: .35rem; font-size: .84rem; }
-  .tree-node button span, .branch-name { font-size: .76rem; }
+  .training-chart text, .split-chart text { font-size: 22px; }
   td, th { padding: .4rem .32rem; }
   .importance-row { grid-template-columns: 6.5rem 1fr 3.5rem; gap: .4rem; }
 }
+
+.tree-diagram { display: block; min-width: 0; }
+.dt-viewport { container: lesson-tree / inline-size; width: 100%; }
+
+.dt-graph {
+  --dt-connector: color-mix(in srgb, var(--ink) 48%, var(--line));
+  --dt-track-height: 3.25rem;
+  min-width: 0;
+  padding: clamp(.7rem, 2.2cqw, 1.5rem) .3rem;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  background: color-mix(in srgb, var(--light) 28%, var(--surface));
+}
+
+.dt-subtree { min-width: 0; }
+
+.dt-node {
+  position: relative;
+  display: grid;
+  gap: .38rem;
+  width: min(100%, 15rem);
+  min-width: 0;
+  margin-inline: var(--dt-card-margin, auto);
+  padding: .62rem .75rem .68rem;
+  border: 1px solid var(--dt-connector);
+  border-top: .2rem solid var(--teal);
+  border-radius: .6rem;
+  background: var(--surface);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+  text-align: left;
+  line-height: 1.25;
+}
+
+.dt-node--root {
+  border-color: var(--teal);
+  border-top-width: .26rem;
+  background: color-mix(in srgb, var(--light) 35%, var(--surface));
+}
+
+.dt-node--leaf {
+  border-top-color: var(--muted);
+}
+
+button.dt-node:hover {
+  border-color: var(--teal);
+  background: color-mix(in srgb, var(--light) 55%, var(--surface));
+}
+
+button.dt-node[aria-pressed="true"] {
+  border-color: var(--teal);
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+button.dt-node:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.dt-node--traced {
+  border-top-color: var(--rust);
+  background: color-mix(in srgb, var(--warm) 52%, var(--surface));
+}
+
+.dt-node-top, .dt-mix-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: .45rem;
+  row-gap: .2rem;
+}
+
+.dt-node-role {
+  color: var(--teal);
+  font-size: .83rem;
+  font-weight: 680;
+}
+
+.dt-node-samples, .dt-node-score, .dt-mix-labels, .dt-answer {
+  color: var(--muted);
+  font-size: .83rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dt-node-title {
+  font-size: clamp(1rem, 2.7cqw, 1.45rem);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.dt-mix {
+  display: grid;
+  gap: .34rem;
+  margin-top: .1rem;
+}
+
+.dt-mix-bar {
+  display: block;
+  height: .42rem;
+  border-radius: 100px;
+  background: linear-gradient(to right, var(--teal) 0 var(--dt-auto), var(--rust) var(--dt-auto) 100%);
+}
+
+.dt-mix-labels > span { display: inline-flex; align-items: center; gap: .26rem; }
+
+.dt-mark {
+  display: inline-block;
+  flex: none;
+  width: .46rem;
+  height: .46rem;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
+.dt-mark--review { border-radius: .08rem; background: var(--rust); }
+
+.dt-node-path {
+  width: fit-content;
+  margin-top: .12rem;
+  padding: .1rem .4rem;
+  border-radius: .24rem;
+  background: var(--warm);
+  color: var(--rust);
+  font-size: .76rem;
+  font-weight: 680;
+}
+
+.dt-branches {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--dt-columns, minmax(0, var(--dt-yes)) minmax(0, var(--dt-no)));
+  gap: var(--dt-branch-gap, 0);
+  margin-inline-start: var(--dt-indent, 0);
+  padding-block-start: var(--dt-branch-padding, var(--dt-track-height));
+  padding-inline-start: var(--dt-indent, 0);
+  border-inline-start: var(--dt-side-rule, none);
+}
+
+.dt-child { position: relative; min-width: 0; padding-inline: var(--dt-sibling-padding, .35rem); }
+
+.dt-edges {
+  display: var(--dt-svg-display, block);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--dt-track-height);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dt-edge { fill: none; stroke: var(--dt-connector); stroke-width: 1.4; }
+.dt-edge--traced { stroke: var(--rust); stroke-width: 3; }
+
+.dt-answer {
+  position: var(--dt-answer-position, absolute);
+  top: -.69rem;
+  left: 50%;
+  display: block;
+  width: fit-content;
+  z-index: 1;
+  margin-block-end: var(--dt-answer-gap, 0);
+  padding: .12rem .4rem;
+  border: 1px solid var(--line);
+  border-radius: .3rem;
+  background: var(--surface);
+  transform: var(--dt-answer-transform, translate(-50%, -50%));
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.dt-child--traced > .dt-answer {
+  border-color: var(--rust);
+  background: var(--warm);
+  color: var(--rust);
+}
+
+.dt-child::before {
+  display: var(--dt-elbow-display, none);
+  content: "";
+  position: absolute;
+  top: .7rem;
+  left: calc(-1 * var(--dt-indent, 0px));
+  width: var(--dt-indent, 0px);
+  border-top: 1px solid var(--dt-connector);
+}
+
+.dt-child--traced::before { border-color: var(--rust); border-width: 2px; }
+
+.teaching .dt-node-role, .teaching .dt-node-samples, .teaching .dt-node-score,
+.teaching .dt-mix-labels, .teaching .dt-answer { font-size: .91rem; }
+
+@container lesson-tree (max-width: 32rem) {
+  .dt-graph {
+    --dt-columns: minmax(0, 1fr);
+    --dt-branch-gap: .65rem;
+    --dt-branch-padding: .55rem;
+    --dt-indent: .7rem;
+    --dt-side-rule: 1px solid var(--dt-connector);
+    --dt-sibling-padding: 0;
+    --dt-svg-display: none;
+    --dt-elbow-display: block;
+    --dt-answer-position: static;
+    --dt-answer-transform: none;
+    --dt-answer-gap: .35rem;
+    --dt-card-margin: 0;
+    padding-inline: .65rem;
+  }
+
+  .dt-node { width: 100%; }
+}
+
+@container lesson-tree (max-width: 62rem) {
+  .dt-graph--dense {
+    --dt-columns: minmax(0, 1fr);
+    --dt-branch-gap: .65rem;
+    --dt-branch-padding: .55rem;
+    --dt-indent: .7rem;
+    --dt-side-rule: 1px solid var(--dt-connector);
+    --dt-sibling-padding: 0;
+    --dt-svg-display: none;
+    --dt-elbow-display: block;
+    --dt-answer-position: static;
+    --dt-answer-transform: none;
+    --dt-answer-gap: .35rem;
+    --dt-card-margin: 0;
+    padding-inline: .65rem;
+  }
+
+  .dt-graph--dense .dt-node { width: 100%; }
+}
+
+.gini-controls { margin-bottom: 1.25rem; max-width: 37rem; }
+.gini-presets { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .75rem; }
+.gini-presets .button[aria-pressed="true"] { background: var(--light); border-color: var(--teal); }
+.gini-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem 1.65rem; align-items: start; }
+.gini-outcomes th, .gini-outcomes td { padding: .55rem .5rem; }
+.gini-outcomes td span, .gini-share { display: block; font-size: .84rem; color: var(--muted); }
+.gini-outcomes .gini-mismatch { background: var(--light); color: var(--teal); }
+.gini-calculation { margin-top: .75rem; font-variant-numeric: tabular-nums; }
+.gini-calculation strong { color: var(--teal); }
+.gini-figure { margin: 0; min-width: 0; }
+.gini-figure .chart { min-height: 10rem; }
+.gini-figure figcaption { margin-top: .25rem; }
+.gini-figure .entropy-curve { fill: none; stroke: var(--rust); stroke-width: 3; stroke-dasharray: 5 4; }
+.gini-figure .gini-curve { fill: none; stroke: var(--teal); stroke-width: 3; }
+.gini-figure .gini-pointer { stroke: var(--muted); stroke-dasharray: 3 3; }
+.gini-figure .gini-point { fill: var(--teal); }
+.gini-figure .entropy-point { fill: var(--rust); }
+.gini-figure .gini-svg-label { text-anchor: middle; font-size: 11px; }
+.gini-figure .gini-svg-label-end { text-anchor: end; }
+.gini-figure .gini-svg-label-start { text-anchor: start; }
+.gini-choice { grid-column: 1 / -1; }
+.gini-note { margin-top: .8rem; }
+.gini-counterexample { margin-top: .8rem; border-top: 1px solid var(--line); }
+.gini-counterexample table { margin-block: .25rem .6rem; }
+.gini-counterexample .gini-winning { color: var(--teal); }
+@media (max-width: 760px) { .gini-grid { grid-template-columns: minmax(0, 1fr); } }
 
 </style>
 </head>
@@ -297,6 +575,7 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
       <ol class="chapters">
         <li><a href="#parcel" aria-current="location">The parcel desk</a></li>
         <li><a href="#entropy">Surprise and entropy</a></li>
+        <li><a href="#gini">Gini vs. entropy</a></li>
         <li><a href="#split">Find a split</a></li>
         <li><a href="#tree">Grow the tree</a></li>
         <li><a href="#evaluate">Evaluate on new data</a></li>
@@ -312,6 +591,7 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
     <select id="chapter-select">
       <option value="parcel">The parcel desk</option>
       <option value="entropy">Surprise and entropy</option>
+      <option value="gini">Gini vs. entropy</option>
       <option value="split">Find a split</option>
       <option value="tree">Grow the tree</option>
       <option value="evaluate">Evaluate on new data</option>
@@ -352,7 +632,12 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
         </div>
         <p class="prompt-result" id="guess-result" aria-live="polite"></p>
       </div>
-      <p class="transition">To compare rules systematically, start by measuring how mixed the labels are before asking any question.</p>
+      <details class="panel parcel-walkthrough" id="parcel-walkthrough">
+        <summary>See the two questions the fitted tree asks</summary>
+        <div class="tree-diagram" id="preview-tree"></div>
+        <div class="route-steps" id="preview-route"></div>
+      </details>
+      <p class="transition">Those questions came from the training data. To see why the tree chose them, first measure how mixed the labels are before any question.</p>
       <a class="button primary" href="#entropy">Start with surprise</a>
     </section>
 
@@ -388,8 +673,86 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
         </div>
       </div>
       <p><strong>Entropy is the average surprise.</strong> If you averaged one surprise per row, a label that appears in four out of eight rows would show up four times. Grouping those rows gives <span class="formula">H = −Σ p(label) log₂ p(label)</span>. Sum over distinct labels. A label with probability zero contributes zero by the limit of <span class="formula">−p log₂ p</span>.</p>
-      <p class="transition">Now a candidate question can earn credit by lowering the average uncertainty about the label.</p>
+      <p class="transition">A good question lowers the uncertainty that remains. There’s another way to measure the same label mix, using the chance of a mismatch.</p>
     </section>
+
+        <section class="chapter" id="gini" aria-labelledby="gini-title">
+      <p class="eyebrow">Choose a measure of impurity</p>
+      <h2 id="gini-title">Gini vs entropy</h2>
+      <p class="lede">Entropy averages surprise. Gini impurity measures the chance that two draws from a node have different labels. In a decision tree, <strong>Gini index</strong> is another name for this node score.</p>
+
+      <div class="panel gini-lab">
+        <div class="panel-heading">
+          <div><h3>Draw two labels, with replacement</h3><p>Draw one parcel, return it to the node, then draw again. Each draw uses the same label probabilities.</p></div>
+        </div>
+        <div class="gini-controls">
+          <label class="control-label" for="gini-review-share">Review share <output id="gini-review-output" for="gini-review-share">50%</output></label>
+          <input id="gini-review-share" type="range" min="0" max="100" value="50">
+          <div class="gini-presets" aria-label="Example label mixes" role="group">
+            <button type="button" class="button secondary" data-gini-preset="0" aria-pressed="false">Pure Auto</button>
+            <button type="button" class="button secondary" data-gini-preset="50" aria-pressed="true">Parcel root</button>
+            <button type="button" class="button secondary" data-gini-preset="80" aria-pressed="false">Heavy branch</button>
+          </div>
+        </div>
+        <div class="gini-grid">
+          <div>
+            <table class="gini-outcomes">
+              <caption class="sr-only">Probability of each pair of labels</caption>
+              <thead><tr><th scope="col">First draw</th><th scope="col">Then Auto</th><th scope="col">Then Review</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Auto <span class="gini-share" id="gini-auto-share"></span></th><td><strong id="gini-aa">25%</strong><span>Match</span></td><td class="gini-mismatch"><strong id="gini-ar">25%</strong><span>Different</span></td></tr>
+                <tr><th scope="row">Review <span class="gini-share" id="gini-review-label-share"></span></th><td class="gini-mismatch"><strong id="gini-ra">25%</strong><span>Different</span></td><td><strong id="gini-rr">25%</strong><span>Match</span></td></tr>
+              </tbody>
+            </table>
+            <p class="gini-calculation" id="gini-calculation" aria-live="polite"></p>
+          </div>
+          <figure class="gini-figure">
+            <div id="gini-curves"></div>
+            <figcaption class="small">The curves use their own units. The two scores are zero at pure nodes and peak at a 50/50 mix.</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="explanation-grid">
+        <div>
+          <h3>Why the square?</h3>
+          <p>For label <var>k</var>, the first draw has probability <span class="formula">pₖ</span> and a different second label has probability <span class="formula">1 − pₖ</span>. Multiply and sum over the first label to get <span class="formula">G = Σ pₖ(1 − pₖ) = 1 − Σ pₖ²</span>. The square is the probability of drawing the same label twice.</p>
+        </div>
+        <div>
+          <h3>What changes with more labels?</h3>
+          <p>A pure node gives <strong>0</strong> by both scores. Both scores peak when the <var>K</var> labels are equally common. With a uniform mix, the second draw matches whichever label came first with probability <span class="formula">1/K</span>, so <span class="formula">G = 1 − 1/K</span>. Each label is equally surprising, so entropy is <span class="formula">log₂(K)</span> bits. For two labels the maxima are <strong>0.5</strong> and <strong>1 bit</strong>.</p>
+        </div>
+        <div class="gini-choice">
+          <h3>Why start with Gini?</h3>
+          <p>Gini uses squares and addition and avoids logarithms, so it can be cheaper to compute per candidate. It is the default in scikit-learn’s <code>DecisionTreeClassifier</code>. Actual training time depends on the data and implementation. If the choice matters, compare both criteria with the same validation setup and select the one that serves your metric. <a href="https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html">scikit-learn criterion reference</a></p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">
+          <div><h3>Score the same two questions</h3><p>Both criteria use the same rows and child weights. Compare gains within each column.</p></div>
+        </div>
+        <div class="table-wrap"><table>
+          <caption class="sr-only">Gini and entropy gains of two questions at the parcel root</caption>
+          <thead><tr><th scope="col">Question</th><th scope="col">Gini gain</th><th scope="col">Entropy gain</th></tr></thead>
+          <tbody id="gini-parcel-ranks"></tbody>
+        </table></div>
+        <p class="gini-note">Both scores prefer <strong>X ≤ 3.5</strong> here. They can disagree because they value changes in class proportions differently.</p>
+        <details class="rank-details gini-counterexample">
+          <summary>See two cuts that rank differently</summary>
+          <p>Consider a separate toy parent with <strong>8 Auto and 2 Review</strong>. Counts are shown as (Auto, Review). Both criteria weight each child by its share of the 10 rows.</p>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Candidate splits of a ten-parcel parent that Gini and entropy rank differently</caption>
+            <thead><tr><th scope="col">Candidate and child counts</th><th scope="col">Gini gain</th><th scope="col">Entropy gain</th></tr></thead>
+            <tbody id="gini-toy-ranks"></tbody>
+          </table></div>
+          <p class="small" id="gini-toy-worked"></p>
+          <p>Split A isolates one Review parcel and earns more Gini gain. Split B creates a larger pure Auto child and earns more entropy gain. Two impurity formulas can pick different questions even when the rows, weights, and candidate splits are identical.</p>
+        </details>
+      </div>
+      <p class="transition">Use either score in the same <a href="#split">split search</a>. Reduce impurity in the children, then repeat at the next node.</p>
+    </section>
+
 
     <section class="chapter" id="split" aria-labelledby="split-title">
       <p class="eyebrow">Compare candidate questions</p>
@@ -401,6 +764,7 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
           <label>Numeric search <select id="search-mode"><option value="exact">Exact midpoints</option><option value="bins">Coarse bin edges</option></select></label>
           <label>Candidate question <select id="candidate"></select></label>
         </div>
+        <div id="split-plot" class="split-plot"></div>
         <div class="split-children" id="split-children"></div>
         <div id="split-calculation" aria-live="polite"></div>
         <details class="rank-details">
@@ -415,31 +779,41 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
       </div>
       <div class="explanation-grid compact">
         <div>
-          <h3>Why Gini uses squares</h3>
-          <p>Draw one label, replace it, then draw again. A class occurs first with probability <var>p</var> and the second label differs with probability <span class="formula">1 − p</span>. Averaging gives <span class="formula">Σ p(1 − p) = 1 − Σ p²</span>.</p>
+          <h3>What stays the same</h3>
+          <p>Switch between <a href="#gini">entropy and Gini</a> while holding a candidate fixed. The same parcels take the same branches. Each criterion uses its own scale to score the label mix in those children.</p>
         </div>
         <div>
           <h3>How thresholds become candidates</h3>
           <p>Exact search tries a midpoint per gap between distinct weights. Coarse search tries only 2.5, 4.5, and 6.5 here. It sums the label counts on both sides of each edge. Packaging A versus B adds its own candidate in either mode.</p>
         </div>
       </div>
+      <details class="teaching-note">
+        <summary>What about categorical features and scaling?</summary>
+        <p>The feature <var>Y</var> has values A and B, so one yes-or-no question separates them. With more categories, a binary tree can test membership in a group of categories, or test one category at a time after one-hot encoding. Multiway trees can use more than two branches. Each branch still earns its weight from the same immediate parent.</p>
+        <p>For an exact numerical search, a strictly increasing rescaling preserves the ordering of the training values and therefore the candidate partitions. The cutoff itself changes units. A tree can also reuse a feature deeper down when a different cutoff still divides the rows.</p>
+      </details>
       <p class="transition">A child can still have mixed labels. It becomes a new parent, with its own counts and candidate search.</p>
     </section>
 
     <section class="chapter" id="tree" aria-labelledby="tree-title">
       <p class="eyebrow">Repeat the search locally</p>
       <h2 id="tree-title">Grow the classification tree</h2>
-      <p class="lede">Grow one level at a time. Select a node to see which rows reach it and how its score changes. The same impurity criterion carries over from the split explorer. This tree searches exact midpoints.</p>
+      <p class="lede">The <strong>root</strong> starts with every training row. A <strong>decision node</strong> asks a question, its labeled <strong>branches</strong> carry the answers, and a <strong>leaf</strong> returns the prediction. Select a node to see why it split or stopped.</p>
       <div class="panel">
         <div class="control-grid tree-controls">
-          <label>Maximum depth <select id="tree-depth"><option value="0">0 · Root only</option><option value="1" selected>1 · One question</option><option value="2">2 · Up to two questions</option><option value="3">3 · Up to three questions</option></select></label>
+          <label>Maximum depth <select id="tree-depth"><option value="0">0 · Root only</option><option value="1">1 · One question</option><option value="2" selected>2 · Up to two questions</option><option value="3">3 · Up to three questions</option></select></label>
           <label>Minimum rows in a leaf <select id="min-leaf"><option value="1" selected>1 row</option><option value="2">2 rows</option><option value="3">3 rows</option><option value="4">4 rows</option></select></label>
+          <label>Trace a parcel <select id="trace-parcel"></select></label>
         </div>
         <div class="tree-summary" id="tree-summary" aria-live="polite"></div>
         <div id="tree-diagram" class="tree-diagram"></div>
+        <div class="trace-result">
+          <h3>Follow the highlighted path</h3>
+          <div class="route-steps" id="traced-route" aria-live="polite"></div>
+        </div>
         <div class="tree-inspector" id="node-details" aria-live="polite"></div>
       </div>
-      <p><strong>At a deeper node, the denominator is that node’s row count.</strong> Its ancestors have already determined which rows get there. A pure node stops. A mixed node can also stop at a depth limit or when no eligible split improves the score. The same numerical feature can appear again with a different threshold.</p>
+      <p><strong>Each split uses its own rows.</strong> At a deeper node, the denominator is the number of training rows that reached that parent. This tree uses the criterion from the split explorer and searches exact midpoints. At a leaf, the displayed class shares come from its training rows. A 100% share in a one-row leaf is based on a single example.</p>
       <p class="transition">The tree learned from these eight parcels. The next six were kept out of training.</p>
     </section>
 
@@ -471,7 +845,12 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
           </div>
         </div>
       </div>
-      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Try reading the two error cells out loud before you compare accuracy. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
+      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Select an error cell, then use a parcel’s <strong>Trace</strong> link to see the decision that led there. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
+      <details class="panel depth-comparison">
+        <summary>Compare training and held-out accuracy by depth</summary>
+        <div id="depth-comparison"></div>
+        <p class="small">A shallow tree can miss useful structure. A deeper tree can fit patterns specific to its training rows. This six-parcel holdout illustrates the tradeoff. Use validation on a larger sample to choose depth.</p>
+      </details>
       <p class="transition">Now look back at the fitted tree and ask how much each feature contributed to the reduction in training impurity.</p>
     </section>
 
@@ -507,6 +886,10 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
         </div>
         <div id="regression-plot"></div>
         <div id="regression-calculation" aria-live="polite"></div>
+        <details class="teaching-note">
+          <summary>See this cutoff as a regression tree</summary>
+          <div id="regression-tree" class="tree-diagram"></div>
+        </details>
       </div>
       <p>The cutoff search is the same: compare weighted child scores using only the rows in the immediate parent. The mean and MSE are recalculated inside each child. A fitted regression tree predicts one constant per leaf.</p>
       <p class="transition">Use the same rows to verify the arithmetic and the predictions in code.</p>
@@ -515,6 +898,7 @@ select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4r
     <section class="chapter" id="python" aria-labelledby="python-title">
       <p class="eyebrow">Reproduce the numbers</p>
       <h2 id="python-title">Verify in Python</h2>
+      <p>The first script checks the arithmetic for the questions we chose. The scikit-learn example fits both trees from the training rows, then checks the learned models.</p>
       <div class="python-demo">
   <p>Reproduce the split scores, leaf predictions, and held-out results using Python’s standard library. The first run downloads the Python runtime and executes the code in this browser.</p>
   <div class="demo-actions">
@@ -820,6 +1204,219 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 (() => {
   'use strict';
 
+  const criterionNames = { entropy: 'Entropy', gini: 'Gini impurity', mse: 'MSE' };
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    })[character]);
+  }
+
+  function rounded(value) {
+    return String(Number(value.toFixed(3)));
+  }
+
+  function describeTree(node, path = 'root') {
+    if (!node.split) return { node, path, leaves: 1 };
+    const yes = describeTree(node.left, path + 'l');
+    const no = describeTree(node.right, path + 'r');
+    return { node, path, yes, no, leaves: yes.leaves + no.leaves };
+  }
+
+  function drawCard(item, options, branch) {
+    const { node, path } = item;
+    const { criterion, selectedPath, traced, interactive } = options;
+    const { n, auto, review, score, prediction } = node.stats;
+    const root = path === 'root';
+    const leaf = !node.split;
+    const onPath = traced.has(path);
+    const role = root ? (leaf ? 'Root and leaf' : 'Root') : (leaf ? 'Leaf' : 'Decision node');
+    const outcome = prediction === 1 ? 'Review' : 'Auto';
+    const condition = node.split?.feature === 'x'
+      ? 'X ≤ ' + node.split.threshold
+      : 'Y = ' + node.split?.threshold;
+    const title = node.split ? condition + '?' : 'Predict ' +
+      (criterion === 'mse' ? rounded(prediction) + ' min' : outcome);
+    const impurity = criterionNames[criterion] + ' ' + rounded(score) +
+      (criterion === 'entropy' ? (score === 1 ? ' bit' : ' bits') : (criterion === 'mse' ? ' min²' : ''));
+    const samples = n + (n === 1 ? ' parcel' : ' parcels');
+    const classes = ['dt-node', root && 'dt-node--root', leaf && 'dt-node--leaf',
+      onPath && 'dt-node--traced'].filter(Boolean).join(' ');
+    const tag = interactive ? 'button' : 'div';
+    const label = [branch && branch + ' branch', role, title, samples, impurity,
+      criterion !== 'mse' && auto + ' Auto, ' + review + ' Review',
+      onPath && 'On traced path'].filter(Boolean).join('. ');
+    const attrs = interactive
+      ? ' type="button" data-node="' + path + '" aria-pressed="' + String(path === selectedPath) +
+        '" aria-label="' + escapeHtml(label) + '"'
+      : ' role="group" aria-label="' + escapeHtml(label) + '"';
+    const mix = criterion === 'mse' ? '' : '<span class="dt-mix" aria-hidden="true">' +
+      '<span class="dt-mix-bar" style="--dt-auto:' + (100 * auto / n) + '%"></span>' +
+      '<span class="dt-mix-labels"><span><i class="dt-mark" aria-hidden="true"></i>' + auto +
+      ' Auto</span><span><i class="dt-mark dt-mark--review" aria-hidden="true"></i>' + review +
+      ' Review</span></span></span>';
+    return '<' + tag + ' class="' + classes + '"' + attrs + '>' +
+      '<span class="dt-node-top"><span class="dt-node-role">' + role +
+      '</span><span class="dt-node-samples">' + samples + '</span></span>' +
+      '<strong class="dt-node-title">' + escapeHtml(title) + '</strong>' +
+      '<span class="dt-node-score">' + impurity + '</span>' + mix +
+      (onPath ? '<span class="dt-node-path" aria-hidden="true">On path</span>' : '') +
+      '</' + tag + '>';
+  }
+
+  function draw(item, options, branch) {
+    const card = drawCard(item, options, branch);
+    if (!item.yes) return '<div class="dt-subtree">' + card + '</div>';
+    const { yes, no } = item;
+    const firstWidth = 100 * yes.leaves / item.leaves;
+    const edges = [[yes, 'Yes', firstWidth / 2], [no, 'No', (100 + firstWidth) / 2]];
+    const lines = edges.map(([child, , x]) => '<path class="dt-edge' +
+      (options.traced.has(item.path) && options.traced.has(child.path) ? ' dt-edge--traced' : '') +
+      '" vector-effect="non-scaling-stroke" d="M50 0 V9 Q50 23 ' + x +
+      ' 23 V53"></path>').join('');
+    const branches = edges.map(([child, direction]) => '<div class="dt-child' +
+      (options.traced.has(child.path) ? ' dt-child--traced' : '') +
+      '"><span class="dt-answer">' + direction + '</span>' + draw(child, options, direction) + '</div>').join('');
+    return '<div class="dt-subtree">' + card +
+      '<div class="dt-branches" style="--dt-yes:' + yes.leaves + 'fr;--dt-no:' + no.leaves + 'fr">' +
+      '<svg class="dt-edges" viewBox="0 0 100 53" preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
+      lines + '</svg>' + branches + '</div></div>';
+  }
+
+  function render(tree, {
+    criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true,
+  } = {}) {
+    const item = describeTree(tree);
+    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive };
+    return '<div class="dt-viewport"><div class="dt-graph' +
+      (item.leaves > 4 ? ' dt-graph--dense' : '') +
+      '" role="group" aria-label="Decision tree diagram">' +
+      draw(item, options) + '</div></div>';
+  }
+
+  globalThis.TreeLabDiagram = { render };
+})();
+
+</script>
+<script>
+(() => {
+  "use strict";
+
+  const { TRAIN, entropy, gini, evaluate } = TreeLab;
+  const get = id => document.getElementById(id);
+  const slider = get("gini-review-share");
+  const presets = [...document.querySelectorAll("[data-gini-preset]")];
+  const formatPercent = probability => Number((probability * 100).toFixed(2)) + "%";
+  const formatScore = score => score.toFixed(3);
+
+  function renderCurves(review, giniScore, entropyScore) {
+    const x = probability => 34 + 260 * probability;
+    const y = value => 131 - 107 * value;
+    function points(score) {
+      return Array.from({ length: 81 }, (_, i) => {
+        const p = i / 80;
+        return x(p).toFixed(2) + "," + y(score(p)).toFixed(2);
+      }).join(" ");
+    }
+    get("gini-curves").innerHTML =
+      '<svg class="chart" viewBox="0 0 324 178" role="img" aria-label="At ' +
+      formatPercent(review) + ' Review, Gini is ' + formatScore(giniScore) +
+      ' and entropy is ' + formatScore(entropyScore) + ' bits. Both curves peak at 50 percent.">' +
+      '<path class="grid" d="M34 24H294 M34 77.5H294"/>' +
+      '<path class="axis" d="M34 24V131H294" fill="none"/>' +
+      '<text x="26" y="28" class="gini-svg-label gini-svg-label-end">1</text>' +
+      '<text x="26" y="81.5" class="gini-svg-label gini-svg-label-end">0.5</text>' +
+      '<text x="26" y="135" class="gini-svg-label gini-svg-label-end">0</text>' +
+      '<text x="34" y="148" class="gini-svg-label">0%</text>' +
+      '<text x="164" y="148" class="gini-svg-label">50%</text>' +
+      '<text x="294" y="148" class="gini-svg-label">100%</text>' +
+      '<line x1="' + x(review) + '" y1="24" x2="' + x(review) + '" y2="131" class="gini-pointer"/>' +
+      '<polyline points="' + points(entropy) + '" class="entropy-curve"/>' +
+      '<polyline points="' + points(gini) + '" class="gini-curve"/>' +
+      '<circle cx="' + x(review) + '" cy="' + y(entropyScore) + '" r="4" class="entropy-point"/>' +
+      '<circle cx="' + x(review) + '" cy="' + y(giniScore) + '" r="4" class="gini-point"/>' +
+      '<line x1="34" y1="170" x2="50" y2="170" class="gini-curve"/>' +
+      '<text x="55" y="174" class="gini-svg-label gini-svg-label-start">Gini ' + formatScore(giniScore) + '</text>' +
+      '<line x1="145" y1="170" x2="161" y2="170" class="entropy-curve"/>' +
+      '<text x="166" y="174" class="gini-svg-label gini-svg-label-start">Entropy ' + formatScore(entropyScore) + ' bits</text></svg>';
+  }
+
+  function renderMix() {
+    const review = Number(slider.value) / 100;
+    const auto = 1 - review;
+    const giniScore = gini(review);
+    const entropyScore = entropy(review);
+    const mix = { aa: auto * auto, ar: auto * review, ra: review * auto, rr: review * review };
+
+    get("gini-review-output").textContent = formatPercent(review);
+    get("gini-auto-share").textContent = formatPercent(auto);
+    get("gini-review-label-share").textContent = formatPercent(review);
+    for (const [pair, probability] of Object.entries(mix)) {
+      get("gini-" + pair).textContent = formatPercent(probability);
+    }
+    get("gini-calculation").innerHTML =
+      '<strong>Gini</strong> <span class="formula">' + auto.toFixed(2) + ' × ' + review.toFixed(2) +
+      ' + ' + review.toFixed(2) + ' × ' + auto.toFixed(2) + ' = ' + giniScore.toFixed(4) + '</span>';
+    for (const button of presets) {
+      button.setAttribute("aria-pressed", button.dataset.giniPreset === slider.value ? "true" : "false");
+    }
+    renderCurves(review, giniScore, entropyScore);
+  }
+
+  function compareParcelQuestions() {
+    const candidates = [
+      { label: "X ≤ 3.5", split: { feature: "x", threshold: 3.5 } },
+      { label: "Y = A", split: { feature: "y", threshold: "A" } },
+    ];
+    get("gini-parcel-ranks").innerHTML = candidates.map(({ label, split }) =>
+      '<tr><th scope="row">' + label + '</th><td>' +
+      formatScore(evaluate(TRAIN, split, "gini").gain) + '</td><td>' +
+      formatScore(evaluate(TRAIN, split, "entropy").gain) + '</td></tr>'
+    ).join("");
+  }
+
+  function compareToyQuestions() {
+    const total = 10;
+    const parentReviewShare = 2 / total;
+    const splits = [
+      { label: "Split A", yes: [0, 1], no: [8, 1] },
+      { label: "Split B", yes: [2, 2], no: [6, 0] },
+    ];
+    function gain(split, score) {
+      const contribution = ([auto, review]) => ((auto + review) / total) * score(review / (auto + review));
+      return score(parentReviewShare) - contribution(split.yes) - contribution(split.no);
+    }
+    const giniGains = splits.map(split => gain(split, gini));
+    const entropyGains = splits.map(split => gain(split, entropy));
+    const highlight = (value, series) => value === Math.max(...series) ?
+      '<strong class="gini-winning">' + formatScore(value) + ' · wins</strong>' : formatScore(value);
+
+    get("gini-toy-ranks").innerHTML = splits.map((split, i) =>
+      '<tr><th scope="row">' + split.label + '<span class="gini-share">Yes (' + split.yes.join(", ") +
+      '), no (' + split.no.join(", ") + ')</span></th><td>' + highlight(giniGains[i], giniGains) +
+      '</td><td>' + highlight(entropyGains[i], entropyGains) + '</td></tr>'
+    ).join("");
+    get("gini-toy-worked").textContent = "For split A, weighted child Gini is (1/10) × 0 + (9/10) × " +
+      formatScore(gini(1 / 9)) + " ≈ 0.178. Parent Gini is 0.320, so the gain is " + formatScore(giniGains[0]) + ".";
+  }
+
+  slider.addEventListener("input", renderMix);
+  for (const button of presets) {
+    button.addEventListener("click", () => {
+      slider.value = button.dataset.giniPreset;
+      renderMix();
+    });
+  }
+  renderMix();
+  compareParcelQuestions();
+  compareToyQuestions();
+})();
+
+</script>
+<script>
+(() => {
+  'use strict';
+
   const { TRAIN, HOLDOUT, entropy, stats, candidates, evaluate, rank, fit, predict, confusion, importance } = TreeLab;
   const get = id => document.getElementById(id);
   const all = selector => [...document.querySelectorAll(selector)];
@@ -831,6 +1428,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   const question = split => split.feature === 'x' ? 'X ≤ ' + split.threshold : 'Y = ' + split.threshold;
   const key = split => split.feature + ':' + split.threshold;
   const ratio = (numerator, denominator) => denominator ? numerator / denominator : null;
+  const correctCount = (tree, rows) => rows.filter(row => predict(tree, row) === row.label).length;
   const counts = group => group.auto + ' Auto · ' + group.review + ' Review';
   const rowCount = n => n + (n === 1 ? ' row' : ' rows');
   const chip = row => '<span class="chip"><i class="key ' + (row.label ? 'review' : 'auto') +
@@ -842,6 +1440,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   const candidateInput = get('candidate');
   const depthInput = get('tree-depth');
   const minLeafInput = get('min-leaf');
+  const traceInput = get('trace-parcel');
   const probabilityInput = get('review-probability');
   const regressionInput = get('regression-cutoff');
   const matrixLabels = { tn: 'True negative', fp: 'False positive', fn: 'False negative', tp: 'True positive' };
@@ -926,9 +1525,45 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     all('[data-guess]').forEach(button => button.addEventListener('click', () => {
       all('[data-guess]').forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
       get('guess-result').textContent = button.dataset.guess === '0'
-        ? 'The closest training match went to Auto. Let’s see whether a tree can learn why packaging matters here.'
+        ? 'The fitted tree also says Auto. Follow the two questions to see where packaging matters.'
         : 'Weight alone would send this parcel to Review. The matching training parcel went to Auto, so a second question may help.';
+      get('parcel-walkthrough').open = true;
     }));
+  }
+
+  function trace(tree, row) {
+    const paths = ['root'];
+    const steps = [];
+    let node = tree;
+    while (node.split) {
+      const split = node.split;
+      const answer = split.feature === 'x' ? row.x <= split.threshold : row.y === split.threshold;
+      const feature = split.feature === 'x' ? 'X' : 'Y';
+      steps.push(question(split) + '? ' + (answer ? 'Yes' : 'No') + ' (' + feature + ' is ' + row[split.feature] + ')');
+      paths.push(paths[paths.length - 1] + (answer ? 'l' : 'r'));
+      node = answer ? node.left : node.right;
+    }
+    return { paths, steps, leaf: node.stats };
+  }
+
+  function routeDetails(traced, row, includeLabel) {
+    const { steps, leaf } = traced;
+    const routeMarkup = steps.length ? '<ol>' + steps.map(step => '<li>' + step + '</li>').join('') + '</ol>' :
+      '<p>The root is also the leaf, so there are no questions to answer.</p>';
+    const labelMarkup = includeLabel ? ' · Recorded route <strong>' + route(row.label) + '</strong>' : '';
+    return routeMarkup + '<p>Predict <strong>' + route(leaf.prediction) + '</strong>' + labelMarkup +
+      '</p><p class="small">Leaf label shares: ' + percent(leaf.auto / leaf.n) +
+      ' Auto · ' + percent(leaf.review / leaf.n) + ' Review (' + rowCount(leaf.n) + ').</p>';
+  }
+
+  function renderParcelPreview() {
+    const tree = fit(TRAIN, 'entropy', 2);
+    const parcel = { x: 7, y: 'A' };
+    const traced = trace(tree, parcel);
+    write('preview-tree', TreeLabDiagram.render(tree, {
+      criterion: 'entropy', selectedPath: null, tracedPaths: traced.paths, interactive: false,
+    }));
+    write('preview-route', routeDetails(traced, parcel, false));
   }
 
   function renderEntropy() {
@@ -1001,6 +1636,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   function showCandidate() {
     const criterion = criterionInput.value;
     const result = results.find(entry => key(entry.split) === selected.candidate);
+    renderSplitPlot(result);
     const child = (label, rows, group) => '<div class="child ' + label.toLowerCase() + '"><h3>' + label +
       ' · ' + rowCount(group.n) + '</h3>' + chips(rows) + '<p>' + counts(group) + '</p>' +
       '<p class="arithmetic">' + groupFormula(group, criterion) + ' ≈ ' + number(group.score) + '</p></div>';
@@ -1018,56 +1654,109 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     get('rank-summary').textContent = 'Compare ' + results.length + ' candidate gains';
   }
 
+  function renderSplitPlot(result) {
+    const { split, left, right } = result;
+    const x = weight => 82 + (weight - 1) * 72;
+    const top = 37;
+    const height = 94;
+    const width = 550;
+    const finish = 610;
+    const isNumeric = split.feature === 'x';
+    const cutoff = isNumeric ? x(split.threshold) : 0;
+    const rect = (branch, start, y, w, h) => '<rect class="region region-' + branch + '" x="' + start +
+      '" y="' + y + '" width="' + w + '" height="' + h + '"></rect>';
+    const text = (label, cx, y) => '<text x="' + cx + '" y="' + y + '" text-anchor="middle">' + label + '</text>';
+    const regions = isNumeric
+      ? rect('yes', 60, top, cutoff - 60, height) + rect('no', cutoff, top, finish - cutoff, height) +
+        '<line class="cut" x1="' + cutoff + '" x2="' + cutoff + '" y1="' + top + '" y2="' + (top + height) +
+        '"></line>' + text('Yes', (60 + cutoff) / 2, 25) + text('No', (cutoff + finish) / 2, 25)
+      : rect('yes', 60, top, width, height / 2) + rect('no', 60, top + height / 2, width, height / 2) +
+        text('Yes', 645, 64) + text('No', 645, 111);
+    const marks = TRAIN.map(row => {
+      const cx = x(row.x);
+      const cy = row.y === 'A' ? 61 : 108;
+      const title = '<title>' + row.id + ' · ' + route(row.label) + '</title>';
+      return row.label ? '<rect class="mark-review" x="' + (cx - 7) + '" y="' + (cy - 7) +
+        '" width="14" height="14" rx="2">' + title + '</rect>' :
+        '<circle class="mark-auto" cx="' + cx + '" cy="' + cy + '" r="7">' + title + '</circle>';
+    }).join('');
+    write('split-plot', '<svg class="chart split-chart" viewBox="0 0 675 176" role="img" aria-label="Split ' +
+      question(split) + '. Yes: ' + left.map(row => row.id).join(', ') +
+      '. No: ' + right.map(row => row.id).join(', ') + '.">' + regions +
+      '<path class="grid" d="M 60 61 H 610 M 60 108 H 610"></path>' +
+      text('A', 30, 66) + text('B', 30, 113) + marks +
+      TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X', 335, 173) + '</svg>');
+  }
+
   function rebuildTree() {
     currentTree = fit(TRAIN, criterionInput.value, Number(depthInput.value), Number(minLeafInput.value));
     selected.node = 'root';
     const criterion = criterionInput.value;
-    const correct = TRAIN.filter(row => predict(currentTree, row) === row.label).length;
+    const correct = correctCount(currentTree, TRAIN);
     write('tree-summary', '<strong>' + name(criterion) + ' tree</strong> · ' + correct + '/' +
       TRAIN.length + ' training parcels routed correctly');
     renderTree();
     renderEvaluation();
+    renderDepthComparison();
     renderImportance();
   }
 
   function renderTree() {
     const records = new Map();
+    const criterion = criterionInput.value;
+    const parcel = [...TRAIN, ...HOLDOUT].find(row => row.id === traceInput.value);
+    const traced = trace(currentTree, parcel);
 
-    function draw(node, rows, path, branch) {
-      records.set(path, { node, rows, branch });
-      const title = node.split ? question(node.split) + '?' : 'Predict ' + route(node.stats.prediction);
-      const buttons = '<div class="tree-node' + (node.split ? '' : ' leaf') + '">' +
-        (branch ? '<span class="branch-name">' + branch + '</span>' : '') +
-        '<button type="button" data-node="' + path + '" aria-pressed="' + String(path === selected.node) + '">' +
-        '<strong>' + title + '</strong><span>' + rowCount(node.stats.n) + '</span></button>';
-      if (!node.split) return buttons + '</div>';
-      const result = evaluate(rows, node.split, criterionInput.value);
-      return buttons + '<div class="tree-children">' +
-        draw(node.left, result.left, path + 'l', 'Yes') + draw(node.right, result.right, path + 'r', 'No') +
-        '</div></div>';
+    function index(node, rows, path, depth) {
+      const split = node.split ? evaluate(rows, node.split, criterion) : null;
+      records.set(path, { node, rows, depth, split });
+      if (split) {
+        index(node.left, split.left, path + 'l', depth + 1);
+        index(node.right, split.right, path + 'r', depth + 1);
+      }
     }
 
-    function inspect(path) {
-      selected.node = path;
-      const { node, rows, branch } = records.get(path);
-      const criterion = criterionInput.value;
-      all('[data-node]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.node === path)));
-      write('node-details', '<h3>' + (node.split ? question(node.split) + '?' : route(node.stats.prediction) + ' leaf') +
-        (branch ? ' · ' + branch + ' branch' : ' · Root') + '</h3><p>' + counts(node.stats) + ' · ' +
-        name(criterion) + ' ' + number(node.stats.score) + '</p>' +
-        (node.split
-          ? '<p class="small">Weighted child score ' + number(node.stats.score - node.gain) + ' · Local gain ' + number(node.gain) + '</p>'
-          : '<p class="small">' + (node.stats.score === 0 ? 'All labels agree here.' :
-            node.stats.auto === node.stats.review ? 'A class tie is routed to Auto in this lab.' :
-              'This leaf routes to its majority class.') + '</p>') + chips(rows));
-    }
+    index(currentTree, TRAIN, 'root', 0);
+    write('tree-diagram', TreeLabDiagram.render(currentTree, {
+      criterion, selectedPath: selected.node, tracedPaths: traced.paths,
+    }));
+    write('traced-route', routeDetails(traced, parcel, true));
 
-    write('tree-diagram', draw(currentTree, TRAIN, 'root', null));
-    get('tree-diagram').onclick = event => {
-      const button = event.target.closest('[data-node]');
-      if (button) inspect(button.dataset.node);
-    };
-    inspect(selected.node);
+    const record = records.get(selected.node);
+    const { node, rows, depth, split } = record;
+    const role = depth === 0 ? (split ? 'Root decision' : 'Root leaf') : (split ? 'Decision node' : 'Leaf');
+    const heading = '<h3>' + role + ' · Depth ' + depth + '</h3><p>' + counts(node.stats) + ' · ' +
+      name(criterion) + ' ' + number(node.stats.score) + '</p>';
+    const score = split ? '<div class="calc-lines node-calculation">' + calculation(split, criterion) + '</div>' :
+      '<p class="small">' + leafReason(node, depth) +
+      (node.stats.auto === node.stats.review ? ' This lab resolves a class tie as Auto.' : '') + '</p>';
+    write('node-details', heading + chips(rows) + score);
+  }
+
+  function leafReason(node, depth) {
+    if (node.stats.score === 0) return 'Pure node: all its training rows have the same label.';
+    if (depth >= Number(depthInput.value)) return 'The tree reached its maximum depth here.';
+    if (node.stats.n < 2 * Number(minLeafInput.value)) return 'Too few rows to make two children of the required size.';
+    return 'No eligible question improves impurity here.';
+  }
+
+  function renderDepthComparison() {
+    const criterion = criterionInput.value;
+    const minLeaf = Number(minLeafInput.value);
+    function metric(correct, size) {
+      return '<span class="accuracy-bar" aria-hidden="true"><span style="width:' + percent(correct / size) +
+        '"></span></span><span>' + correct + '/' + size + '</span>';
+    }
+    const rows = [0, 1, 2].map(depth => {
+      const tree = fit(TRAIN, criterion, depth, minLeaf);
+      return '<tr' + (depth === Number(depthInput.value) ? ' class="is-selected"' : '') +
+        '><th scope="row">' + depth + '</th><td>' + metric(correctCount(tree, TRAIN), TRAIN.length) +
+        '</td><td>' + metric(correctCount(tree, HOLDOUT), HOLDOUT.length) + '</td></tr>';
+    });
+    write('depth-comparison', '<div class="table-wrap"><table><caption class="sr-only">' +
+      'Accuracy by maximum depth with current impurity criterion and minimum leaf size</caption>' +
+      '<thead><tr><th scope="col">Max depth</th><th scope="col">Training</th><th scope="col">Held out</th></tr></thead><tbody>' +
+      rows.join('') + '</tbody></table></div>');
   }
 
   function renderEvaluation() {
@@ -1093,7 +1782,8 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     get('show-all').hidden = !selected.matrix;
     get('heldout-title').textContent = selected.matrix ? matrixLabels[selected.matrix] + ' parcels' : 'All held-out parcels';
     write('heldout-rows', filtered.length ? filtered.map(({ row, prediction }) => '<tr><th scope="row">' + row.id +
-      ' <span class="small">· ' + row.x + ', ' + row.y + '</span></th><td>' + route(row.label) +
+      ' <span class="small">· ' + row.x + ', ' + row.y + '</span><br><a href="#tree" data-trace="' + row.id +
+      '" aria-label="Trace held-out parcel ' + row.id + ' through the tree">Trace</a></th><td>' + route(row.label) +
       '</td><td>' + route(prediction) + '</td></tr>').join('') : '<tr><td colspan="3">No parcels in this cell.</td></tr>');
     get('heldout-note').textContent = 'Showing ' + filtered.length + ' of ' + view.length + ' held-out parcels.';
   }
@@ -1157,12 +1847,23 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
       leaf('No', right, rightStats) + '</div><div class="calc-lines">' +
       '<p><strong>Parent MSE</strong> <span class="arithmetic">[(2 − 5)² + (2 − 5)² + (2 − 5)² + (6 − 5)² + (8 − 5)² + (8 − 5)² + (4 − 5)² + (8 − 5)²] / 8 = 7</span></p>' +
       calculation(result, 'mse') + '<p class="small">Orange points show actual times. Teal lines show the two predictions. Vertical gaps are residuals.</p></div>');
+    write('regression-tree', TreeLabDiagram.render({
+      stats: result.parent,
+      split: result.split,
+      left: { stats: leftStats, split: null },
+      right: { stats: rightStats, split: null },
+    }, { criterion: 'mse', interactive: false }));
   }
 
   setupNavigation();
   renderTraining();
+  renderParcelPreview();
   renderEntropy();
   renderCandidates();
+  traceInput.innerHTML = [[HOLDOUT, 'Held out'], [TRAIN, 'Training']].map(([rows, label]) =>
+    '<optgroup label="' + label + '">' + rows.map(row => '<option value="' + row.id + '">' +
+      row.id + ' · X ' + row.x + ', Y ' + row.y + '</option>').join('') + '</optgroup>').join('');
+  traceInput.value = 'H5';
   rebuildTree();
   regressionInput.innerHTML = candidates(TRAIN).filter(split => split.feature === 'x').map(split =>
     '<option value="' + split.threshold + '">' + question(split) + '</option>').join('');
@@ -1187,6 +1888,20 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   });
   depthInput.addEventListener('change', rebuildTree);
   minLeafInput.addEventListener('change', rebuildTree);
+  traceInput.addEventListener('change', renderTree);
+  get('tree-diagram').addEventListener('click', event => {
+    const button = event.target.closest('[data-node]');
+    if (!button) return;
+    selected.node = button.dataset.node;
+    renderTree();
+    get('tree-diagram').querySelector('[data-node="' + selected.node + '"]').focus({ preventScroll: true });
+  });
+  get('heldout-rows').addEventListener('click', event => {
+    const link = event.target.closest('[data-trace]');
+    if (!link) return;
+    traceInput.value = link.dataset.trace;
+    renderTree();
+  });
   all('[data-cell]').forEach(button => button.addEventListener('click', () => {
     selected.matrix = selected.matrix === button.dataset.cell ? null : button.dataset.cell;
     renderEvaluation();

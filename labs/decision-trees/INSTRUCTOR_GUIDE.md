@@ -8,6 +8,8 @@ A desk sorts each arriving parcel into **Auto (0)** or **Review (1)**. At predic
 
 Ask learners to choose a first question using the eight training parcels. Offer “Is X at most 3.5?” and “Is Y equal to A?” Ask which question better separates the two outcomes. The first question isolates three Auto parcels. The other group contains four Review parcels and one Auto parcel. Packaging A isolates only two Auto parcels at the root.
 
+Open the worked parcel route after the prediction prompt. Start with the root, follow the No branch for weight 7, then the Yes branch for packaging A. Point out the difference between a decision node, which asks another question, and a leaf, which returns a class.
+
 ## Turn surprise into a split score
 
 Ask how surprised you would be to observe an outcome with probability 1, ½, or ¼.
@@ -18,13 +20,13 @@ Ask how surprised you would be to observe an outcome with probability 1, ½, or 
 
 The root has four parcels per class, so its entropy is **1 bit**. At $X\leq3.5$, the children contain three and five parcels. Their entropies are **0** and **0.7219** bits. Weighting by the child sizes gives $(3/8)(0)+(5/8)(0.7219)\approx0.4512$ bits. Subtracting from the parent gives **0.5488 bits** of information gain. The packaging split gains **0.3113 bits** at the root.
 
-Switch to Gini and keep the groups fixed. Gini is the probability that two independent labels drawn from the node differ. The root has Gini **0.5**, and the weight split gives weighted child Gini **0.2** and reduction **0.3**. Both criteria choose the same root split here. The scores have different meanings and scales.
+Open [Gini vs. entropy](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#gini) and move from a pure node to the balanced root and then the 80% Review branch. Gini is the probability that two labels drawn with replacement differ. Gini uses squares and avoids logarithms. Score the same split with both criteria before opening the optional counterexample where the best candidate changes. Both criteria choose the same root split for the eight training parcels. The weight split gives weighted child Gini **0.2** and reduction **0.3**. The scores have different meanings and scales.
 
 For an exact numeric search, sort the distinct weights and test a midpoint between each adjacent pair. All cutoffs in the same gap partition these training rows identically. A histogram search groups values into bins and scores eligible bin boundaries. It can miss a better cut inside a bin. For packaging A/B, the one grouping divides A from B.
 
 ## Grow the tree and check new parcels
 
-Follow the five parcels with $X>3.5$. Ask whether packaging becomes useful here even though it lost at the root. In this branch, A sends the remaining Auto parcel to one child and B sends all four Review parcels to the other. The left branch of the root was already pure. Change the depth between one split and two levels to show when another question is allowed.
+Follow the five parcels with $X>3.5$. Ask whether packaging becomes useful here even though it lost at the root. In this branch, A sends the remaining Auto parcel to one child and B sends all four Review parcels to the other. The left branch of the root was already pure. Select the internal node to compare its weighted child score and local gain. Change the depth between one split and two levels to show when another question is allowed. Trace H5 from the matrix to show that 100% Auto in a leaf may represent just one training row.
 
 Evaluate on the six held-out parcels. With Review as the positive class, the two-level tree gives **TN 2, FP 1, FN 1, TP 2** and accuracy **4/6**. A Review parcel at $X=6$, $Y=A$ is missed. An Auto parcel at $X=7$, $Y=B$ is flagged. The stump gives **TN 2, FP 1, FN 0, TP 3** and accuracy **5/6**. The deeper tree fits the training labels better and scores lower on this small held-out set. Ask which kind of mistake matters more at this desk before moving to the [metrics playground](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/) in a later lesson.
 

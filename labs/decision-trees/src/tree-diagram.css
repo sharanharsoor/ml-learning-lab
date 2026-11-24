@@ -1,0 +1,232 @@
+.tree-diagram { display: block; min-width: 0; }
+.dt-viewport { container: lesson-tree / inline-size; width: 100%; }
+
+.dt-graph {
+  --dt-connector: color-mix(in srgb, var(--ink) 48%, var(--line));
+  --dt-track-height: 3.25rem;
+  min-width: 0;
+  padding: clamp(.7rem, 2.2cqw, 1.5rem) .3rem;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  background: color-mix(in srgb, var(--light) 28%, var(--surface));
+}
+
+.dt-subtree { min-width: 0; }
+
+.dt-node {
+  position: relative;
+  display: grid;
+  gap: .38rem;
+  width: min(100%, 15rem);
+  min-width: 0;
+  margin-inline: var(--dt-card-margin, auto);
+  padding: .62rem .75rem .68rem;
+  border: 1px solid var(--dt-connector);
+  border-top: .2rem solid var(--teal);
+  border-radius: .6rem;
+  background: var(--surface);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+  text-align: left;
+  line-height: 1.25;
+}
+
+.dt-node--root {
+  border-color: var(--teal);
+  border-top-width: .26rem;
+  background: color-mix(in srgb, var(--light) 35%, var(--surface));
+}
+
+.dt-node--leaf {
+  border-top-color: var(--muted);
+}
+
+button.dt-node:hover {
+  border-color: var(--teal);
+  background: color-mix(in srgb, var(--light) 55%, var(--surface));
+}
+
+button.dt-node[aria-pressed="true"] {
+  border-color: var(--teal);
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+button.dt-node:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.dt-node--traced {
+  border-top-color: var(--rust);
+  background: color-mix(in srgb, var(--warm) 52%, var(--surface));
+}
+
+.dt-node-top, .dt-mix-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: .45rem;
+  row-gap: .2rem;
+}
+
+.dt-node-role {
+  color: var(--teal);
+  font-size: .83rem;
+  font-weight: 680;
+}
+
+.dt-node-samples, .dt-node-score, .dt-mix-labels, .dt-answer {
+  color: var(--muted);
+  font-size: .83rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dt-node-title {
+  font-size: clamp(1rem, 2.7cqw, 1.45rem);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.dt-mix {
+  display: grid;
+  gap: .34rem;
+  margin-top: .1rem;
+}
+
+.dt-mix-bar {
+  display: block;
+  height: .42rem;
+  border-radius: 100px;
+  background: linear-gradient(to right, var(--teal) 0 var(--dt-auto), var(--rust) var(--dt-auto) 100%);
+}
+
+.dt-mix-labels > span { display: inline-flex; align-items: center; gap: .26rem; }
+
+.dt-mark {
+  display: inline-block;
+  flex: none;
+  width: .46rem;
+  height: .46rem;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
+.dt-mark--review { border-radius: .08rem; background: var(--rust); }
+
+.dt-node-path {
+  width: fit-content;
+  margin-top: .12rem;
+  padding: .1rem .4rem;
+  border-radius: .24rem;
+  background: var(--warm);
+  color: var(--rust);
+  font-size: .76rem;
+  font-weight: 680;
+}
+
+.dt-branches {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--dt-columns, minmax(0, var(--dt-yes)) minmax(0, var(--dt-no)));
+  gap: var(--dt-branch-gap, 0);
+  margin-inline-start: var(--dt-indent, 0);
+  padding-block-start: var(--dt-branch-padding, var(--dt-track-height));
+  padding-inline-start: var(--dt-indent, 0);
+  border-inline-start: var(--dt-side-rule, none);
+}
+
+.dt-child { position: relative; min-width: 0; padding-inline: var(--dt-sibling-padding, .35rem); }
+
+.dt-edges {
+  display: var(--dt-svg-display, block);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--dt-track-height);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dt-edge { fill: none; stroke: var(--dt-connector); stroke-width: 1.4; }
+.dt-edge--traced { stroke: var(--rust); stroke-width: 3; }
+
+.dt-answer {
+  position: var(--dt-answer-position, absolute);
+  top: -.69rem;
+  left: 50%;
+  display: block;
+  width: fit-content;
+  z-index: 1;
+  margin-block-end: var(--dt-answer-gap, 0);
+  padding: .12rem .4rem;
+  border: 1px solid var(--line);
+  border-radius: .3rem;
+  background: var(--surface);
+  transform: var(--dt-answer-transform, translate(-50%, -50%));
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.dt-child--traced > .dt-answer {
+  border-color: var(--rust);
+  background: var(--warm);
+  color: var(--rust);
+}
+
+.dt-child::before {
+  display: var(--dt-elbow-display, none);
+  content: "";
+  position: absolute;
+  top: .7rem;
+  left: calc(-1 * var(--dt-indent, 0px));
+  width: var(--dt-indent, 0px);
+  border-top: 1px solid var(--dt-connector);
+}
+
+.dt-child--traced::before { border-color: var(--rust); border-width: 2px; }
+
+.teaching .dt-node-role, .teaching .dt-node-samples, .teaching .dt-node-score,
+.teaching .dt-mix-labels, .teaching .dt-answer { font-size: .91rem; }
+
+@container lesson-tree (max-width: 32rem) {
+  .dt-graph {
+    --dt-columns: minmax(0, 1fr);
+    --dt-branch-gap: .65rem;
+    --dt-branch-padding: .55rem;
+    --dt-indent: .7rem;
+    --dt-side-rule: 1px solid var(--dt-connector);
+    --dt-sibling-padding: 0;
+    --dt-svg-display: none;
+    --dt-elbow-display: block;
+    --dt-answer-position: static;
+    --dt-answer-transform: none;
+    --dt-answer-gap: .35rem;
+    --dt-card-margin: 0;
+    padding-inline: .65rem;
+  }
+
+  .dt-node { width: 100%; }
+}
+
+@container lesson-tree (max-width: 62rem) {
+  .dt-graph--dense {
+    --dt-columns: minmax(0, 1fr);
+    --dt-branch-gap: .65rem;
+    --dt-branch-padding: .55rem;
+    --dt-indent: .7rem;
+    --dt-side-rule: 1px solid var(--dt-connector);
+    --dt-sibling-padding: 0;
+    --dt-svg-display: none;
+    --dt-elbow-display: block;
+    --dt-answer-position: static;
+    --dt-answer-transform: none;
+    --dt-answer-gap: .35rem;
+    --dt-card-margin: 0;
+    padding-inline: .65rem;
+  }
+
+  .dt-graph--dense .dt-node { width: 100%; }
+}

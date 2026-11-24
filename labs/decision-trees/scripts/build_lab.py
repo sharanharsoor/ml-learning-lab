@@ -7,7 +7,12 @@ from pathlib import Path
 SOURCE = Path(__file__).resolve().parents[1] / "src"
 PARTS = {
     "{{CSS}}": "lesson.css",
+    "{{TREE_DIAGRAM_CSS}}": "tree-diagram.css",
+    "{{GINI_CSS}}": "gini-chapter.css",
+    "{{GINI_CHAPTER}}": "gini-chapter.html",
     "{{ENGINE}}": "engine.js",
+    "{{TREE_DIAGRAM_JS}}": "tree-diagram.js",
+    "{{GINI_JS}}": "gini-chapter.js",
     "{{JS}}": "lesson.js",
     "{{PYTHON_PANEL}}": "python-demo.html",
     "{{PYTHON_JS}}": "python-demo.js",

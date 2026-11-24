@@ -12,6 +12,7 @@
   const question = split => split.feature === 'x' ? 'X ≤ ' + split.threshold : 'Y = ' + split.threshold;
   const key = split => split.feature + ':' + split.threshold;
   const ratio = (numerator, denominator) => denominator ? numerator / denominator : null;
+  const correctCount = (tree, rows) => rows.filter(row => predict(tree, row) === row.label).length;
   const counts = group => group.auto + ' Auto · ' + group.review + ' Review';
   const rowCount = n => n + (n === 1 ? ' row' : ' rows');
   const chip = row => '<span class="chip"><i class="key ' + (row.label ? 'review' : 'auto') +
@@ -23,6 +24,7 @@
   const candidateInput = get('candidate');
   const depthInput = get('tree-depth');
   const minLeafInput = get('min-leaf');
+  const traceInput = get('trace-parcel');
   const probabilityInput = get('review-probability');
   const regressionInput = get('regression-cutoff');
   const matrixLabels = { tn: 'True negative', fp: 'False positive', fn: 'False negative', tp: 'True positive' };
@@ -107,9 +109,45 @@
     all('[data-guess]').forEach(button => button.addEventListener('click', () => {
       all('[data-guess]').forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
       get('guess-result').textContent = button.dataset.guess === '0'
-        ? 'The closest training match went to Auto. Let’s see whether a tree can learn why packaging matters here.'
+        ? 'The fitted tree also says Auto. Follow the two questions to see where packaging matters.'
         : 'Weight alone would send this parcel to Review. The matching training parcel went to Auto, so a second question may help.';
+      get('parcel-walkthrough').open = true;
     }));
+  }
+
+  function trace(tree, row) {
+    const paths = ['root'];
+    const steps = [];
+    let node = tree;
+    while (node.split) {
+      const split = node.split;
+      const answer = split.feature === 'x' ? row.x <= split.threshold : row.y === split.threshold;
+      const feature = split.feature === 'x' ? 'X' : 'Y';
+      steps.push(question(split) + '? ' + (answer ? 'Yes' : 'No') + ' (' + feature + ' is ' + row[split.feature] + ')');
+      paths.push(paths[paths.length - 1] + (answer ? 'l' : 'r'));
+      node = answer ? node.left : node.right;
+    }
+    return { paths, steps, leaf: node.stats };
+  }
+
+  function routeDetails(traced, row, includeLabel) {
+    const { steps, leaf } = traced;
+    const routeMarkup = steps.length ? '<ol>' + steps.map(step => '<li>' + step + '</li>').join('') + '</ol>' :
+      '<p>The root is also the leaf, so there are no questions to answer.</p>';
+    const labelMarkup = includeLabel ? ' · Recorded route <strong>' + route(row.label) + '</strong>' : '';
+    return routeMarkup + '<p>Predict <strong>' + route(leaf.prediction) + '</strong>' + labelMarkup +
+      '</p><p class="small">Leaf label shares: ' + percent(leaf.auto / leaf.n) +
+      ' Auto · ' + percent(leaf.review / leaf.n) + ' Review (' + rowCount(leaf.n) + ').</p>';
+  }
+
+  function renderParcelPreview() {
+    const tree = fit(TRAIN, 'entropy', 2);
+    const parcel = { x: 7, y: 'A' };
+    const traced = trace(tree, parcel);
+    write('preview-tree', TreeLabDiagram.render(tree, {
+      criterion: 'entropy', selectedPath: null, tracedPaths: traced.paths, interactive: false,
+    }));
+    write('preview-route', routeDetails(traced, parcel, false));
   }
 
   function renderEntropy() {
@@ -182,6 +220,7 @@
   function showCandidate() {
     const criterion = criterionInput.value;
     const result = results.find(entry => key(entry.split) === selected.candidate);
+    renderSplitPlot(result);
     const child = (label, rows, group) => '<div class="child ' + label.toLowerCase() + '"><h3>' + label +
       ' · ' + rowCount(group.n) + '</h3>' + chips(rows) + '<p>' + counts(group) + '</p>' +
       '<p class="arithmetic">' + groupFormula(group, criterion) + ' ≈ ' + number(group.score) + '</p></div>';
@@ -199,56 +238,109 @@
     get('rank-summary').textContent = 'Compare ' + results.length + ' candidate gains';
   }
 
+  function renderSplitPlot(result) {
+    const { split, left, right } = result;
+    const x = weight => 82 + (weight - 1) * 72;
+    const top = 37;
+    const height = 94;
+    const width = 550;
+    const finish = 610;
+    const isNumeric = split.feature === 'x';
+    const cutoff = isNumeric ? x(split.threshold) : 0;
+    const rect = (branch, start, y, w, h) => '<rect class="region region-' + branch + '" x="' + start +
+      '" y="' + y + '" width="' + w + '" height="' + h + '"></rect>';
+    const text = (label, cx, y) => '<text x="' + cx + '" y="' + y + '" text-anchor="middle">' + label + '</text>';
+    const regions = isNumeric
+      ? rect('yes', 60, top, cutoff - 60, height) + rect('no', cutoff, top, finish - cutoff, height) +
+        '<line class="cut" x1="' + cutoff + '" x2="' + cutoff + '" y1="' + top + '" y2="' + (top + height) +
+        '"></line>' + text('Yes', (60 + cutoff) / 2, 25) + text('No', (cutoff + finish) / 2, 25)
+      : rect('yes', 60, top, width, height / 2) + rect('no', 60, top + height / 2, width, height / 2) +
+        text('Yes', 645, 64) + text('No', 645, 111);
+    const marks = TRAIN.map(row => {
+      const cx = x(row.x);
+      const cy = row.y === 'A' ? 61 : 108;
+      const title = '<title>' + row.id + ' · ' + route(row.label) + '</title>';
+      return row.label ? '<rect class="mark-review" x="' + (cx - 7) + '" y="' + (cy - 7) +
+        '" width="14" height="14" rx="2">' + title + '</rect>' :
+        '<circle class="mark-auto" cx="' + cx + '" cy="' + cy + '" r="7">' + title + '</circle>';
+    }).join('');
+    write('split-plot', '<svg class="chart split-chart" viewBox="0 0 675 176" role="img" aria-label="Split ' +
+      question(split) + '. Yes: ' + left.map(row => row.id).join(', ') +
+      '. No: ' + right.map(row => row.id).join(', ') + '.">' + regions +
+      '<path class="grid" d="M 60 61 H 610 M 60 108 H 610"></path>' +
+      text('A', 30, 66) + text('B', 30, 113) + marks +
+      TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X', 335, 173) + '</svg>');
+  }
+
   function rebuildTree() {
     currentTree = fit(TRAIN, criterionInput.value, Number(depthInput.value), Number(minLeafInput.value));
     selected.node = 'root';
     const criterion = criterionInput.value;
-    const correct = TRAIN.filter(row => predict(currentTree, row) === row.label).length;
+    const correct = correctCount(currentTree, TRAIN);
     write('tree-summary', '<strong>' + name(criterion) + ' tree</strong> · ' + correct + '/' +
       TRAIN.length + ' training parcels routed correctly');
     renderTree();
     renderEvaluation();
+    renderDepthComparison();
     renderImportance();
   }
 
   function renderTree() {
     const records = new Map();
+    const criterion = criterionInput.value;
+    const parcel = [...TRAIN, ...HOLDOUT].find(row => row.id === traceInput.value);
+    const traced = trace(currentTree, parcel);
 
-    function draw(node, rows, path, branch) {
-      records.set(path, { node, rows, branch });
-      const title = node.split ? question(node.split) + '?' : 'Predict ' + route(node.stats.prediction);
-      const buttons = '<div class="tree-node' + (node.split ? '' : ' leaf') + '">' +
-        (branch ? '<span class="branch-name">' + branch + '</span>' : '') +
-        '<button type="button" data-node="' + path + '" aria-pressed="' + String(path === selected.node) + '">' +
-        '<strong>' + title + '</strong><span>' + rowCount(node.stats.n) + '</span></button>';
-      if (!node.split) return buttons + '</div>';
-      const result = evaluate(rows, node.split, criterionInput.value);
-      return buttons + '<div class="tree-children">' +
-        draw(node.left, result.left, path + 'l', 'Yes') + draw(node.right, result.right, path + 'r', 'No') +
-        '</div></div>';
+    function index(node, rows, path, depth) {
+      const split = node.split ? evaluate(rows, node.split, criterion) : null;
+      records.set(path, { node, rows, depth, split });
+      if (split) {
+        index(node.left, split.left, path + 'l', depth + 1);
+        index(node.right, split.right, path + 'r', depth + 1);
+      }
     }
 
-    function inspect(path) {
-      selected.node = path;
-      const { node, rows, branch } = records.get(path);
-      const criterion = criterionInput.value;
-      all('[data-node]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.node === path)));
-      write('node-details', '<h3>' + (node.split ? question(node.split) + '?' : route(node.stats.prediction) + ' leaf') +
-        (branch ? ' · ' + branch + ' branch' : ' · Root') + '</h3><p>' + counts(node.stats) + ' · ' +
-        name(criterion) + ' ' + number(node.stats.score) + '</p>' +
-        (node.split
-          ? '<p class="small">Weighted child score ' + number(node.stats.score - node.gain) + ' · Local gain ' + number(node.gain) + '</p>'
-          : '<p class="small">' + (node.stats.score === 0 ? 'All labels agree here.' :
-            node.stats.auto === node.stats.review ? 'A class tie is routed to Auto in this lab.' :
-              'This leaf routes to its majority class.') + '</p>') + chips(rows));
-    }
+    index(currentTree, TRAIN, 'root', 0);
+    write('tree-diagram', TreeLabDiagram.render(currentTree, {
+      criterion, selectedPath: selected.node, tracedPaths: traced.paths,
+    }));
+    write('traced-route', routeDetails(traced, parcel, true));
 
-    write('tree-diagram', draw(currentTree, TRAIN, 'root', null));
-    get('tree-diagram').onclick = event => {
-      const button = event.target.closest('[data-node]');
-      if (button) inspect(button.dataset.node);
-    };
-    inspect(selected.node);
+    const record = records.get(selected.node);
+    const { node, rows, depth, split } = record;
+    const role = depth === 0 ? (split ? 'Root decision' : 'Root leaf') : (split ? 'Decision node' : 'Leaf');
+    const heading = '<h3>' + role + ' · Depth ' + depth + '</h3><p>' + counts(node.stats) + ' · ' +
+      name(criterion) + ' ' + number(node.stats.score) + '</p>';
+    const score = split ? '<div class="calc-lines node-calculation">' + calculation(split, criterion) + '</div>' :
+      '<p class="small">' + leafReason(node, depth) +
+      (node.stats.auto === node.stats.review ? ' This lab resolves a class tie as Auto.' : '') + '</p>';
+    write('node-details', heading + chips(rows) + score);
+  }
+
+  function leafReason(node, depth) {
+    if (node.stats.score === 0) return 'Pure node: all its training rows have the same label.';
+    if (depth >= Number(depthInput.value)) return 'The tree reached its maximum depth here.';
+    if (node.stats.n < 2 * Number(minLeafInput.value)) return 'Too few rows to make two children of the required size.';
+    return 'No eligible question improves impurity here.';
+  }
+
+  function renderDepthComparison() {
+    const criterion = criterionInput.value;
+    const minLeaf = Number(minLeafInput.value);
+    function metric(correct, size) {
+      return '<span class="accuracy-bar" aria-hidden="true"><span style="width:' + percent(correct / size) +
+        '"></span></span><span>' + correct + '/' + size + '</span>';
+    }
+    const rows = [0, 1, 2].map(depth => {
+      const tree = fit(TRAIN, criterion, depth, minLeaf);
+      return '<tr' + (depth === Number(depthInput.value) ? ' class="is-selected"' : '') +
+        '><th scope="row">' + depth + '</th><td>' + metric(correctCount(tree, TRAIN), TRAIN.length) +
+        '</td><td>' + metric(correctCount(tree, HOLDOUT), HOLDOUT.length) + '</td></tr>';
+    });
+    write('depth-comparison', '<div class="table-wrap"><table><caption class="sr-only">' +
+      'Accuracy by maximum depth with current impurity criterion and minimum leaf size</caption>' +
+      '<thead><tr><th scope="col">Max depth</th><th scope="col">Training</th><th scope="col">Held out</th></tr></thead><tbody>' +
+      rows.join('') + '</tbody></table></div>');
   }
 
   function renderEvaluation() {
@@ -274,7 +366,8 @@
     get('show-all').hidden = !selected.matrix;
     get('heldout-title').textContent = selected.matrix ? matrixLabels[selected.matrix] + ' parcels' : 'All held-out parcels';
     write('heldout-rows', filtered.length ? filtered.map(({ row, prediction }) => '<tr><th scope="row">' + row.id +
-      ' <span class="small">· ' + row.x + ', ' + row.y + '</span></th><td>' + route(row.label) +
+      ' <span class="small">· ' + row.x + ', ' + row.y + '</span><br><a href="#tree" data-trace="' + row.id +
+      '" aria-label="Trace held-out parcel ' + row.id + ' through the tree">Trace</a></th><td>' + route(row.label) +
       '</td><td>' + route(prediction) + '</td></tr>').join('') : '<tr><td colspan="3">No parcels in this cell.</td></tr>');
     get('heldout-note').textContent = 'Showing ' + filtered.length + ' of ' + view.length + ' held-out parcels.';
   }
@@ -338,12 +431,23 @@
       leaf('No', right, rightStats) + '</div><div class="calc-lines">' +
       '<p><strong>Parent MSE</strong> <span class="arithmetic">[(2 − 5)² + (2 − 5)² + (2 − 5)² + (6 − 5)² + (8 − 5)² + (8 − 5)² + (4 − 5)² + (8 − 5)²] / 8 = 7</span></p>' +
       calculation(result, 'mse') + '<p class="small">Orange points show actual times. Teal lines show the two predictions. Vertical gaps are residuals.</p></div>');
+    write('regression-tree', TreeLabDiagram.render({
+      stats: result.parent,
+      split: result.split,
+      left: { stats: leftStats, split: null },
+      right: { stats: rightStats, split: null },
+    }, { criterion: 'mse', interactive: false }));
   }
 
   setupNavigation();
   renderTraining();
+  renderParcelPreview();
   renderEntropy();
   renderCandidates();
+  traceInput.innerHTML = [[HOLDOUT, 'Held out'], [TRAIN, 'Training']].map(([rows, label]) =>
+    '<optgroup label="' + label + '">' + rows.map(row => '<option value="' + row.id + '">' +
+      row.id + ' · X ' + row.x + ', Y ' + row.y + '</option>').join('') + '</optgroup>').join('');
+  traceInput.value = 'H5';
   rebuildTree();
   regressionInput.innerHTML = candidates(TRAIN).filter(split => split.feature === 'x').map(split =>
     '<option value="' + split.threshold + '">' + question(split) + '</option>').join('');
@@ -368,6 +472,20 @@
   });
   depthInput.addEventListener('change', rebuildTree);
   minLeafInput.addEventListener('change', rebuildTree);
+  traceInput.addEventListener('change', renderTree);
+  get('tree-diagram').addEventListener('click', event => {
+    const button = event.target.closest('[data-node]');
+    if (!button) return;
+    selected.node = button.dataset.node;
+    renderTree();
+    get('tree-diagram').querySelector('[data-node="' + selected.node + '"]').focus({ preventScroll: true });
+  });
+  get('heldout-rows').addEventListener('click', event => {
+    const link = event.target.closest('[data-trace]');
+    if (!link) return;
+    traceInput.value = link.dataset.trace;
+    renderTree();
+  });
   all('[data-cell]').forEach(button => button.addEventListener('click', () => {
     selected.matrix = selected.matrix === button.dataset.cell ? null : button.dataset.cell;
     renderEvaluation();

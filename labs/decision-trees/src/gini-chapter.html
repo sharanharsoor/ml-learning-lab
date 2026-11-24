@@ -1,0 +1,76 @@
+    <section class="chapter" id="gini" aria-labelledby="gini-title">
+      <p class="eyebrow">Choose a measure of impurity</p>
+      <h2 id="gini-title">Gini vs entropy</h2>
+      <p class="lede">Entropy averages surprise. Gini impurity measures the chance that two draws from a node have different labels. In a decision tree, <strong>Gini index</strong> is another name for this node score.</p>
+
+      <div class="panel gini-lab">
+        <div class="panel-heading">
+          <div><h3>Draw two labels, with replacement</h3><p>Draw one parcel, return it to the node, then draw again. Each draw uses the same label probabilities.</p></div>
+        </div>
+        <div class="gini-controls">
+          <label class="control-label" for="gini-review-share">Review share <output id="gini-review-output" for="gini-review-share">50%</output></label>
+          <input id="gini-review-share" type="range" min="0" max="100" value="50">
+          <div class="gini-presets" aria-label="Example label mixes" role="group">
+            <button type="button" class="button secondary" data-gini-preset="0" aria-pressed="false">Pure Auto</button>
+            <button type="button" class="button secondary" data-gini-preset="50" aria-pressed="true">Parcel root</button>
+            <button type="button" class="button secondary" data-gini-preset="80" aria-pressed="false">Heavy branch</button>
+          </div>
+        </div>
+        <div class="gini-grid">
+          <div>
+            <table class="gini-outcomes">
+              <caption class="sr-only">Probability of each pair of labels</caption>
+              <thead><tr><th scope="col">First draw</th><th scope="col">Then Auto</th><th scope="col">Then Review</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Auto <span class="gini-share" id="gini-auto-share"></span></th><td><strong id="gini-aa">25%</strong><span>Match</span></td><td class="gini-mismatch"><strong id="gini-ar">25%</strong><span>Different</span></td></tr>
+                <tr><th scope="row">Review <span class="gini-share" id="gini-review-label-share"></span></th><td class="gini-mismatch"><strong id="gini-ra">25%</strong><span>Different</span></td><td><strong id="gini-rr">25%</strong><span>Match</span></td></tr>
+              </tbody>
+            </table>
+            <p class="gini-calculation" id="gini-calculation" aria-live="polite"></p>
+          </div>
+          <figure class="gini-figure">
+            <div id="gini-curves"></div>
+            <figcaption class="small">The curves use their own units. The two scores are zero at pure nodes and peak at a 50/50 mix.</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="explanation-grid">
+        <div>
+          <h3>Why the square?</h3>
+          <p>For label <var>k</var>, the first draw has probability <span class="formula">pₖ</span> and a different second label has probability <span class="formula">1 − pₖ</span>. Multiply and sum over the first label to get <span class="formula">G = Σ pₖ(1 − pₖ) = 1 − Σ pₖ²</span>. The square is the probability of drawing the same label twice.</p>
+        </div>
+        <div>
+          <h3>What changes with more labels?</h3>
+          <p>A pure node gives <strong>0</strong> by both scores. Both scores peak when the <var>K</var> labels are equally common. With a uniform mix, the second draw matches whichever label came first with probability <span class="formula">1/K</span>, so <span class="formula">G = 1 − 1/K</span>. Each label is equally surprising, so entropy is <span class="formula">log₂(K)</span> bits. For two labels the maxima are <strong>0.5</strong> and <strong>1 bit</strong>.</p>
+        </div>
+        <div class="gini-choice">
+          <h3>Why start with Gini?</h3>
+          <p>Gini uses squares and addition and avoids logarithms, so it can be cheaper to compute per candidate. It is the default in scikit-learn’s <code>DecisionTreeClassifier</code>. Actual training time depends on the data and implementation. If the choice matters, compare both criteria with the same validation setup and select the one that serves your metric. <a href="https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html">scikit-learn criterion reference</a></p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">
+          <div><h3>Score the same two questions</h3><p>Both criteria use the same rows and child weights. Compare gains within each column.</p></div>
+        </div>
+        <div class="table-wrap"><table>
+          <caption class="sr-only">Gini and entropy gains of two questions at the parcel root</caption>
+          <thead><tr><th scope="col">Question</th><th scope="col">Gini gain</th><th scope="col">Entropy gain</th></tr></thead>
+          <tbody id="gini-parcel-ranks"></tbody>
+        </table></div>
+        <p class="gini-note">Both scores prefer <strong>X ≤ 3.5</strong> here. They can disagree because they value changes in class proportions differently.</p>
+        <details class="rank-details gini-counterexample">
+          <summary>See two cuts that rank differently</summary>
+          <p>Consider a separate toy parent with <strong>8 Auto and 2 Review</strong>. Counts are shown as (Auto, Review). Both criteria weight each child by its share of the 10 rows.</p>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Candidate splits of a ten-parcel parent that Gini and entropy rank differently</caption>
+            <thead><tr><th scope="col">Candidate and child counts</th><th scope="col">Gini gain</th><th scope="col">Entropy gain</th></tr></thead>
+            <tbody id="gini-toy-ranks"></tbody>
+          </table></div>
+          <p class="small" id="gini-toy-worked"></p>
+          <p>Split A isolates one Review parcel and earns more Gini gain. Split B creates a larger pure Auto child and earns more entropy gain. Two impurity formulas can pick different questions even when the rows, weights, and candidate splits are identical.</p>
+        </details>
+      </div>
+      <p class="transition">Use either score in the same <a href="#split">split search</a>. Reduce impurity in the children, then repeat at the next node.</p>
+    </section>

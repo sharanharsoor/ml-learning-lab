@@ -9,6 +9,8 @@
 <link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/">
 <style>
 {{CSS}}
+{{TREE_DIAGRAM_CSS}}
+{{GINI_CSS}}
 </style>
 </head>
 <body>
@@ -26,6 +28,7 @@
       <ol class="chapters">
         <li><a href="#parcel" aria-current="location">The parcel desk</a></li>
         <li><a href="#entropy">Surprise and entropy</a></li>
+        <li><a href="#gini">Gini vs. entropy</a></li>
         <li><a href="#split">Find a split</a></li>
         <li><a href="#tree">Grow the tree</a></li>
         <li><a href="#evaluate">Evaluate on new data</a></li>
@@ -41,6 +44,7 @@
     <select id="chapter-select">
       <option value="parcel">The parcel desk</option>
       <option value="entropy">Surprise and entropy</option>
+      <option value="gini">Gini vs. entropy</option>
       <option value="split">Find a split</option>
       <option value="tree">Grow the tree</option>
       <option value="evaluate">Evaluate on new data</option>
@@ -81,7 +85,12 @@
         </div>
         <p class="prompt-result" id="guess-result" aria-live="polite"></p>
       </div>
-      <p class="transition">To compare rules systematically, start by measuring how mixed the labels are before asking any question.</p>
+      <details class="panel parcel-walkthrough" id="parcel-walkthrough">
+        <summary>See the two questions the fitted tree asks</summary>
+        <div class="tree-diagram" id="preview-tree"></div>
+        <div class="route-steps" id="preview-route"></div>
+      </details>
+      <p class="transition">Those questions came from the training data. To see why the tree chose them, first measure how mixed the labels are before any question.</p>
       <a class="button primary" href="#entropy">Start with surprise</a>
     </section>
 
@@ -117,8 +126,10 @@
         </div>
       </div>
       <p><strong>Entropy is the average surprise.</strong> If you averaged one surprise per row, a label that appears in four out of eight rows would show up four times. Grouping those rows gives <span class="formula">H = −Σ p(label) log₂ p(label)</span>. Sum over distinct labels. A label with probability zero contributes zero by the limit of <span class="formula">−p log₂ p</span>.</p>
-      <p class="transition">Now a candidate question can earn credit by lowering the average uncertainty about the label.</p>
+      <p class="transition">A good question lowers the uncertainty that remains. There’s another way to measure the same label mix, using the chance of a mismatch.</p>
     </section>
+
+    {{GINI_CHAPTER}}
 
     <section class="chapter" id="split" aria-labelledby="split-title">
       <p class="eyebrow">Compare candidate questions</p>
@@ -130,6 +141,7 @@
           <label>Numeric search <select id="search-mode"><option value="exact">Exact midpoints</option><option value="bins">Coarse bin edges</option></select></label>
           <label>Candidate question <select id="candidate"></select></label>
         </div>
+        <div id="split-plot" class="split-plot"></div>
         <div class="split-children" id="split-children"></div>
         <div id="split-calculation" aria-live="polite"></div>
         <details class="rank-details">
@@ -144,31 +156,41 @@
       </div>
       <div class="explanation-grid compact">
         <div>
-          <h3>Why Gini uses squares</h3>
-          <p>Draw one label, replace it, then draw again. A class occurs first with probability <var>p</var> and the second label differs with probability <span class="formula">1 − p</span>. Averaging gives <span class="formula">Σ p(1 − p) = 1 − Σ p²</span>.</p>
+          <h3>What stays the same</h3>
+          <p>Switch between <a href="#gini">entropy and Gini</a> while holding a candidate fixed. The same parcels take the same branches. Each criterion uses its own scale to score the label mix in those children.</p>
         </div>
         <div>
           <h3>How thresholds become candidates</h3>
           <p>Exact search tries a midpoint per gap between distinct weights. Coarse search tries only 2.5, 4.5, and 6.5 here. It sums the label counts on both sides of each edge. Packaging A versus B adds its own candidate in either mode.</p>
         </div>
       </div>
+      <details class="teaching-note">
+        <summary>What about categorical features and scaling?</summary>
+        <p>The feature <var>Y</var> has values A and B, so one yes-or-no question separates them. With more categories, a binary tree can test membership in a group of categories, or test one category at a time after one-hot encoding. Multiway trees can use more than two branches. Each branch still earns its weight from the same immediate parent.</p>
+        <p>For an exact numerical search, a strictly increasing rescaling preserves the ordering of the training values and therefore the candidate partitions. The cutoff itself changes units. A tree can also reuse a feature deeper down when a different cutoff still divides the rows.</p>
+      </details>
       <p class="transition">A child can still have mixed labels. It becomes a new parent, with its own counts and candidate search.</p>
     </section>
 
     <section class="chapter" id="tree" aria-labelledby="tree-title">
       <p class="eyebrow">Repeat the search locally</p>
       <h2 id="tree-title">Grow the classification tree</h2>
-      <p class="lede">Grow one level at a time. Select a node to see which rows reach it and how its score changes. The same impurity criterion carries over from the split explorer. This tree searches exact midpoints.</p>
+      <p class="lede">The <strong>root</strong> starts with every training row. A <strong>decision node</strong> asks a question, its labeled <strong>branches</strong> carry the answers, and a <strong>leaf</strong> returns the prediction. Select a node to see why it split or stopped.</p>
       <div class="panel">
         <div class="control-grid tree-controls">
-          <label>Maximum depth <select id="tree-depth"><option value="0">0 · Root only</option><option value="1" selected>1 · One question</option><option value="2">2 · Up to two questions</option><option value="3">3 · Up to three questions</option></select></label>
+          <label>Maximum depth <select id="tree-depth"><option value="0">0 · Root only</option><option value="1">1 · One question</option><option value="2" selected>2 · Up to two questions</option><option value="3">3 · Up to three questions</option></select></label>
           <label>Minimum rows in a leaf <select id="min-leaf"><option value="1" selected>1 row</option><option value="2">2 rows</option><option value="3">3 rows</option><option value="4">4 rows</option></select></label>
+          <label>Trace a parcel <select id="trace-parcel"></select></label>
         </div>
         <div class="tree-summary" id="tree-summary" aria-live="polite"></div>
         <div id="tree-diagram" class="tree-diagram"></div>
+        <div class="trace-result">
+          <h3>Follow the highlighted path</h3>
+          <div class="route-steps" id="traced-route" aria-live="polite"></div>
+        </div>
         <div class="tree-inspector" id="node-details" aria-live="polite"></div>
       </div>
-      <p><strong>At a deeper node, the denominator is that node’s row count.</strong> Its ancestors have already determined which rows get there. A pure node stops. A mixed node can also stop at a depth limit or when no eligible split improves the score. The same numerical feature can appear again with a different threshold.</p>
+      <p><strong>Each split uses its own rows.</strong> At a deeper node, the denominator is the number of training rows that reached that parent. This tree uses the criterion from the split explorer and searches exact midpoints. At a leaf, the displayed class shares come from its training rows. A 100% share in a one-row leaf is based on a single example.</p>
       <p class="transition">The tree learned from these eight parcels. The next six were kept out of training.</p>
     </section>
 
@@ -200,7 +222,12 @@
           </div>
         </div>
       </div>
-      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Try reading the two error cells out loud before you compare accuracy. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
+      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Select an error cell, then use a parcel’s <strong>Trace</strong> link to see the decision that led there. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
+      <details class="panel depth-comparison">
+        <summary>Compare training and held-out accuracy by depth</summary>
+        <div id="depth-comparison"></div>
+        <p class="small">A shallow tree can miss useful structure. A deeper tree can fit patterns specific to its training rows. This six-parcel holdout illustrates the tradeoff. Use validation on a larger sample to choose depth.</p>
+      </details>
       <p class="transition">Now look back at the fitted tree and ask how much each feature contributed to the reduction in training impurity.</p>
     </section>
 
@@ -236,6 +263,10 @@
         </div>
         <div id="regression-plot"></div>
         <div id="regression-calculation" aria-live="polite"></div>
+        <details class="teaching-note">
+          <summary>See this cutoff as a regression tree</summary>
+          <div id="regression-tree" class="tree-diagram"></div>
+        </details>
       </div>
       <p>The cutoff search is the same: compare weighted child scores using only the rows in the immediate parent. The mean and MSE are recalculated inside each child. A fitted regression tree predicts one constant per leaf.</p>
       <p class="transition">Use the same rows to verify the arithmetic and the predictions in code.</p>
@@ -244,6 +275,7 @@
     <section class="chapter" id="python" aria-labelledby="python-title">
       <p class="eyebrow">Reproduce the numbers</p>
       <h2 id="python-title">Verify in Python</h2>
+      <p>The first script checks the arithmetic for the questions we chose. The scikit-learn example fits both trees from the training rows, then checks the learned models.</p>
       {{PYTHON_PANEL}}
     </section>
     <footer class="lesson-footer">
@@ -256,6 +288,12 @@
 <noscript><p class="shell">Enable JavaScript to use the interactive calculations.</p></noscript>
 <script>
 {{ENGINE}}
+</script>
+<script>
+{{TREE_DIAGRAM_JS}}
+</script>
+<script>
+{{GINI_JS}}
 </script>
 <script>
 {{JS}}
