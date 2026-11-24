@@ -19,6 +19,8 @@
     { id: 'H5', x: 6, y: 'A', label: 1 },
     { id: 'H6', x: 7, y: 'B', label: 0 },
   ];
+  const DEEP_TRAIN = [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]
+    .map((label, index) => ({ id: 'D' + (index + 1), x: index + 1, y: 'A', label }));
 
   function entropy(p) {
     if (p === 0 || p === 1) return 0;
@@ -163,6 +165,6 @@
   }
 
   globalThis.TreeLab = {
-    TRAIN, HOLDOUT, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
+    TRAIN, HOLDOUT, DEEP_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance,
   };
 })();

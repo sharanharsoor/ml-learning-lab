@@ -10,6 +10,7 @@
 <style>
 {{CSS}}
 {{TREE_DIAGRAM_CSS}}
+{{DEEP_GRAPH_CSS}}
 {{GINI_CSS}}
 </style>
 </head>
@@ -31,6 +32,7 @@
         <li><a href="#gini">Gini vs. entropy</a></li>
         <li><a href="#split">Find a split</a></li>
         <li><a href="#tree">Grow the tree</a></li>
+        <li><a href="#deep-tree">Weighted entropy at depth</a></li>
         <li><a href="#evaluate">Evaluate on new data</a></li>
         <li><a href="#stopping">Where to stop</a></li>
         <li><a href="#importance">Feature importance</a></li>
@@ -48,6 +50,7 @@
       <option value="gini">Gini vs. entropy</option>
       <option value="split">Find a split</option>
       <option value="tree">Grow the tree</option>
+      <option value="deep-tree">Weighted entropy at depth</option>
       <option value="evaluate">Evaluate on new data</option>
       <option value="stopping">Where to stop</option>
       <option value="importance">Feature importance</option>
@@ -172,7 +175,7 @@
         <p>The feature <var>Y</var> has values A and B, so one yes-or-no question separates them. With more categories, a binary tree can test membership in a group of categories, or test one category at a time after one-hot encoding. Multiway trees can use more than two branches. Each branch still earns its weight from the same immediate parent.</p>
         <p>For an exact numerical search, a strictly increasing rescaling preserves the ordering of the training values and therefore the candidate partitions. The cutoff itself changes units. A tree can also reuse a feature deeper down when a different cutoff still divides the rows.</p>
       </details>
-      <p class="transition">A child can still have mixed labels. It becomes a new parent, with its own counts and candidate search.</p>
+      <p class="transition">A mixed child can become a new parent, with its own counts and candidate search. See how <a href="#deep-tree">the weighted average works deeper in a tree</a>.</p>
     </section>
 
     <section class="chapter" id="tree" aria-labelledby="tree-title">
@@ -194,8 +197,10 @@
         <div class="tree-inspector" id="node-details" aria-live="polite"></div>
       </div>
       <p><strong>Each split uses its own rows.</strong> At a deeper node, the denominator is the number of training rows that reached that parent. This tree uses the criterion from the split explorer and searches exact midpoints. At a leaf, the displayed class shares come from its training rows. A 100% share in a one-row leaf is based on a single example.</p>
-      <p class="transition">The tree learned from these eight parcels. The next six were kept out of training.</p>
+      <p class="transition">The same rule applies several levels down. Try it on a deeper tree and pick the parts that enter the calculation.</p>
     </section>
+
+    {{DEEP_EXAMPLE}}
 
     <section class="chapter" id="evaluate" aria-labelledby="evaluate-title">
       <p class="eyebrow">Check unseen examples</p>
@@ -320,6 +325,12 @@
 </script>
 <script>
 {{TREE_DIAGRAM_JS}}
+</script>
+<script>
+{{DEEP_GRAPH_JS}}
+</script>
+<script>
+{{DEEP_EXAMPLE_JS}}
 </script>
 <script>
 {{GINI_JS}}

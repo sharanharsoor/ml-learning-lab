@@ -1,0 +1,35 @@
+    <section class="chapter" id="deep-tree" aria-labelledby="deep-tree-title">
+      <p class="eyebrow">Repeat the same calculation at any depth</p>
+      <h2 id="deep-tree-title">Which nodes count further down?</h2>
+      <p class="lede">This second synthetic batch fits a deeper tree. Choose a question on the diagram. The highlighted parent supplies the denominator, and its two immediate children supply the entropy values.</p>
+      <div class="panel deep-example">
+        <div class="panel-heading deep-toolbar">
+          <label class="regression-control">Maximum split depth
+            <select id="deep-max-depth"><option value="4">4</option><option value="5" selected>5</option></select>
+          </label>
+          <div class="deep-presets" role="group" aria-label="Worked split locations">
+            <button type="button" class="button secondary" data-deep-preset="root" aria-pressed="false">Root split</button>
+            <button type="button" class="button secondary" data-deep-preset="3" aria-pressed="true">Depth 3 split</button>
+            <button type="button" class="button secondary" data-deep-preset="4" aria-pressed="false">Depth 4 split</button>
+          </div>
+          <a class="deep-jump" href="#deep-math">Jump to the calculation</a>
+        </div>
+        <div class="deep-example-grid">
+          <div id="deep-diagram"></div>
+          <div class="deep-math">
+            <div id="deep-math" aria-live="polite"></div>
+            <a class="deep-jump" href="#deep-diagram">Back to the diagram</a>
+          </div>
+        </div>
+        <details class="teaching-note">
+          <summary>Show the 16 training rows</summary>
+          <p>All parcels in this batch use packaging A, so the tree tests only the changing feature, weight <var>X</var>.</p>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Second synthetic parcel batch for the deeper tree</caption>
+            <thead><tr><th scope="col">Weight X</th><th scope="col">Recorded route</th></tr></thead>
+            <tbody id="deep-training-rows"></tbody>
+          </table></div>
+        </details>
+      </div>
+      <p class="transition">In the next section, return to the first tree and check how its predictions hold up on six new parcels.</p>
+    </section>

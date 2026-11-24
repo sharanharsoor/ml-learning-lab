@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const source = new URL('../src/engine.js', import.meta.url);
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(source, 'utf8'), context, { filename: source.pathname });
-const { TRAIN, HOLDOUT, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance } =
+const { TRAIN, HOLDOUT, DEEP_TRAIN, entropy, gini, stats, candidates, evaluate, rank, fit, predict, confusion, importance } =
   context.TreeLab;
 
 // Convert objects from the script's realm before comparing prototypes in Node.
@@ -136,4 +136,26 @@ for (const criterion of ['entropy', 'gini', 'mse']) {
 }
 
 assert.deepEqual(Array.from(TRAIN, row => [row.x, row.y, row.label, row.minutes]), trainingReference);
-console.log('PASS: tree candidates, Entropy/Gini/MSE scores, depth and leaf limits, ties, zero gain, confusion, and feature importance.');
+
+const deepTree = fit(DEEP_TRAIN, 'entropy', 5);
+const deepParent = deepTree.left.left.right;
+const depthThree = evaluate(DEEP_TRAIN.filter(row => row.x >= 3 && row.x <= 9), deepParent.split, 'entropy');
+assert.deepEqual(
+  [deepTree, deepTree.left, deepTree.left.left, deepParent, deepParent.right].map(node => node.split.threshold),
+  [13.5, 9.5, 2.5, 5.5, 7.5],
+);
+assert.deepEqual([depthThree.parent.n, depthThree.leftStats.n, depthThree.rightStats.n], [7, 3, 4]);
+assert.deepEqual([depthThree.leftStats.score, depthThree.rightStats.score], [0, 1]);
+close(depthThree.weighted, 4 / 7, 'Depth-three weights use the seven rows at the immediate parent');
+close(depthThree.gain, 0.2916919971387914, 'Depth-three information gain');
+assert.equal(deepParent.right.left.stats.prediction, 0);
+assert.equal(deepParent.right.right.stats.prediction, 1);
+assert.equal(fit(DEEP_TRAIN, 'entropy', 4).left.left.right.right.split, null);
+
+const diagram = new URL('../src/deep-graph.js', import.meta.url);
+vm.runInContext(fs.readFileSync(diagram, 'utf8'), context, { filename: diagram.pathname });
+const graph = context.TreeLabDeepDiagram.render(deepTree, 'rootllr');
+assert.equal((graph.match(/data-deep-node=/g) || []).length, 5);
+assert.equal((graph.match(/deep-graph-card--parent/g) || []).length, 1);
+assert.equal((graph.match(/deep-graph-card--child/g) || []).length, 2);
+console.log('PASS: split scores, stopping, evaluation, feature credit, and depth-five worked example.');

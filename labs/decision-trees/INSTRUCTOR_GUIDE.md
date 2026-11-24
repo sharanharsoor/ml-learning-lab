@@ -20,6 +20,8 @@ Ask how surprised you would be to observe an outcome with probability 1, ½, or 
 
 The root has four parcels per class, so its entropy is **1 bit**. At $X\leq3.5$, the children contain three and five parcels. Their entropies are **0** and **0.7219** bits. Weighting by the child sizes gives $(3/8)(0)+(5/8)(0.7219)\approx0.4512$ bits. Subtracting from the parent gives **0.5488 bits** of information gain. The packaging split gains **0.3113 bits** at the root.
 
+Use the weighted area diagram to connect the terms to the rows. Each width is a child’s fraction of the parent. The height is the child’s entropy. A pure child can have a wide band with zero shaded area.
+
 Open [Gini vs. entropy](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#gini) and move from a pure node to the balanced root and then the 80% Review branch. Gini is the probability that two labels drawn with replacement differ. Gini uses squares and avoids logarithms. Score the same split with both criteria before opening the optional counterexample where the best candidate changes. Both criteria choose the same root split for the eight training parcels. The weight split gives weighted child Gini **0.2** and reduction **0.3**. The scores have different meanings and scales.
 
 For an exact numeric search, sort the distinct weights and test a midpoint between each adjacent pair. All cutoffs in the same gap partition these training rows identically. A histogram search groups values into bins and scores eligible bin boundaries. It can miss a better cut inside a bin. For packaging A/B, the one grouping divides A from B.
@@ -27,6 +29,8 @@ For an exact numeric search, sort the distinct weights and test a midpoint betwe
 ## Grow the tree and check new parcels
 
 Follow the five parcels with $X>3.5$. Ask whether packaging becomes useful here even though it lost at the root. In this branch, A sends the remaining Auto parcel to one child and B sends all four Review parcels to the other. The left branch of the root was already pure. Select the internal node to compare its weighted child score and local gain. Change the depth between one split and two levels to show when another question is allowed. Trace H5 from the matrix to show that 100% Auto in a leaf may represent just one training row.
+
+Then open [the deeper weighted-entropy example](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#deep-tree). Starting at depth 3, ask which three nodes belong in the calculation. The earlier tests routed seven of the 16 rows here. The immediate children have three rows at entropy 0 and four at entropy 1. Their weighted entropy is $(3/7)(0)+(4/7)(1)\approx0.5714$ bits. Switch to depth 4 to show that only the four rows at that node are used and both of its children are pure.
 
 Evaluate on the six held-out parcels. With Review as the positive class, the two-level tree gives **TN 2, FP 1, FN 1, TP 2**. A Review parcel at $X=6$, $Y=A$ is missed. An Auto parcel at $X=7$, $Y=B$ is flagged. Ask which kind of mistake matters more at this desk before moving to the [metrics playground](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/) in a later lesson.
 

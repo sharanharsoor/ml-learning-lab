@@ -274,7 +274,7 @@
       TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X', 335, 173) + '</svg>');
   }
 
-  function renderWeightedVisual(result, criterion) {
+  function renderWeightedVisual(result, criterion, target = 'weighted-visual', precision = 3) {
     const impurity = name(criterion);
     const max = criterion === 'entropy' ? 1 : 0.5;
     const total = result.parent.n;
@@ -287,9 +287,10 @@
     }).join('');
     const contributions = bands.map(([label, group]) => '<div class="weighted-legend-item"><span class="weighted-swatch weighted-' +
       label.toLowerCase() + '" aria-hidden="true"></span><span><strong>' + label + ' contribution</strong> <span class="arithmetic">' +
-      group.n + '/' + total + ' × ' + number(group.score) + ' ≈ ' + number(group.n / total * group.score) +
+      group.n + '/' + total + ' × ' + number(group.score, precision) + ' ≈ ' +
+      number(group.n / total * group.score, precision) +
       '</span></span></div>').join('');
-    write('weighted-visual', '<figcaption><strong>See the weighted average</strong><span class="small">Width is the child’s share of rows. Height is its ' +
+    write(target, '<figcaption><strong>See the weighted average</strong><span class="small">Width is the child’s share of rows. Height is its ' +
       impurity.toLowerCase() + '. Each shaded area represents that child’s contribution.</span></figcaption>' +
       '<div class="weighted-areas" aria-hidden="true">' + diagram + '</div>' +
       '<div class="weighted-legend">' + contributions + '</div>');
@@ -485,6 +486,7 @@
   renderParcelPreview();
   renderEntropy();
   renderCandidates();
+  TreeLabDeepExample.init(renderWeightedVisual);
   traceInput.innerHTML = [[HOLDOUT, 'Held out'], [TRAIN, 'Training']].map(([rows, label]) =>
     '<optgroup label="' + label + '">' + rows.map(row => '<option value="' + row.id + '">' +
       row.id + ' · X ' + row.x + ', Y ' + row.y + '</option>').join('') + '</optgroup>').join('');

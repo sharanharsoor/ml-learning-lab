@@ -1,0 +1,180 @@
+.deep-graph {
+  --deep-depth-lane: clamp(2.45rem, 8cqw, 4.4rem);
+  --deep-edge: color-mix(in srgb, var(--muted) 78%, var(--line));
+  margin: 0;
+  min-width: 0;
+  container: deep-tree / inline-size;
+}
+
+.deep-graph-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .82rem;
+  color: var(--ink);
+  font-size: .91rem;
+  font-weight: 630;
+}
+
+.deep-graph-key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.deep-graph-keymark {
+  display: inline-block;
+  width: .82rem;
+  height: .72rem;
+  flex: none;
+  border-radius: .2rem;
+}
+
+.deep-graph-keymark--parent { background: var(--teal); }
+.deep-graph-keymark--child { background: var(--warm); border: 2px solid var(--rust); }
+.deep-graph-keymark--context { background: var(--surface); border: 1px dashed var(--muted); }
+.deep-graph .deep-graph-caption { margin-top: .35rem; font-size: .89rem; color: var(--muted); }
+
+.deep-graph-board {
+  min-width: 0;
+  margin-top: .7rem;
+  padding: .7rem .34rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: color-mix(in srgb, var(--light) 25%, var(--surface));
+}
+
+.deep-graph-row, .deep-graph-fork {
+  display: grid;
+  grid-template-columns: var(--deep-depth-lane) repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.deep-graph-depth {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: .1rem;
+  padding-right: .15rem;
+  color: var(--muted);
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.deep-graph-depth strong {
+  color: var(--ink);
+  font: 1.3rem/1 var(--serif);
+}
+
+.deep-graph-slot {
+  display: flex;
+  min-width: 0;
+  padding-inline: .23rem;
+}
+
+.deep-graph-card {
+  display: grid;
+  align-content: center;
+  gap: .14rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 3.4rem;
+  padding: .38rem .5rem .43rem;
+  border: 1px dashed var(--deep-edge);
+  border-radius: .42rem;
+  color: var(--muted);
+  background: var(--surface);
+  text-align: left;
+  line-height: 1.22;
+}
+
+button.deep-graph-card:hover { background: var(--light); border-color: var(--teal); }
+
+.deep-graph-card--parent, button.deep-graph-card--parent:hover {
+  border: 2px solid var(--teal);
+  background: var(--teal);
+  color: var(--surface);
+}
+
+.deep-graph-card--child, button.deep-graph-card--child:hover {
+  border: 2px solid var(--rust);
+  background: var(--warm);
+  color: var(--ink);
+}
+
+.deep-graph-card-title {
+  color: var(--ink);
+  font-size: clamp(.92rem, 3cqw, 1.22rem);
+  font-weight: 670;
+  overflow-wrap: anywhere;
+}
+
+.deep-graph-card--parent .deep-graph-card-title { color: inherit; }
+
+.deep-graph-card-data {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .16rem .62rem;
+  color: inherit;
+  font-size: .77rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.deep-graph-card-note {
+  margin-top: .03rem;
+  color: inherit;
+  font-size: .77rem;
+  font-weight: 700;
+}
+
+.deep-graph-card--child .deep-graph-card-note { color: var(--rust); }
+
+.deep-graph-lines {
+  position: relative;
+  display: grid;
+  grid-column: 2 / span 2;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: 1.85rem;
+  align-items: center;
+  justify-items: center;
+}
+
+.deep-graph-lines svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.deep-graph-lines svg path { fill: none; stroke: var(--deep-edge); stroke-width: 1.2; }
+.deep-graph-fork--scored .deep-graph-lines svg path { stroke: var(--rust); stroke-width: 2.5; }
+
+.deep-graph-answer {
+  position: relative;
+  z-index: 1;
+  padding: .06rem .34rem;
+  border: 1px solid var(--line);
+  border-radius: .28rem;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: .77rem;
+  font-weight: 650;
+  line-height: 1.14;
+}
+
+.deep-graph-fork--scored .deep-graph-answer {
+  border-color: var(--rust);
+  background: var(--warm);
+  color: var(--rust);
+}
+
+@container deep-tree (min-width: 35rem) {
+  .deep-graph-board { padding-inline: .7rem; }
+  .deep-graph-slot { padding-inline: .45rem; }
+  .deep-graph-card { padding-inline: .72rem; }
+  .deep-graph-card-data, .deep-graph-card-note, .deep-graph-answer { font-size: .85rem; }
+  .deep-graph-depth { font-size: .83rem; }
+  .deep-graph-depth strong { font-size: 1.5rem; }
+}
