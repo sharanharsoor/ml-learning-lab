@@ -40,15 +40,15 @@
       const describe = (column) => {
         const scores = shownBatches.map((batch) => batch[column]);
         const mean = average(scores);
-        const spread = Math.sqrt(average(scores.map((score) => (score - mean) ** 2)));
-        return { mean: mean.toFixed(2), spread: spread.toFixed(3) };
+        const variance = average(scores.map((score) => (score - mean) ** 2));
+        return { mean: mean.toFixed(2), variance: variance.toFixed(4), spread: Math.sqrt(variance).toFixed(3) };
       };
       const single = describe(0);
       const bagged = describe(1);
       byId('bagl-batch-summary').innerHTML = `<strong>${visible} of ${batches.length} batches</strong>
-        <span>Single tree mean ${single.mean}, spread ${single.spread}</span>
-        <span>Bagged trees mean ${bagged.mean}, spread ${bagged.spread}</span>
-        <small>Spread is the standard deviation across the visible batches.</small>`;
+        <span>Single tree mean ${single.mean}, variance ${single.variance}, spread ${single.spread}</span>
+        <span>Bagged trees mean ${bagged.mean}, variance ${bagged.variance}, spread ${bagged.spread}</span>
+        <small>Variance is the mean squared distance from the mean across visible batches. The spread is its square root.</small>`;
     }
 
     reveal.addEventListener('click', () => {
@@ -123,7 +123,8 @@
     const scores = parcels.map((row) => {
       const leaves = trees.flatMap((tree, index) => {
         if (countDraws(tree.draws, row.id)) return [];
-        return [{ tree: index + 1, leaf: row.weight <= tree.cut ? tree.left : tree.right }];
+        const goesLeft = row.weight <= tree.cut;
+        return [{ tree: index + 1, cut: tree.cut, goesLeft, leaf: goesLeft ? tree.left : tree.right }];
       });
       const probability = leaves.length
         ? average(leaves.map(({ leaf }) => leaf.review / leaf.count))
@@ -162,8 +163,7 @@
         `).join('')}</tbody>
       </table></div>
       <p class="bagl-result"><strong>Coverage ${covered.length} / ${scores.length}</strong>
-        <span>OOB accuracy among covered rows <strong>${matches} / ${covered.length} ≈ ${percent(matches / covered.length, 1)}</strong></span></p>
-      <p class="small">O1 and O4 match. O3 gives one error. O2 and O5 have zero eligible trees.</p>`;
+        <span>OOB accuracy among covered rows <strong>${matches} / ${covered.length} ≈ ${percent(matches / covered.length, 1)}</strong></span></p>`;
 
     function renderSelection(index) {
       grid.querySelectorAll('[data-bagl-pick]').forEach((button, buttonIndex) => {
@@ -181,9 +181,10 @@
       const sum = leaves.map(fraction).join(' + ');
       selected.innerHTML = `<h3>${row.id} can use ${leaves.length} of 3 trees</h3>
         <div class="bagl-votes">${leaves.map((entry) => `
-          <span><strong>Tree ${entry.tree}</strong> <span class="formula">${fraction(entry)}</span> Review in its leaf</span>
+          <span><strong>Tree ${entry.tree}</strong><br>Weight ${row.weight} ${entry.goesLeft ? '≤' : '>'} ${entry.cut}<br>${entry.goesLeft ? 'Yes' : 'No'} leaf has <span class="formula">${fraction(entry)}</span> Review draws</span>
         `).join('')}</div>
         <p class="formula">Average Review probability = (${sum}) / ${leaves.length} ≈ ${percent(probability, 1)}</p>
+        <p class="small">For this demo, a mean above 50% predicts Review. A tie predicts Auto.</p>
         <p>OOB prediction <strong>${labelName(prediction)}</strong>. True label <strong>${labelName(row.review)}</strong>.</p>`;
     }
 

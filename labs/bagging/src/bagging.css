@@ -69,6 +69,7 @@
   margin-top: .72rem;
 }
 .bag-desk-actions p { flex: 1 1 26rem; color: var(--muted); line-height: 1.4; }
+.bag-desk-rules { max-width: 62rem; margin-top: 1rem; }
 .bag-hook-result { margin-top: .75rem; font-weight: 650; }
 .teaching #bag-desk-stage { max-width: 62rem; margin-inline: auto; }
 .bag-quiz-cue {
@@ -177,6 +178,44 @@
   border-color: var(--forest-focus);
   box-shadow: inset 0 0 0 1px var(--forest-focus);
 }
+.bag-scene {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: .72rem;
+  background: var(--surface);
+}
+.bag-scene img { display: block; width: 100%; height: auto; }
+.bag-scene figcaption { padding: .95rem 1.2rem; color: var(--muted); line-height: 1.48; }
+.bag-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: .6rem;
+  margin: .75rem 0 1.15rem;
+  padding: 0;
+  list-style-position: inside;
+}
+.bag-steps li {
+  min-width: 0;
+  padding: .68rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: var(--surface);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.bag-steps li::marker { color: var(--teal); font-weight: 750; }
+.bag-worked {
+  margin-block: .8rem;
+  padding: .65rem .9rem;
+  border-inline-start: 3px solid var(--teal);
+  border-radius: .3rem;
+  background: var(--light);
+  line-height: 1.5;
+}
 .bag-drawn .latest { animation: bag-place .32s ease-out; }
 @keyframes bag-place { from { transform: translateY(-.35rem); opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .bag-drawn .latest { animation: none; } }
@@ -224,7 +263,7 @@
   .bag-desk-actions p { font-size: 1rem; }
 }
 @media (max-width: 570px) {
-  .bag-pair, .bag-triptych { grid-template-columns: minmax(0, 1fr); }
+  .bag-pair, .bag-triptych, .bag-scene { grid-template-columns: minmax(0, 1fr); }
   .bag-desk img { aspect-ratio: 2.15; }
   .bag-desk-routes > div { padding-inline: .3rem; }
   .bag-vote { flex-direction: row; justify-content: space-between; padding: .48rem .75rem; }

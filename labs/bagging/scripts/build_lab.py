@@ -20,11 +20,18 @@ def build():
         "LAB_JS": [SOURCE / "bagging.js", SOURCE / "later.js"],
     }
     replacements = {key: "\n".join(path.read_text() for path in paths) for key, paths in parts.items()}
-    replacements.update(VARIANCE=variance.strip(), OOB=oob.strip(),
-                        DATA=json.dumps(data, separators=(",", ":")).replace("<", "\\u003c"))
-    image = (SOURCE / "parcel-desk.jpg").read_bytes()
-    replacements["PARCEL_DESK_IMAGE"] = "data:image/jpeg;base64," + base64.b64encode(image).decode("ascii")
-    template = (SOURCE / "index.html").read_text()
+    replacements["DATA"] = json.dumps(data, separators=(",", ":")).replace("<", "\\u003c")
+    images = {
+        "PARCEL_DESK_IMAGE": "parcel-desk.jpg",
+        "BOOTSTRAP_IMAGE": "scene-bootstrap.jpg",
+        "FOREST_IMAGE": "scene-forest.jpg",
+        "DIVERSITY_IMAGE": "scene-diversity.jpg",
+        "OOB_IMAGE": "scene-oob.jpg",
+    }
+    for marker, filename in images.items():
+        encoded = base64.b64encode((SOURCE / filename).read_bytes()).decode("ascii")
+        replacements[marker] = "data:image/jpeg;base64," + encoded
+    template = (SOURCE / "index.html").read_text().replace("{{VARIANCE}}", variance.strip()).replace("{{OOB}}", oob.strip())
     return re.sub(r"\{\{([A-Z_]+)\}\}", lambda match: replacements[match[1]], template).encode("utf-8")
 
 

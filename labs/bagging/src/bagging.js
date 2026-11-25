@@ -140,7 +140,9 @@
     }
     get('meet-trees').addEventListener('click', () => showStage(true));
     get('back-desk').addEventListener('click', () => showStage(false));
-    get('parcel').textContent = 'New parcel · Weight ' + parcel.x + ' · Scan score ' + parcel.z;
+    const measurements = 'Weight ' + parcel.x + ' kg · Scan score ' + parcel.z + '/10';
+    get('desk-parcel').textContent = measurements;
+    get('parcel').textContent = 'New parcel · ' + measurements;
     function paint(shown) {
       get('hook-plots').innerHTML = samples.slice(0, 2).map((sample, i) => '<figure class="bag-plot-card"><figcaption><strong>Tree ' +
         (i + 1) + '</strong>' + (shown ? '<span class="bag-badge ' + tone(sample.prediction) + '">' +
