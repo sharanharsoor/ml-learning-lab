@@ -33,18 +33,22 @@
       <div id="bag-desk-stage">
         <p class="eyebrow">Bagging &amp; Random Forests</p>
         <h1 id="bag-title" tabindex="-1">Where should this parcel go?</h1>
+        <p class="bag-desk-intro">Imagine you run a courier sorting center. Routine parcels should move quickly. Some need a closer look.</p>
         <figure class="bag-desk">
           <!-- Original Bagging opener artwork, generated with built-in ImageGen. Prompt follows.
           Use case: scientific-educational. Asset type: widescreen classroom slide illustration for an introductory machine learning lesson. Show a modern parcel sorting center with two visually distinct routes, understandable at a glance from a classroom projector. A friendly warehouse operator at the intake in the middle receives a small kraft parcel. At the LEFT, a different small cardboard parcel passes straight through a low teal automated scanner/conveyor toward dispatch. At the RIGHT, a second warehouse worker checks a different cardboard parcel by hand at a simple terracotta inspection counter, holding a small handheld scanner or checking the label. Each of the three stations and people is clear at small size, fully visible, and reads from left, center, to right in one continuous space. Communicate the route difference through poses and job actions. Clean editorial vector-like raster illustration, confident simple shapes, a warm off-white backdrop, deep evergreen and clay accents, thin consistent outlines, bright even lighting, approachable adult figures, minimal background detail. Wide horizontal 16:9 composition, centered, full-width and no cut-off objects, with breathing room at sides. No text, letters, signage, arrows, chart axes, labels, branding, or watermark.
           -->
           <img src="{{PARCEL_DESK_IMAGE}}" width="1672" height="941" alt="At a sorting center, a parcel goes through a scanner on the left, an operator receives a new parcel in the middle, and a worker checks another parcel by hand on the right.">
           <figcaption class="bag-desk-routes">
-            <div class="auto"><strong>Auto</strong><span>Goes straight through</span></div>
-            <div><strong>New parcel</strong><span>Which way?</span></div>
-            <div class="review"><strong>Review</strong><span>A person checks it</span></div>
+            <div class="auto"><strong>Auto</strong><span>A routine parcel goes straight to dispatch.</span></div>
+            <div><strong>New parcel</strong><span>We know its weight and scan score.</span></div>
+            <div class="review"><strong>Review</strong><span>If the scan looks unusual, a person checks the parcel.</span></div>
           </figcaption>
         </figure>
-        <div class="bag-desk-actions"><button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button></div>
+        <div class="bag-desk-actions">
+          <p>Past parcel records show what the courier measured and which route it chose.</p>
+          <button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button>
+        </div>
       </div>
 
       <div id="bag-model-stage" hidden>
@@ -69,6 +73,7 @@
             <article><h3>Stacking</h3><p>Train another model to combine the base models’ predictions. Out-of-fold predictions can train that combiner.</p></article>
           </div>
           <details class="teaching-note"><summary>What changed between the two trees?</summary><p>Different rows and repeated counts can change the learned splits. Both trees answer for the same parcel. A missed Review sends through a parcel that needed checking. An unnecessary Review adds work at the desk.</p></details>
+          <p class="bag-quiz-cue">Quiz 1</p>
           <p class="transition">Where did the two training samples come from?</p>
           <div class="bag-actions"><a href="#bootstrap" class="button primary">Draw a training sample</a></div>
         </div>
