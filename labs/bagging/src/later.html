@@ -1,0 +1,117 @@
+<section class="chapter bag-later" id="variance" aria-labelledby="variance-title">
+  <p class="eyebrow">Variance</p>
+  <h2 id="variance-title">Why averaging steadies a prediction</h2>
+  <p class="lede">Hold one new parcel fixed. If we collect a different training batch and fit again, how much does the predicted probability of Review move? That variation across training batches is model variance at this parcel.</p>
+
+  <div class="panel">
+    <div class="bagl-heading">
+      <div>
+        <h3>Same parcel, five new training batches</h3>
+        <p class="small">Within each batch, a single tree and a bagged ensemble use the same training data. These illustrative probabilities make the spread easy to see.</p>
+      </div>
+      <button type="button" class="button secondary" id="bagl-next-batch">Reveal next batch</button>
+    </div>
+    <figure class="bagl-spread">
+      <figcaption class="legend">
+        <span><i class="bagl-symbol bagl-symbol-single" aria-hidden="true"></i> Single tree</span>
+        <span><i class="bagl-symbol bagl-symbol-bagged" aria-hidden="true"></i> Bagged trees</span>
+      </figcaption>
+      <div id="bagl-batches" class="bagl-spread-table"></div>
+    </figure>
+    <p class="bagl-result" id="bagl-batch-summary" aria-live="polite"></p>
+  </div>
+  <p>Here both sets of predictions average to 0.50 across the five batches, and one set moves less around that average. Accuracy is a separate check using true labels for held-out parcels.</p>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <div>
+        <h3>What if the trees move together?</h3>
+        <p class="small">Compare the variance of the average with the variance of one tree.</p>
+      </div>
+    </div>
+    <div class="bagl-variance-controls">
+      <div>
+        <label class="control-label" for="bagl-trees">Number of trees <output id="bagl-trees-value" for="bagl-trees"></output></label>
+        <input type="range" min="1" max="100" value="10" id="bagl-trees">
+      </div>
+      <div>
+        <label class="control-label" for="bagl-corr">Pairwise correlation <output id="bagl-corr-value" for="bagl-corr"></output></label>
+        <input type="range" min="0" max="1" step=".05" value=".30" id="bagl-corr">
+      </div>
+    </div>
+    <div class="bagl-variance-bars" aria-hidden="true">
+      <div><span>One tree</span><div class="bagl-track"><i class="bagl-single-fill"></i></div></div>
+      <div><span>Average of trees</span><div class="bagl-track"><i id="bagl-shared-fill"></i><i id="bagl-reducible-fill"></i></div></div>
+    </div>
+    <p class="legend bagl-variance-legend"><span><i class="key review" aria-hidden="true"></i> Shared part</span><span><i class="key" aria-hidden="true"></i> Part that shrinks</span></p>
+    <p class="bagl-result" id="bagl-variance-summary" aria-live="polite"></p>
+    <p class="small">This model assumes equal individual variances and the same correlation for each pair of trees. Think of numeric predictions or class probabilities, then take their average.</p>
+    <details class="teaching-note">
+      <summary>Derive the variance of the average</summary>
+      <p>Let <var>B</var> be the number of trees, <var>σ²</var> the variance of each prediction, and <var>ρ</var> the pairwise correlation. The variance of a sum has <var>B</var> variance terms and <var>B</var>(<var>B</var> − 1) ordered covariance terms. Each covariance is <var>ρσ²</var>. Dividing by <var>B²</var> for the average gives</p>
+      <p class="formula">Var(average) = [Bσ² + B(B − 1)ρσ²] / B² = σ²[ρ + (1 − ρ)/B]</p>
+      <p>Set correlation to 0 to see the independent case. Set it to 1 to see perfectly correlated predictions. Positive correlation leaves a shared part of the variance as the number of trees grows.</p>
+    </details>
+  </div>
+
+  <div class="explanation-grid">
+    <div><h3>Why sample features?</h3><p>A strong feature can dominate many trees. Giving a node a smaller candidate set lets different useful splits emerge, which can reduce how closely the trees move together.</p></div>
+    <div><h3>Can more trees fix bias?</h3><p>Averaging stabilizes the predictions available from the base learners. Check fit separately. A group of very shallow trees may still miss an interaction in the data.</p></div>
+  </div>
+  <p class="transition">The model has two jobs now. Grow individual trees and combine their predictions. Put both into a reproducible training workflow.</p>
+</section>
+
+<!-- BAGGING_IMPLEMENTATION -->
+
+<section class="chapter bag-later" id="oob" aria-labelledby="oob-title">
+  <p class="eyebrow">Out-of-bag scoring</p>
+  <h2 id="oob-title">Which trees can evaluate this parcel?</h2>
+  <p class="lede">A training parcel is <strong>out of bag (OOB)</strong> for a tree if it was drawn zero times into that tree's bootstrap sample. Each row gets its own set of eligible trees.</p>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <div>
+        <h3>Pick a training parcel</h3>
+        <p class="small">This five-parcel example has three trees. Each draws five rows with replacement and learns one split on weight.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="bagl-oob-table">
+        <caption class="sr-only">Times each parcel was drawn into each tree's bootstrap sample</caption>
+        <thead>
+          <tr><th scope="col">Parcel</th><th scope="col">Weight</th><th scope="col">True label</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Tree 3</th></tr>
+        </thead>
+        <tbody id="bagl-oob-grid"></tbody>
+      </table>
+    </div>
+    <p class="small bagl-oob-help">A draw count of zero makes that tree eligible for the selected parcel.</p>
+    <div id="bagl-oob-selected" class="bagl-selection" aria-live="polite"></div>
+    <details class="teaching-note">
+      <summary>See the samples and their learned cuts</summary>
+      <div id="bagl-oob-samples"></div>
+    </details>
+  </div>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <div>
+        <h3>From one parcel to the OOB score</h3>
+        <p class="small">First predict each training row with its own eligible trees. Then compare those predictions with the recorded labels.</p>
+      </div>
+    </div>
+    <details class="bagl-score-details">
+      <summary>Reveal all OOB predictions</summary>
+      <div id="bagl-oob-score"></div>
+    </details>
+  </div>
+
+  <div class="explanation-grid">
+    <div><h3>Why roughly 37%?</h3><p>With <var>n</var> training rows, one uniform draw misses a particular row with probability <span class="formula">1 − 1/n</span>. If a tree takes <var>m</var> independent draws with replacement, the chance it misses that row throughout is <span class="formula">(1 − 1/n)<sup>m</sup></span>. When <var>m</var> equals <var>n</var> and <var>n</var> is large, this approaches <span class="formula">e<sup>−1</sup> ≈ 36.8%</span>. Here, with five rows and five draws, the probability is about 32.8%.</p></div>
+    <div><h3>What does this score estimate?</h3><p>OOB uses training rows to approximate performance on unseen data by using trees that missed each row. Reserve a separate held-out test set for final evaluation, especially after using OOB or cross-validation to choose settings. In scikit-learn Random Forest, enabling OOB scoring requires bootstrap sampling.</p></div>
+  </div>
+  <details class="teaching-note">
+    <summary>What if every tree saw the parcel?</summary>
+    <p>There is no eligible OOB prediction for that parcel. This lab reports coverage and scores only rows with predictions. With very few trees, check OOB coverage before interpreting an implementation's score.</p>
+  </details>
+  <p class="transition">You can now read three views of the forest. The trees' individual decisions, their combined prediction, and an estimate of generalization. Connect those views to model settings and interview questions.</p>
+</section>

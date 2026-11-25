@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f2eb">
+<meta name="description" content="Build a forest with original parcel data. Practice bootstrap sampling, voting, variance, out-of-bag scoring, and tuning.">
+<link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/bagging/">
+<title>Bagging &amp; Random Forests | ML Learning Lab</title>
+<style>
+{{CSS}}
+</style>
+</head>
+<body class="bagging">
+<a class="skip-link" href="#ensemble">Skip to the lesson</a>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="../"><span aria-hidden="true">∑</span> ML Learning Lab</a>
+    <button type="button" class="button secondary" id="bag-teaching" aria-pressed="false">Teaching view</button>
+  </div>
+</header>
+<div class="shell layout">
+  <aside class="chapter-rail">
+    <nav aria-label="Lesson chapters"><p class="eyebrow">Bagging</p><ol class="chapters" id="bag-nav"></ol></nav>
+  </aside>
+  <div class="chapter-controls">
+    <label for="bag-chapter" class="sr-only">Choose a chapter</label>
+    <select id="bag-chapter"></select>
+    <div class="chapter-buttons"><button class="button secondary" id="bag-previous" type="button">Previous</button><button class="button primary" id="bag-next" type="button">Next</button></div>
+  </div>
+  <main class="lesson" id="lesson">
+    <section class="chapter hero" id="ensemble" aria-labelledby="bag-title">
+      <p class="eyebrow">From a single tree to a forest</p>
+      <h1 id="bag-title">Bagging &amp;<br> Random Forests</h1>
+      <p class="lede">At a fictional parcel desk, each package goes straight through <strong>Auto</strong> or to manual <strong>Review</strong>. Two trees trained with the same settings can disagree about the same new parcel. How would you make one decision?</p>
+      <div class="panel bag-hook">
+        <div class="panel-heading"><div><h2>One new parcel, two decisions</h2><p id="bag-parcel"></p></div><div class="bag-legend"><span class="bag-mark auto">● Auto</span><span class="bag-mark review">◆ Review</span><span>⊕ New parcel</span></div></div>
+        <div class="bag-pair" id="bag-hook-plots"></div>
+        <p class="small">Each point is one training parcel. Weight and scan score are input features, and the Auto or Review label is the target. The lines show each tree’s first cut. Reveal the answers to see the fitted prediction regions.</p>
+        <div class="bag-actions"><button id="bag-hook-reveal" class="button primary" type="button" aria-pressed="false">Reveal the two predictions</button></div>
+        <p id="bag-hook-result" aria-live="polite">Find the new parcel on both plots. Which side of each first cut does it fall on?</p>
+      </div>
+      <div class="bag-say"><strong>An ensemble combines predictions from multiple models.</strong> Each model that contributes a prediction is a <strong>base learner</strong>. Here each base learner is a decision tree.</div>
+      <div class="bag-triptych">
+        <article><h3>Bagging</h3><p>Train models separately on resampled rows. Aggregate their predictions.</p></article>
+        <article><h3>Boosting</h3><p>Train models in sequence. Each stage helps correct errors of the ensemble so far.</p></article>
+        <article><h3>Stacking</h3><p>Train a second model to combine the base models’ predictions. Out-of-fold predictions can train that combiner.</p></article>
+      </div>
+      <details class="teaching-note"><summary>What stays the same when the two trees disagree?</summary><p>The prediction input and tree settings are fixed. The first and second bootstrap samples contain different rows and repeated counts, which changes the learned splits. A missed Review sends a parcel through that needed checking. An unnecessary Review adds work at the desk.</p></details>
+      <p class="transition">To understand why their answers differ, see how each tree gets its training sample.</p>
+    </section>
+
+    <section class="chapter" id="bootstrap" aria-labelledby="bootstrap-title">
+      <p class="eyebrow">Bagging</p><h2 id="bootstrap-title">Draw a bootstrap sample</h2>
+      <p class="lede"><strong>Bagging</strong> means bootstrap aggregating. Draw a training sample <strong>with replacement</strong>, fit one model on it, then repeat for the other models and combine their predictions.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Draw from the parcel desk</h2><p>Each original parcel remains eligible after every draw.</p></div><label>Sample <select id="bag-sample"><option value="0">Tree 1</option><option value="1">Tree 2</option><option value="2">Tree 3</option></select></label></div>
+        <div id="bag-source-rows" class="bag-source" aria-label="Original rows and their draw counts"></div>
+        <div class="bag-actions">
+          <button class="button primary" type="button" id="bag-draw">Draw next parcel</button>
+          <button class="button secondary" type="button" id="bag-play">Play draws</button>
+          <button class="button secondary" type="button" id="bag-fill">Show all draws</button>
+          <button class="button secondary" type="button" id="bag-reset">Reset sample</button>
+        </div>
+        <ol id="bag-drawn-rows" class="bag-drawn" aria-label="Draws in order"></ol>
+        <p id="bag-draw-current" class="bag-readout" aria-live="polite"></p>
+        <div id="bag-sample-counts" class="bag-sample-counts"></div>
+      </div>
+      <div class="bag-say"><strong>Another draw is another training occurrence.</strong> If P2 appears three times, it counts three times when the tree tallies labels. A row never drawn is out of bag for that tree.</div>
+      <details class="teaching-note"><summary>What changes without replacement?</summary><p>With 12 draws from 12 rows and no replacement, every row appears once. Drawing fewer than 12 without replacement would give a subset with no repeats. With replacement, repeated and omitted rows can occur even when the number of draws equals the original row count.</p></details>
+      <details class="teaching-note"><summary>How do we combine the predictions?</summary><p>For classification, one simple approach is to count the predicted classes and choose the majority. Another approach averages probabilities by class. For numerical regression, average the predicted numbers.</p></details>
+      <p class="transition">We have three different samples. Give each one to its own tree and follow the same new parcel through all three.</p>
+    </section>
+
+    <section class="chapter" id="forest" aria-labelledby="forest-title">
+      <p class="eyebrow">Random Forest intuition</p><h2 id="forest-title">Train three trees and combine their answers</h2>
+      <p class="lede">Each sample trains one decision tree with the same settings. A Random Forest adds randomized feature choices at each split. We’ll isolate the row sampling first so we can see where the differences come from.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Run the core code</h2><p>Change the sampling line, fit one tree, and predict the same parcel. Then run the cell that fits all three trees.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/bagging-intuition.ipynb" target="_blank" rel="noopener">Open intuition notebook</a></div>
+        <pre class="bag-code"><code>rng = np.random.default_rng(bootstrap_seed)
+draw = rng.choice(len(X), size=len(X), replace=True)
+tree = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=tree_seed)
+tree.fit(X.iloc[draw], y.iloc[draw])
+tree.predict(parcel)</code></pre>
+        <p class="small">Here <code>X</code> holds the weight and scan-score columns, <code>y</code> holds the recorded route, and <code>parcel</code> is the new input. <code>iloc</code> selects rows by position. The bootstrap seed is 11 and the tree seed is 0. Change <code>replace</code> to <code>False</code> in the notebook and count the unique rows. Restore <code>True</code> before fitting.</p>
+        <details class="teaching-note"><summary>Expected output and what to point at</summary><div id="bag-code-output"></div><p>Read the sample IDs first, then the tree prediction. This small hand-built ensemble makes the bootstrap and aggregation visible. The second notebook adds the full scikit-learn Random Forest workflow.</p></details>
+      </div>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Follow the parcel through each tree</h2><p>Click a tree to see its training sample, route and leaf mix.</p></div><div class="segmented bag-tree-picker" id="bag-tree-picker" aria-label="Select a tree"></div></div>
+        <div class="bag-tree-meta" id="bag-tree-meta"></div>
+        <div id="bag-tree-plot" class="tree-diagram"></div>
+        <div class="bag-actions"><button type="button" class="button primary" id="bag-vote-next">Reveal next vote</button><button type="button" class="button secondary" id="bag-vote-reset">Reset votes</button></div>
+        <div id="bag-votes" aria-live="polite"></div>
+      </div>
+      <details class="teaching-note"><summary>Is vote share the same as average predicted probability?</summary><p>Each hard vote contributes one class. In a probability average, a leaf with two Review rows and one Auto row contributes a Review probability of 2/3. For example, three Review probabilities of 0.49, 0.49 and 0.99 give two Auto hard votes but a mean Review probability of about 0.657. In scikit-learn, the forest classifier picks the class with the largest mean probability.</p><p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier.predict_proba">Scikit-learn probability reference</a></p></details>
+      <p class="transition">Different rows can change an entire tree. Next, see how changing the candidate features can change just one question.</p>
+    </section>
+
+    <section class="chapter" id="diversity" aria-labelledby="diversity-title">
+      <p class="eyebrow">How do we get different trees?</p><h2 id="diversity-title">Change the rows and the candidate features</h2>
+      <p class="lede">Each tree draws its own training rows. At each split in a Random Forest, it also samples candidate features. The best eligible question is chosen using the rows that reach that node.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>A different candidate list at each node</h2><p>Use rows from Tree 2’s bootstrap sample. Inspect the root and its Yes child.</p></div>
+        <label>Features considered <select id="bag-feature-mode"><option value="all">Both features</option><option value="one">One feature at each node</option></select></label></div>
+        <div class="bag-actions"><button id="bag-feature-next" class="button primary" type="button">Reveal next feature draw</button></div>
+        <div class="bag-pair" id="bag-features" aria-live="polite"></div>
+        <p class="small">These are seeded candidate-list comparisons at two fixed nodes from the original tree. A forest fits its own downstream nodes after each selected split.</p>
+      </div>
+      <div class="bag-say"><strong>Rows are resampled per tree. Candidate features are sampled per split.</strong> Both changes can reduce how often the trees make the same mistakes.</div>
+      <details class="teaching-note"><summary>Does choosing fewer features always help?</summary><p>Fewer candidates can diversify trees. It can also hide a strong feature at an important node. Compare settings on validation data. A feature can be eligible again at another split.</p></details>
+      <details class="teaching-note"><summary>What happens to a feature that was unavailable at this node?</summary><p>It was skipped only for this candidate draw. A later node can sample it and use it if it has a valid split.</p></details>
+      <p class="transition">Different decisions are useful when the individual models still capture some signal.</p>
+    </section>
+
+    <section class="chapter" id="base-learners" aria-labelledby="base-title">
+      <p class="eyebrow">Properties of base learners</p><h2 id="base-title">Useful alone, better able to disagree</h2>
+      <p class="lede">Decision trees can learn interactions, such as a scan cutoff that applies only to heavier parcels. Deep trees can also be sensitive to small changes in the training rows. Aggregation helps most when useful trees’ errors are less correlated.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Change the maximum depth</h2><p>Refit the same three bootstrap samples. One tree is the highlighted example.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · root only</option><option value="1">1 · one split</option><option value="2" selected>2 · two levels</option><option value="4">4 · deeper tree</option></select></label></div>
+        <div id="bag-depth-summary" class="bag-pair" aria-live="polite"></div>
+        <div id="bag-depth-tree" class="tree-diagram"></div>
+      </div>
+      <details class="teaching-note"><summary>Should every tree be weak?</summary><p>Bagging is especially helpful for learners that are sensitive to their training data, such as deep trees. Useful trees can vary in complexity. Shallow trees may miss an interaction. Deeper trees may pick up details that change from sample to sample.</p></details>
+      <details class="teaching-note"><summary>What if every tree makes the same mistake?</summary><p>Every vote points the same way, so the aggregate makes that same mistake. For a numerical prediction, averaging identical numbers also leaves the prediction unchanged.</p></details>
+      <p class="transition">Let’s measure what changes when we aggregate correlated predictions across training runs.</p>
+    </section>
+
+    {{VARIANCE}}
+
+    <section class="chapter" id="implementation" aria-labelledby="implementation-title">
+      <p class="eyebrow">Random Forest code implementation</p><h2 id="implementation-title">Fit, tune, and evaluate a forest</h2>
+      <p class="lede">Start with a tree and an untuned forest. Choose settings using only the training set, then evaluate the selected model on unseen parcels.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Implementation notebook</h2><p>Run end to end on a larger synthetic parcel dataset with multiple input features.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/random-forest-implementation.ipynb" target="_blank" rel="noopener">Open implementation notebook</a></div>
+        <ol class="bag-workflow">
+          <li><strong>Split once.</strong> Set aside a stratified test set, which keeps roughly the same class proportions. Keep test labels out of model selection.</li>
+          <li><strong>Fit both baselines.</strong> Train a decision tree and a Random Forest on the same training partition.</li>
+          <li><strong>Define a search space.</strong> Pick plausible list values or distributions for the settings. Decide how many combinations to sample.</li>
+          <li><strong>Search on the training set.</strong> Each candidate fits the training part of each fold and scores its validation part. Choose the best mean validation score.</li>
+          <li><strong>Evaluate once on the holdout.</strong> Refit the selected settings on all training rows. Inspect precision, recall and the confusion matrix on unseen parcels.</li>
+        </ol>
+        <pre class="bag-code"><code>search = RandomizedSearchCV(
+    RandomForestClassifier(bootstrap=True, oob_score=True, random_state=seed),
+    parameter_space, n_iter=15, scoring='balanced_accuracy',
+    cv=folds, refit=True, random_state=seed
+)
+search.fit(X_train, y_train)
+test_predictions = search.predict(X_test)</code></pre>
+        <p class="small">The notebook names each variable and sets seeds for the data, split, model and search. A search seed replays the sampled candidate settings. A forest seed controls randomness inside the model.</p>
+        <details class="teaching-note"><summary>Read the worked notebook results</summary><p>With 1,050 training rows and 350 held-out rows, the selected candidate averaged 81.26% balanced accuracy across four validation folds. The held-out balanced accuracies were 72.65% for the single tree, 76.89% for the baseline forest, and 78.88% for the tuned forest. The tuned forest’s OOB accuracy was 81.24% across 1,050 covered training rows. That last value uses ordinary accuracy on the OOB predictions. Results are from the seeded run with scikit-learn 1.6.1.</p></details>
+      </div>
+      <details class="teaching-note"><summary>How does randomized search differ from a grid?</summary><p>A grid enumerates the specified combinations. Randomized search evaluates a budget of sampled combinations. The search reports the same kind of cross-validation scores for each candidate. <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html">RandomizedSearchCV reference</a></p></details>
+      <details class="teaching-note"><summary>Why balanced accuracy?</summary><p>It averages recall across classes, so both Auto and Review count equally even if their frequencies differ. For the parcel desk, also report Review recall and precision so you can reason about missed checks and manual workload.</p></details>
+      <p class="transition">Cross-validation reserves folds. Bootstrap sampling gives us another source of unused rows, one set for each tree.</p>
+    </section>
+
+    {{OOB}}
+
+    <section class="chapter" id="interview" aria-labelledby="interview-title">
+      <p class="eyebrow">Interview questions</p><h2 id="interview-title">Explain importance and tune the trade-offs</h2>
+      <p class="lede">Use the same logic from the decision-tree lab when explaining what the forest learned. Then change one setting at a time and reason about the individual trees, their similarity, and the final validation score.</p>
+      <div class="panel">
+        <h2>How does a forest compute feature importance?</h2>
+        <p>For each tree, credit a feature with the weighted impurity decreases from the nodes where it splits. Sum repeated uses within the tree, then combine the tree-level importances and normalize in the forest.</p>
+        <div id="bag-importance" aria-label="Three fitted trees and their impurity importances"></div>
+        <p class="small">Impurity-based importance describes how this forest used its inputs during training. Features with many possible split points can get extra credit. Held-out permutation importance asks how much a chosen score falls when a feature’s values are shuffled.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Five settings, five different changes</h2><p>Select a setting and predict what happens before reading the answer.</p></div></div>
+        <div id="bag-knob-buttons" class="bag-actions" aria-label="Forest settings"></div>
+        <div id="bag-knob-explanation" class="bag-knob" aria-live="polite"></div>
+      </div>
+      <details class="teaching-note"><summary>Why can more trees give diminishing returns?</summary><p>More trees stabilize the average for fixed training settings. Similar trees share part of their error, and adding estimators cannot fully average that part away. Check validation gains and compute together.</p></details>
+      <details class="teaching-note"><summary>How do depth and pruning differ?</summary><p>Maximum depth stops growth once a path reaches a specified limit. Minimal cost-complexity pruning removes branches according to the balance of impurity and tree size. A larger <code>ccp_alpha</code> favors simpler trees. Both settings can trade variance for bias.</p></details>
+      <div class="bag-say"><strong>Recap</strong> Draw rows with replacement. Train several learners, consider random features at each forest split, and aggregate their predictions. Check stability separately from performance on unseen data.</div>
+      <p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">Random Forest parameter and scoring reference</a></p>
+    </section>
+    <footer class="lesson-footer">
+      <span>All parcel data is synthetic.</span>
+      <a href="../decision-trees/">Revisit decision trees</a>
+      <a href="https://github.com/sharanharsoor/ml-learning-lab/tree/main/labs/bagging/notebooks">View notebooks on GitHub</a>
+    </footer>
+  </main>
+</div>
+<noscript><p class="shell">Enable JavaScript to use the interactive visuals.</p></noscript>
+<script type="application/json" id="bag-data">{{DATA}}</script>
+<script>{{SHARED_JS}}</script>
+<script>{{LAB_JS}}</script>
+</body>
+</html>

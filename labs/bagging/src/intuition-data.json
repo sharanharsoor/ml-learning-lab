@@ -1,0 +1,297 @@
+{
+  "rows": [
+    {
+      "id": "P1",
+      "x": 1.2,
+      "z": 2.0,
+      "label": 0
+    },
+    {
+      "id": "P2",
+      "x": 2.0,
+      "z": 5.0,
+      "label": 0
+    },
+    {
+      "id": "P3",
+      "x": 2.5,
+      "z": 7.8,
+      "label": 0
+    },
+    {
+      "id": "P4",
+      "x": 3.5,
+      "z": 4.0,
+      "label": 0
+    },
+    {
+      "id": "P5",
+      "x": 4.0,
+      "z": 7.0,
+      "label": 1
+    },
+    {
+      "id": "P6",
+      "x": 5.0,
+      "z": 5.0,
+      "label": 0
+    },
+    {
+      "id": "P7",
+      "x": 6.1,
+      "z": 5.5,
+      "label": 1
+    },
+    {
+      "id": "P8",
+      "x": 7.0,
+      "z": 3.0,
+      "label": 0
+    },
+    {
+      "id": "P9",
+      "x": 7.5,
+      "z": 8.0,
+      "label": 1
+    },
+    {
+      "id": "P10",
+      "x": 8.2,
+      "z": 6.6,
+      "label": 1
+    },
+    {
+      "id": "P11",
+      "x": 8.8,
+      "z": 4.5,
+      "label": 1
+    },
+    {
+      "id": "P12",
+      "x": 9.2,
+      "z": 8.8,
+      "label": 1
+    }
+  ],
+  "parcel": {
+    "x": 5.65,
+    "z": 5.7
+  },
+  "samples": [
+    {
+      "draws": [
+        "P2",
+        "P2",
+        "P10",
+        "P6",
+        "P8",
+        "P8",
+        "P9",
+        "P1",
+        "P6",
+        "P2",
+        "P5",
+        "P12"
+      ],
+      "tree": {
+        "split": {
+          "feature": "z",
+          "threshold": 5.8
+        },
+        "stats": {
+          "n": 12,
+          "auto": 8,
+          "review": 4,
+          "score": 0.444444444444,
+          "prediction": 0
+        },
+        "left": {
+          "split": null,
+          "stats": {
+            "n": 8,
+            "auto": 8,
+            "review": 0,
+            "score": 0.0,
+            "prediction": 0
+          },
+          "left": null,
+          "right": null
+        },
+        "right": {
+          "split": null,
+          "stats": {
+            "n": 4,
+            "auto": 0,
+            "review": 4,
+            "score": 0.0,
+            "prediction": 1
+          },
+          "left": null,
+          "right": null
+        }
+      },
+      "reviewProbability": 0.0,
+      "prediction": 0
+    },
+    {
+      "draws": [
+        "P7",
+        "P1",
+        "P7",
+        "P2",
+        "P10",
+        "P12",
+        "P12",
+        "P8",
+        "P11",
+        "P5",
+        "P2",
+        "P7"
+      ],
+      "tree": {
+        "split": {
+          "feature": "z",
+          "threshold": 5.25
+        },
+        "stats": {
+          "n": 12,
+          "auto": 4,
+          "review": 8,
+          "score": 0.444444444444,
+          "prediction": 1
+        },
+        "left": {
+          "split": {
+            "feature": "x",
+            "threshold": 7.9
+          },
+          "stats": {
+            "n": 5,
+            "auto": 4,
+            "review": 1,
+            "score": 0.32,
+            "prediction": 0
+          },
+          "left": {
+            "split": null,
+            "stats": {
+              "n": 4,
+              "auto": 4,
+              "review": 0,
+              "score": 0.0,
+              "prediction": 0
+            },
+            "left": null,
+            "right": null
+          },
+          "right": {
+            "split": null,
+            "stats": {
+              "n": 1,
+              "auto": 0,
+              "review": 1,
+              "score": 0.0,
+              "prediction": 1
+            },
+            "left": null,
+            "right": null
+          }
+        },
+        "right": {
+          "split": null,
+          "stats": {
+            "n": 7,
+            "auto": 0,
+            "review": 7,
+            "score": 0.0,
+            "prediction": 1
+          },
+          "left": null,
+          "right": null
+        }
+      },
+      "reviewProbability": 1.0,
+      "prediction": 1
+    },
+    {
+      "draws": [
+        "P6",
+        "P8",
+        "P12",
+        "P4",
+        "P11",
+        "P2",
+        "P5",
+        "P10",
+        "P3",
+        "P9",
+        "P6",
+        "P7"
+      ],
+      "tree": {
+        "split": {
+          "feature": "x",
+          "threshold": 7.25
+        },
+        "stats": {
+          "n": 12,
+          "auto": 6,
+          "review": 6,
+          "score": 0.5,
+          "prediction": 0
+        },
+        "left": {
+          "split": {
+            "feature": "z",
+            "threshold": 5.25
+          },
+          "stats": {
+            "n": 8,
+            "auto": 6,
+            "review": 2,
+            "score": 0.375,
+            "prediction": 0
+          },
+          "left": {
+            "split": null,
+            "stats": {
+              "n": 5,
+              "auto": 5,
+              "review": 0,
+              "score": 0.0,
+              "prediction": 0
+            },
+            "left": null,
+            "right": null
+          },
+          "right": {
+            "split": null,
+            "stats": {
+              "n": 3,
+              "auto": 1,
+              "review": 2,
+              "score": 0.444444444444,
+              "prediction": 1
+            },
+            "left": null,
+            "right": null
+          }
+        },
+        "right": {
+          "split": null,
+          "stats": {
+            "n": 4,
+            "auto": 0,
+            "review": 4,
+            "score": 0.0,
+            "prediction": 1
+          },
+          "left": null,
+          "right": null
+        }
+      },
+      "reviewProbability": 0.6666666666666666,
+      "prediction": 1
+    }
+  ]
+}

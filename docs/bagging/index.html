@@ -1,0 +1,2041 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f2eb">
+<meta name="description" content="Build a forest with original parcel data. Practice bootstrap sampling, voting, variance, out-of-bag scoring, and tuning.">
+<link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/bagging/">
+<title>Bagging &amp; Random Forests | ML Learning Lab</title>
+<style>
+:root {
+  --paper: #f4f2eb;
+  --surface: #fffefa;
+  --ink: #193330;
+  --muted: #526660;
+  --line: #d4ddd3;
+  --teal: #076b60;
+  --light: #e2eee7;
+  --rust: #a44b32;
+  --warm: #f7e9df;
+  --focus: #a44b32;
+  --serif: Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", Consolas, monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 1rem/1.65 system-ui, -apple-system, sans-serif;
+}
+[hidden] { display: none !important; }
+a { color: var(--teal); text-underline-offset: .22em; }
+a:hover { text-decoration-thickness: .13em; }
+button, select, summary, input[type="range"] { cursor: pointer; }
+button, select, input { font: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+h1, h2, h3, p { margin: 0; }
+p + p { margin-top: .8rem; }
+h1, .chapter > h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -.045em; line-height: 1.06; }
+h1 { font-size: clamp(3.2rem, 7.8vw, 6.25rem); }
+.chapter > h2 { font-size: clamp(2.35rem, 5vw, 3.75rem); }
+h3 { font-size: 1.08rem; line-height: 1.3; }
+var { font-family: var(--serif); }
+.sr-only, .skip-link:not(:focus) {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%);
+  white-space: nowrap; border: 0;
+}
+.skip-link:focus { position: fixed; z-index: 10; top: .6rem; left: .6rem; padding: .55em .9em; background: var(--surface); }
+.shell { width: min(100% - 3.5rem, 83rem); margin-inline: auto; }
+.topbar { position: sticky; z-index: 4; top: 0; background: var(--paper); border-bottom: 1px solid var(--line); }
+.topbar-inner { min-height: 4.25rem; display: flex; justify-content: space-between; align-items: center; gap: .75rem; }
+.brand { display: inline-flex; gap: .65rem; align-items: center; color: var(--ink); text-decoration: none; font-weight: 650; }
+.brand span { display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid var(--teal); border-radius: 50%; color: var(--teal); font: 1.28rem var(--serif); }
+.layout { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr); column-gap: clamp(1.5rem, 4vw, 4.5rem); align-items: start; }
+.chapter-rail { position: sticky; top: 6.35rem; grid-row: 1; padding-top: 1rem; }
+.eyebrow { color: var(--teal); text-transform: uppercase; letter-spacing: .1em; font-size: .86rem; font-weight: 700; }
+.chapters { list-style: none; margin: 1rem 0; padding: 0; border-left: 1px solid var(--line); }
+.chapters a {
+  display: block;
+  margin-left: -1px;
+  padding: .54rem .55rem .54rem 1rem;
+  border-left: 3px solid transparent;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: .94rem;
+}
+.chapters a:hover, .chapters a[aria-current] { color: var(--teal); background: var(--light); border-left-color: var(--teal); }
+.guide-link { font-size: .9rem; padding-left: 1rem; }
+.chapter-controls { display: none; }
+.lesson { grid-column: 2; max-width: 68rem; min-width: 0; }
+.chapter { scroll-margin-top: 6rem; padding-block: clamp(2.5rem, 5vw, 5rem); border-bottom: 1px solid var(--line); }
+.chapter.hero { padding-top: clamp(2rem, 4vw, 3.6rem); }
+.chapter > .eyebrow { margin-bottom: .55rem; }
+.lede { max-width: 52rem; margin-block: .85rem 1.65rem; font-size: clamp(1.05rem, 1.4vw, 1.24rem); color: var(--muted); }
+.lede strong { color: var(--ink); }
+.chapter > p:not(.eyebrow, .lede) { max-width: 56rem; margin-top: 1.1rem; }
+.chapter > .transition { color: var(--teal); font-weight: 650; margin-top: 1.8rem !important; }
+.hero > .primary { margin-top: .85rem; }
+.button, .demo-actions button {
+  display: inline-flex;
+  min-height: 2.65rem;
+  padding: .5rem .85rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--teal);
+  border-radius: .45rem;
+  text-decoration: none;
+  font-size: .92rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+.button.primary, #demo-run { background: var(--teal); color: white; }
+.button.secondary, #demo-copy { background: var(--surface); color: var(--teal); border-color: var(--line); }
+.button:hover:not(:disabled), .demo-actions button:hover:not(:disabled) { box-shadow: 0 0 0 1px var(--teal); text-decoration: none; }
+.button:disabled, .demo-actions button:disabled { opacity: .52; cursor: default; }
+#teaching-view[aria-pressed="true"] { color: white; background: var(--teal); border-color: var(--teal); }
+.panel, .parcel-board {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  padding: clamp(.9rem, 2.8vw, 1.8rem);
+  margin-block: 1.3rem;
+}
+.parcel-board { background: #193d38; color: #f7fbf5; border-color: #193d38; }
+.panel-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: start; margin-bottom: .95rem; }
+.panel-heading h2 { font: 1.45rem/1.2 var(--serif); }
+.panel-heading p { color: var(--muted); margin-top: .24rem; }
+.parcel-board p, .parcel-board .small { color: #d7e9e0; }
+.legend { display: flex; gap: .9rem; flex-wrap: wrap; align-items: center; font-size: .89rem; }
+.legend span { display: inline-flex; align-items: center; gap: .36rem; white-space: nowrap; }
+.key { width: .72rem; height: .72rem; display: inline-block; border-radius: 50%; background: var(--teal); }
+.key.review { border-radius: .14rem; background: var(--rust); }
+.parcel-board .key.auto { background: #9ee3c9; }
+.parcel-board .key.review { background: #ffbda1; }
+.training-chart { width: 100%; display: block; max-height: 14rem; }
+.training-chart text { font: 16px system-ui, sans-serif; fill: #deeee5; }
+.training-chart .grid { stroke: #52766c; stroke-width: 1; }
+.training-chart .auto { fill: #9ee3c9; }
+.training-chart .review { fill: #ffbda1; }
+.data-details { margin-top: .7rem; border-top: 1px solid #52766c; }
+.data-details summary { color: #dcf1e8; }
+.parcel-board th, .parcel-board td { border-color: #52766c; }
+.parcel-board th { color: #dcf1e8; }
+.prediction-prompt { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: .45rem 1rem; }
+.prediction-prompt h2 { font: 1.4rem var(--serif); margin-bottom: .2rem; }
+.prediction-prompt p, .small { font-size: .93rem; color: var(--muted); }
+.prompt-result { grid-column: 1 / -1; min-height: 1.5em; color: var(--teal) !important; margin-top: 0; }
+.parcel-walkthrough { padding-block: .75rem; }
+.parcel-walkthrough[open] { padding-bottom: 1.25rem; }
+.parcel-walkthrough .tree-diagram { margin-block: .35rem .85rem; }
+.teaching-note { border-block: 1px solid var(--line); padding-bottom: .2rem; margin-block: 1rem; }
+.teaching-note > p { margin: 0 0 .8rem; max-width: 53rem; }
+.segmented { display: inline-flex; gap: .25rem; border: 1px solid var(--line); border-radius: .5rem; padding: .25rem; background: var(--surface); }
+.segmented button { border: 0; padding: .4rem .65rem; background: transparent; color: var(--ink); border-radius: .3rem; font-size: .92rem; }
+.segmented button:hover { background: var(--light); }
+.segmented button[aria-pressed="true"] { background: var(--teal); color: white; }
+.explanation-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem 1.9rem; margin-block: 1.2rem; }
+.explanation-grid > div { border-left: 2px solid var(--line); padding-left: .85rem; }
+.explanation-grid p { margin-top: .35rem; }
+.explanation-grid.compact p { margin-bottom: .15rem; }
+.formula, .arithmetic { font-family: var(--mono); color: var(--teal); font-size: .94em; }
+.entropy-layout, .evaluation-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(1.25rem,3vw,2rem); align-items: start; }
+.control-label { display: flex; justify-content: space-between; align-items: baseline; font-weight: 650; gap: 1rem; }
+.control-label output { color: var(--teal); font-variant-numeric: tabular-nums; }
+input[type="range"] { display: block; width: 100%; margin: .65rem 0; accent-color: var(--teal); }
+.probability-bar { height: .7rem; border-radius: 1rem; overflow: hidden; background: var(--teal); margin-bottom: .65rem; }
+.probability-bar span { display: block; width: 50%; height: 100%; margin-left: auto; background: var(--rust); }
+.chart { display: block; width: 100%; color: var(--ink); }
+.chart text { font: 15px system-ui, sans-serif; fill: var(--muted); }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { stroke: var(--muted); stroke-width: 1; }
+.chart .curve, .chart .prediction { fill: none; stroke: var(--teal); stroke-width: 3; }
+.chart .cut { stroke: var(--rust); stroke-width: 1.5; stroke-dasharray: 5 5; }
+.chart .residual { stroke: var(--muted); stroke-width: 1; }
+.chart .observation, .chart .marker { fill: var(--rust); stroke: var(--surface); stroke-width: 2; }
+.chart .highlight { fill: var(--teal); }
+.entropy-plot { padding-top: .55rem; }
+.table-wrap { min-width: 0; overflow: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }
+th, td { padding: .5rem .54rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 650; font-size: .88rem; }
+td { font-size: .95rem; }
+tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+tr.is-selected { background: var(--light); }
+summary { padding: .7rem 0; font-size: .93rem; font-weight: 650; color: var(--teal); }
+.equation { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .25rem 1rem; margin-top: .7rem; padding-top: .7rem; border-top: 1px solid var(--line); }
+.equation strong { color: var(--teal); font-variant-numeric: tabular-nums; }
+.control-grid { display: grid; grid-template-columns: .85fr 1.05fr 1.25fr; gap: .65rem; margin-bottom: 1.2rem; }
+.control-grid.tree-controls { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.control-grid label, .regression-control { display: grid; gap: .25rem; font-size: .92rem; font-weight: 650; }
+select { width: 100%; min-width: 0; min-height: 2.65rem; padding: .4rem 2rem .4rem .6rem; color: var(--ink); border: 1px solid var(--line); border-radius: .4rem; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%23076b60' fill='none' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right .6rem center / 1rem; appearance: none; font-size: .92rem; }
+.split-children { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .85rem; margin-bottom: .9rem; }
+.split-plot { max-width: 47rem; margin: 0 auto .75rem; }
+.split-chart .region-yes { fill: var(--light); }
+.split-chart .region-no { fill: var(--warm); }
+.split-chart .mark-auto { fill: var(--teal); }
+.split-chart .mark-review { fill: var(--rust); }
+.split-chart .grid { stroke: color-mix(in srgb, var(--line) 70%, var(--ink)); }
+.weighted-visual {
+  margin: 1.05rem 0;
+  padding: .75rem .85rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+}
+.weighted-visual figcaption > * { display: block; }
+.weighted-areas {
+  display: flex;
+  height: 5.25rem;
+  margin: .65rem 0;
+  border-block: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 55%, var(--surface));
+}
+.weighted-segment { position: relative; min-width: 0; }
+.weighted-segment + .weighted-segment { border-left: 1px dashed var(--muted); }
+.weighted-yes { --area: var(--teal); }
+.weighted-no { --area: var(--rust); }
+.weighted-fill {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--area) 37%, var(--surface));
+}
+.weighted-edge-label {
+  position: absolute;
+  inset: .15rem 0 auto;
+  text-align: center;
+  font-size: .85rem;
+  font-weight: 650;
+}
+.weighted-legend { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .35rem .8rem; }
+.weighted-legend-item { display: flex; align-items: baseline; gap: .35rem; font-size: .92rem; }
+.weighted-legend-item .arithmetic { display: block; }
+.weighted-swatch { flex: 0 0 .55rem; height: .55rem; background: var(--area); border-radius: .1rem; }
+.child { min-width: 0; padding: .8rem .85rem; background: var(--light); border-radius: .5rem; }
+.child.no { background: var(--warm); }
+.child h3 { margin-bottom: .35rem; }
+.child p { margin-top: .35rem; color: var(--muted); }
+.parcel-chips { display: flex; flex-wrap: wrap; gap: .3rem; min-height: 1.75rem; }
+.chip { display: inline-flex; gap: .28rem; align-items: center; padding: .08rem .36rem; border: 1px solid rgba(25,51,48,.20); border-radius: .3rem; background: var(--surface); font-size: .86rem; font-variant-numeric: tabular-nums; }
+.chip .key { width: .56rem; height: .56rem; }
+.calc-lines { display: grid; gap: .15rem; padding: .8rem 0; border-block: 1px solid var(--line); overflow-wrap: anywhere; }
+.calc-lines p { margin: 0; }
+.calc-lines .small { margin-top: .25rem; }
+.rank-details { margin-block: .2rem .85rem; }
+.tree-summary { border-bottom: 1px solid var(--line); padding-bottom: .7rem; margin-bottom: 1rem; }
+.tree-diagram { padding-block: .25rem .45rem; }
+.trace-result {
+  margin-block: .65rem 1rem;
+  padding: .75rem .9rem;
+  background: var(--warm);
+  border-left: 3px solid var(--rust);
+  border-radius: .35rem;
+}
+.trace-result h3 { margin-bottom: .35rem; }
+.route-steps ol { margin: .15rem 0 .4rem; padding-left: 1.35rem; }
+.route-steps p + p { margin-top: .15rem; }
+.tree-inspector { border-top: 1px solid var(--line); padding-top: .85rem; }
+.tree-inspector h3 { margin-bottom: .4rem; }
+.tree-inspector .parcel-chips { margin-top: .48rem; }
+.node-calculation { margin-top: .55rem; border-bottom: 0; padding-bottom: 0; }
+.deep-toolbar { align-items: end; }
+.deep-presets { display: flex; flex-wrap: wrap; gap: .45rem; }
+.deep-presets .button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: white; }
+.deep-example-grid { display: grid; gap: 1.15rem; }
+.deep-example-grid > * { min-width: 0; }
+#deep-diagram, #deep-math { scroll-margin-top: 9rem; }
+#deep-math > p { margin-block: .45rem; }
+.deep-jump { display: inline-block; margin-top: .45rem; }
+@media (min-width: 1100px) {
+  .deep-example-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+  .deep-math { position: sticky; top: 5.25rem; }
+  .teaching .deep-math { top: 8.65rem; }
+  .deep-jump { display: none; }
+}
+.evaluation-grid h3 { margin-bottom: .5rem; }
+.matrix { table-layout: fixed; }
+.matrix th { width: 27%; text-align: center; vertical-align: middle; }
+.matrix td { padding: .27rem; border: 0; }
+.matrix button {
+  width: 100%; padding: .35rem .22rem; min-height: 4rem;
+  border-radius: .45rem; border: 1px solid var(--line);
+  background: var(--warm); color: var(--ink);
+}
+.matrix button[data-cell="tn"], .matrix button[data-cell="tp"] { background: var(--light); }
+.matrix button[aria-pressed="true"] { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
+.matrix button strong, .matrix button span { display: block; }
+.matrix button strong { font: 1.65rem/1.1 var(--serif); }
+.matrix button span { font-size: .84rem; line-height: 1.15; }
+.metric-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .35rem; margin-top: .8rem; }
+.metric-grid div { border-top: 1px solid var(--line); padding-top: .25rem; }
+.metric-grid span, .metric-grid strong { display: block; }
+.metric-grid span { font-size: .89rem; color: var(--muted); }
+.metric-grid strong { color: var(--teal); }
+.heldout-heading { align-items: baseline; margin-bottom: .3rem; }
+#heldout-note, #importance-note { margin-top: .7rem; }
+.depth-comparison p { margin-top: .65rem; }
+.depth-comparison td { font-variant-numeric: tabular-nums; }
+.depth-button {
+  min-width: 2.2rem;
+  min-height: 2.05rem;
+  padding: .12rem .3rem;
+  color: var(--teal);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .3rem;
+  font-weight: 650;
+}
+.depth-button:hover, .depth-button[aria-pressed="true"] { border-color: var(--teal); background: var(--light); }
+.accuracy-bar {
+  display: inline-block; width: clamp(2rem, 12vw, 7rem); height: .5rem;
+  margin-right: .5rem; overflow: hidden; background: var(--line);
+  border-radius: 1rem; vertical-align: middle;
+}
+.accuracy-bar span { display: block; height: 100%; background: var(--teal); }
+.depth-comparison td:last-child .accuracy-bar span { background: var(--rust); }
+.importance-row { display: grid; grid-template-columns: 9rem 1fr 4rem; align-items: center; gap: .75rem; margin-bottom: .65rem; }
+.importance-meter { height: .7rem; border-radius: .5rem; background: var(--light); overflow: hidden; }
+.importance-meter span { height: 100%; display: block; border-radius: inherit; background: var(--teal); }
+.importance-row strong { text-align: right; font-variant-numeric: tabular-nums; }
+.regression-control { min-width: 9rem; }
+#regression-plot { max-width: 42rem; margin: 0 auto .45rem; }
+.python-demo { margin-top: 1.05rem; }
+.python-demo > p:first-child { max-width: 52rem; }
+.demo-actions { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; margin: .85rem 0 .4rem; }
+.demo-status, #demo-copy-status { color: var(--muted); font-size: .93rem; }
+.demo-source, .demo-equivalent, .demo-reference { margin-top: .7rem; border-top: 1px solid var(--line); }
+.python-demo pre { max-width: 100%; overflow: auto; padding: 1rem; border-radius: .55rem; background: #193d38; color: #eefaf2; font: .91rem/1.6 var(--mono); }
+.lesson-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .6rem; padding: 1.35rem 0 2.2rem; color: var(--muted); font-size: .92rem; }
+.teaching .layout { display: block; max-width: 78rem; }
+.teaching .chapter-rail { display: none; }
+.teaching .lesson { max-width: none; font-size: 1.16rem; }
+.teaching .lesson h3 { font-size: 1.27rem; }
+.teaching .lesson td, .teaching .lesson th, .teaching .lesson summary, .teaching .lesson .small { font-size: 1rem; }
+.teaching .chapter-controls {
+  display: flex;
+  position: sticky;
+  z-index: 3;
+  top: 4.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: .55rem;
+  padding-block: .45rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.chapter-controls select { max-width: 18rem; }
+.chapter-buttons { display: flex; gap: .4rem; flex-shrink: 0; }
+.teaching .chapter { scroll-margin-top: 9.3rem; }
+@media (max-width: 930px) {
+  .shell { width: min(100% - 2.2rem, 83rem); }
+  .layout { display: block; }
+  .chapter-rail { display: none; }
+  .chapter-controls {
+    display: flex; position: sticky; top: 4.25rem; z-index: 3; align-items: center; justify-content: space-between;
+    gap: .55rem; padding-block: .45rem; background: var(--paper); border-bottom: 1px solid var(--line);
+  }
+  .chapter { scroll-margin-top: 8.6rem; }
+}
+@media (max-width: 650px) {
+  .shell { width: calc(100% - 1.4rem); }
+  .explanation-grid, .entropy-layout, .evaluation-grid { grid-template-columns: minmax(0,1fr); }
+  .control-grid, .control-grid.tree-controls { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .control-grid > label:last-child { grid-column: 1 / -1; }
+  .prediction-prompt { grid-template-columns: minmax(0,1fr); }
+  .segmented { justify-self: start; }
+  .panel-heading { flex-wrap: wrap; gap: .65rem; }
+  .chapter-buttons .button { padding-inline: .52rem; }
+  .training-chart text, .split-chart text { font-size: 22px; }
+  td, th { padding: .4rem .32rem; }
+  .importance-row { grid-template-columns: 6.5rem 1fr 3.5rem; gap: .4rem; }
+}
+
+.tree-diagram { display: block; min-width: 0; }
+.dt-viewport { container: lesson-tree / inline-size; width: 100%; }
+
+.dt-graph {
+  --dt-connector: color-mix(in srgb, var(--ink) 48%, var(--line));
+  --dt-track-height: 3.25rem;
+  min-width: 0;
+  padding: clamp(.7rem, 2.2cqw, 1.5rem) .3rem;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  background: color-mix(in srgb, var(--light) 28%, var(--surface));
+}
+
+.dt-subtree { min-width: 0; }
+
+.dt-node {
+  position: relative;
+  display: grid;
+  gap: .38rem;
+  width: min(100%, 15rem);
+  min-width: 0;
+  margin-inline: var(--dt-card-margin, auto);
+  padding: .62rem .75rem .68rem;
+  border: 1px solid var(--dt-connector);
+  border-top: .2rem solid var(--teal);
+  border-radius: .6rem;
+  background: var(--surface);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+  text-align: left;
+  line-height: 1.25;
+}
+
+.dt-node--root {
+  border-color: var(--teal);
+  border-top-width: .26rem;
+  background: color-mix(in srgb, var(--light) 35%, var(--surface));
+}
+
+.dt-node--leaf {
+  border-top-color: var(--muted);
+}
+
+button.dt-node:hover {
+  border-color: var(--teal);
+  background: color-mix(in srgb, var(--light) 55%, var(--surface));
+}
+
+button.dt-node[aria-pressed="true"] {
+  border-color: var(--teal);
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+button.dt-node:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.dt-node--traced {
+  border-top-color: var(--rust);
+  background: color-mix(in srgb, var(--warm) 52%, var(--surface));
+}
+
+.dt-node-top, .dt-mix-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: .45rem;
+  row-gap: .2rem;
+}
+
+.dt-node-role {
+  color: var(--teal);
+  font-size: .83rem;
+  font-weight: 680;
+}
+
+.dt-node-samples, .dt-node-score, .dt-mix-labels, .dt-answer {
+  color: var(--muted);
+  font-size: .83rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dt-node-title {
+  font-size: clamp(1rem, 2.7cqw, 1.45rem);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.dt-mix {
+  display: grid;
+  gap: .34rem;
+  margin-top: .1rem;
+}
+
+.dt-mix-bar {
+  display: block;
+  height: .42rem;
+  border-radius: 100px;
+  background: linear-gradient(to right, var(--teal) 0 var(--dt-auto), var(--rust) var(--dt-auto) 100%);
+}
+
+.dt-mix-labels > span { display: inline-flex; align-items: center; gap: .26rem; }
+
+.dt-mark {
+  display: inline-block;
+  flex: none;
+  width: .46rem;
+  height: .46rem;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
+.dt-mark--review { border-radius: .08rem; background: var(--rust); }
+
+.dt-node-path {
+  width: fit-content;
+  margin-top: .12rem;
+  padding: .1rem .4rem;
+  border-radius: .24rem;
+  background: var(--warm);
+  color: var(--rust);
+  font-size: .76rem;
+  font-weight: 680;
+}
+
+.dt-branches {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--dt-columns, minmax(0, var(--dt-yes)) minmax(0, var(--dt-no)));
+  gap: var(--dt-branch-gap, 0);
+  margin-inline-start: var(--dt-indent, 0);
+  padding-block-start: var(--dt-branch-padding, var(--dt-track-height));
+  padding-inline-start: var(--dt-indent, 0);
+  border-inline-start: var(--dt-side-rule, none);
+}
+
+.dt-child { position: relative; min-width: 0; padding-inline: var(--dt-sibling-padding, .35rem); }
+
+.dt-edges {
+  display: var(--dt-svg-display, block);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--dt-track-height);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dt-edge { fill: none; stroke: var(--dt-connector); stroke-width: 1.4; }
+.dt-edge--traced { stroke: var(--rust); stroke-width: 3; }
+
+.dt-answer {
+  position: var(--dt-answer-position, absolute);
+  top: -.69rem;
+  left: 50%;
+  display: block;
+  width: fit-content;
+  z-index: 1;
+  margin-block-end: var(--dt-answer-gap, 0);
+  padding: .12rem .4rem;
+  border: 1px solid var(--line);
+  border-radius: .3rem;
+  background: var(--surface);
+  transform: var(--dt-answer-transform, translate(-50%, -50%));
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.dt-child--traced > .dt-answer {
+  border-color: var(--rust);
+  background: var(--warm);
+  color: var(--rust);
+}
+
+.dt-child::before {
+  display: var(--dt-elbow-display, none);
+  content: "";
+  position: absolute;
+  top: .7rem;
+  left: calc(-1 * var(--dt-indent, 0px));
+  width: var(--dt-indent, 0px);
+  border-top: 1px solid var(--dt-connector);
+}
+
+.dt-child--traced::before { border-color: var(--rust); border-width: 2px; }
+
+.teaching .dt-node-role, .teaching .dt-node-samples, .teaching .dt-node-score,
+.teaching .dt-mix-labels, .teaching .dt-answer { font-size: .91rem; }
+
+@container lesson-tree (max-width: 32rem) {
+  .dt-graph {
+    --dt-columns: minmax(0, 1fr);
+    --dt-branch-gap: .65rem;
+    --dt-branch-padding: .55rem;
+    --dt-indent: .7rem;
+    --dt-side-rule: 1px solid var(--dt-connector);
+    --dt-sibling-padding: 0;
+    --dt-svg-display: none;
+    --dt-elbow-display: block;
+    --dt-answer-position: static;
+    --dt-answer-transform: none;
+    --dt-answer-gap: .35rem;
+    --dt-card-margin: 0;
+    padding-inline: .65rem;
+  }
+
+  .dt-node { width: 100%; }
+}
+
+@container lesson-tree (max-width: 62rem) {
+  .dt-graph--dense {
+    --dt-columns: minmax(0, 1fr);
+    --dt-branch-gap: .65rem;
+    --dt-branch-padding: .55rem;
+    --dt-indent: .7rem;
+    --dt-side-rule: 1px solid var(--dt-connector);
+    --dt-sibling-padding: 0;
+    --dt-svg-display: none;
+    --dt-elbow-display: block;
+    --dt-answer-position: static;
+    --dt-answer-transform: none;
+    --dt-answer-gap: .35rem;
+    --dt-card-margin: 0;
+    padding-inline: .65rem;
+  }
+
+  .dt-graph--dense .dt-node { width: 100%; }
+}
+
+.bagging {
+  --forest-grid: #d9e4da;
+  --forest-focus: #54447a;
+}
+
+.bagging .lesson { max-width: 69rem; }
+.bagging .chapter { padding-block: clamp(1.6rem, 4vw, 3.5rem); }
+.bagging .chapter h1:focus-visible, .bagging .chapter > h2:focus-visible { outline: none; }
+.bagging .chapter-controls select { min-width: 0; }
+.bagging .chapter h1 { font-size: clamp(3rem, 7.8vw, 6rem); }
+.bagging .chapter h1 br { display: none; }
+.bagging .lesson .panel h2 { font: 1.38rem/1.25 var(--serif); }
+.bagging .panel p { overflow-wrap: anywhere; }
+.bagging .lesson code { font-family: var(--mono); font-size: .93em; }
+
+.bag-pair, .bag-triptych {
+  display: grid;
+  gap: .85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bag-triptych { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.bag-pair > .bag-triptych { grid-column: 1 / -1; }
+.bag-triptych > article, .bag-pair > article, .bag-knob, .bag-vote {
+  padding: .8rem 1rem;
+  background: color-mix(in srgb, var(--light) 32%, var(--surface));
+  border: 1px solid var(--line);
+  border-radius: .55rem;
+}
+.bag-triptych h3, .bag-pair h3, .bag-knob h3 { margin-bottom: .28rem; }
+.bag-say {
+  margin-block: 1.3rem;
+  padding: .75rem 1rem;
+  background: var(--light);
+  border-inline-start: .24rem solid var(--teal);
+  border-radius: .25rem .55rem .55rem .25rem;
+}
+.bag-actions, .bag-legend {
+  display: flex;
+  gap: .45rem .7rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.bag-actions { margin-block: .85rem .7rem; }
+.bag-legend { color: var(--muted); font-size: .9rem; }
+.bag-mark.auto { color: var(--teal); }
+.bag-mark.review { color: var(--rust); }
+.bag-plot-card {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  background: #f9fbf6;
+  border-radius: .6rem;
+  overflow: hidden;
+}
+.bag-plot-card figcaption {
+  min-height: 2.55rem;
+  padding: .45rem .75rem;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bag-badge {
+  display: inline-block;
+  padding: .1rem .55rem;
+  border-radius: .75rem;
+  font-size: .92rem;
+  font-weight: 700;
+}
+.bag-badge.auto { color: var(--teal); background: var(--light); }
+.bag-badge.review { color: var(--rust); background: var(--warm); }
+.bag-scatter { display: block; width: 100%; height: auto; max-height: 17.5rem; }
+.bag-scatter text { fill: var(--muted); font: 12px system-ui, sans-serif; }
+.bag-scatter .bag-axis { fill: var(--ink); font-weight: 700; font-size: 13px; }
+.bag-grid { stroke: var(--forest-grid); stroke-width: 1; }
+.bag-area { opacity: .62; }
+.bag-area.auto { fill: #d0e7d9; }
+.bag-area.review { fill: #f0cfbf; }
+.bag-point { stroke: white; stroke-width: 1; }
+.bag-point.auto { fill: var(--teal); }
+.bag-point.review { fill: var(--rust); }
+.bag-cut { stroke: var(--ink); stroke-width: 1.4; }
+.bag-new-mark { fill: var(--surface); stroke: var(--forest-focus); stroke-width: 1.8; }
+.bag-cross { stroke: var(--forest-focus); stroke-width: 1.7; }
+.bag-source, .bag-drawn {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: .36rem;
+  margin: .65rem 0;
+  padding: 0;
+}
+.bag-source-row, .bag-drawn li {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: .36rem;
+  color: var(--ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.bag-source-row small { font-weight: 500; font-size: .78rem; }
+.bag-source-row.auto, .bag-drawn .auto { background: var(--light); }
+.bag-source-row.review, .bag-drawn .review { background: var(--warm); }
+.bag-drawn .empty { color: var(--muted); border-style: dashed; background: var(--paper); }
+.bagging .latest {
+  border-color: var(--forest-focus);
+  box-shadow: inset 0 0 0 1px var(--forest-focus);
+}
+.bag-drawn .latest { animation: bag-place .32s ease-out; }
+@keyframes bag-place { from { transform: translateY(-.35rem); opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .bag-drawn .latest { animation: none; } }
+.bag-readout { font-variant-numeric: tabular-nums; }
+.bag-sample-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem 1.25rem;
+  padding-top: .6rem;
+  margin-top: .6rem;
+  border-top: 1px solid var(--line);
+}
+.bag-code {
+  overflow: auto;
+  margin-block: .85rem;
+  padding: .85rem 1rem;
+  border-radius: .55rem;
+  background: #193d38;
+  color: #f7fbf5;
+  font: .93rem/1.6 var(--mono);
+}
+.bag-tree-meta { margin-bottom: .75rem; }
+.bag-tree-meta p + p { margin-top: .2rem; }
+.bag-tree-picker { align-self: start; }
+.bag-vote { display: flex; flex-direction: column; color: var(--muted); }
+.bag-vote strong { color: var(--ink); }
+#bag-votes > p { margin-top: .55rem; }
+#bag-depth-tree { margin-top: .8rem; }
+.bag-workflow { padding-inline-start: 1.5rem; }
+.bag-workflow li + li { margin-top: .45rem; }
+.bag-average { background: var(--light); }
+.bag-knob p + p { margin-top: .4rem; }
+#bag-knob-buttons [aria-pressed="true"] { background: var(--light); border-color: var(--teal); }
+
+@media (max-width: 760px) {
+  .bag-source, .bag-drawn { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@media (max-width: 570px) {
+  .bag-pair, .bag-triptych { grid-template-columns: minmax(0, 1fr); }
+  .bagging .chapter h1 br { display: initial; }
+  .bag-vote { flex-direction: row; justify-content: space-between; padding: .48rem .75rem; }
+}
+
+.bag-later .bagl-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem 1rem;
+  margin-bottom: .9rem;
+}
+.bag-later .bagl-heading p { margin-top: .25rem; }
+.bag-later .bagl-heading .button { flex: none; }
+
+.bag-later .bagl-spread { margin: 0; }
+.bag-later .bagl-spread figcaption { margin-bottom: .5rem; }
+.bag-later .bagl-symbol {
+  display: inline-block;
+  width: .7rem;
+  height: .7rem;
+  flex: none;
+}
+.bag-later .bagl-symbol-single {
+  border: 2px solid var(--rust);
+  border-radius: 50%;
+  background: var(--surface);
+}
+.bag-later .bagl-symbol-bagged {
+  border-radius: .12rem;
+  background: var(--teal);
+  rotate: 45deg;
+}
+.bag-later .bagl-spread-table th,
+.bag-later .bagl-spread-table td { vertical-align: middle; }
+.bag-later .bagl-spread-table th:last-child { width: 49%; }
+.bag-later .bagl-plot-scale { display: flex; justify-content: space-between; }
+.bag-later .bagl-plot-track {
+  position: relative;
+  height: 1.7rem;
+  border-inline: 1px solid var(--line);
+  background:
+    linear-gradient(to right, transparent calc(50% - .5px), var(--line) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)),
+    linear-gradient(to bottom, transparent calc(50% - .5px), var(--line) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px));
+}
+.bag-later .bagl-point {
+  position: absolute;
+  left: var(--position);
+  translate: -50% 0;
+  animation: bagl-reveal .22s ease-out;
+}
+.bag-later .bagl-point.bagl-symbol-single { top: .08rem; }
+.bag-later .bagl-point.bagl-symbol-bagged { bottom: .08rem; }
+@keyframes bagl-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bag-later .bagl-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .2rem .9rem;
+  padding: .65rem .8rem;
+  margin-block-start: .8rem;
+  border-radius: .45rem;
+  background: var(--light);
+  font-variant-numeric: tabular-nums;
+}
+.bag-later .bagl-result > strong { color: var(--teal); }
+.bag-later .bagl-result small { flex-basis: 100%; color: var(--muted); }
+
+.bag-later .bagl-variance-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.bag-later .bagl-variance-bars {
+  display: grid;
+  gap: .5rem;
+  padding: .75rem 0 .55rem;
+}
+.bag-later .bagl-variance-bars > div {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: .5rem;
+  color: var(--muted);
+  font-size: .9rem;
+}
+.bag-later .bagl-track {
+  display: flex;
+  height: .85rem;
+  overflow: hidden;
+  border-radius: 10rem;
+  background: var(--line);
+}
+.bag-later .bagl-track i {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+.bag-later .bagl-single-fill { width: 100%; background: var(--muted); }
+.bag-later #bagl-shared-fill { background: var(--rust); }
+.bag-later #bagl-reducible-fill { background: var(--teal); }
+.bag-later .bagl-variance-legend { margin-block: .2rem .7rem; }
+
+.bag-later .bagl-oob-table { min-width: 26rem; }
+.bag-later .bagl-oob-table td,
+.bag-later .bagl-oob-table th { vertical-align: middle; }
+.bag-later .bagl-oob-help { margin-top: .6rem; }
+.bag-later .button.bagl-row-button {
+  min-height: 2.25rem;
+  min-width: 2.55rem;
+  padding: .3rem .5rem;
+}
+.bag-later .button.bagl-row-button[aria-pressed="true"] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: white;
+}
+.bag-later .bagl-eligible,
+.bag-later .bagl-drawn {
+  display: inline-block;
+  padding: .15rem .4rem;
+  border-radius: .3rem;
+  white-space: nowrap;
+  font-size: .85rem;
+  font-weight: 650;
+}
+.bag-later .bagl-eligible { background: var(--light); color: var(--teal); }
+.bag-later .bagl-drawn { background: var(--paper); color: var(--muted); }
+.bag-later tr.is-selected .bagl-eligible { background: var(--teal); color: white; }
+.bag-later .bagl-selection {
+  padding: .7rem .8rem;
+  margin-top: .85rem;
+  border-left: 3px solid var(--teal);
+  border-radius: .45rem;
+  background: var(--light);
+}
+.bag-later .bagl-selection p { margin-top: .35rem; }
+.bag-later .bagl-votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .6rem;
+  margin-block: .6rem .2rem;
+}
+.bag-later .bagl-votes > span { padding: .2rem .45rem; border-radius: .3rem; background: var(--surface); }
+.bag-later .bagl-leaf-summaries {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .6rem;
+  margin-bottom: .65rem;
+}
+.bag-later .bagl-leaf-summaries > div {
+  padding: .6rem .7rem;
+  border-radius: .4rem;
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+.bag-later .bagl-leaf-summaries p { margin-top: .2rem; }
+
+@media (max-width: 660px) {
+  .bag-later .bagl-heading { align-items: flex-start; flex-direction: column; }
+  .bag-later .bagl-variance-controls { grid-template-columns: 1fr; gap: .3rem; }
+  .bag-later .bagl-variance-bars > div { grid-template-columns: 7rem minmax(0, 1fr); }
+  .bag-later .bagl-spread-table th:last-child { width: 33%; }
+  .bag-later .bagl-spread-table th, .bag-later .bagl-spread-table td { padding-inline: .32rem; }
+  .bag-later .bagl-leaf-summaries { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bag-later .bagl-point { animation: none; }
+}
+
+</style>
+</head>
+<body class="bagging">
+<a class="skip-link" href="#ensemble">Skip to the lesson</a>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="../"><span aria-hidden="true">∑</span> ML Learning Lab</a>
+    <button type="button" class="button secondary" id="bag-teaching" aria-pressed="false">Teaching view</button>
+  </div>
+</header>
+<div class="shell layout">
+  <aside class="chapter-rail">
+    <nav aria-label="Lesson chapters"><p class="eyebrow">Bagging</p><ol class="chapters" id="bag-nav"></ol></nav>
+  </aside>
+  <div class="chapter-controls">
+    <label for="bag-chapter" class="sr-only">Choose a chapter</label>
+    <select id="bag-chapter"></select>
+    <div class="chapter-buttons"><button class="button secondary" id="bag-previous" type="button">Previous</button><button class="button primary" id="bag-next" type="button">Next</button></div>
+  </div>
+  <main class="lesson" id="lesson">
+    <section class="chapter hero" id="ensemble" aria-labelledby="bag-title">
+      <p class="eyebrow">From a single tree to a forest</p>
+      <h1 id="bag-title">Bagging &amp;<br> Random Forests</h1>
+      <p class="lede">At a fictional parcel desk, each package goes straight through <strong>Auto</strong> or to manual <strong>Review</strong>. Two trees trained with the same settings can disagree about the same new parcel. How would you make one decision?</p>
+      <div class="panel bag-hook">
+        <div class="panel-heading"><div><h2>One new parcel, two decisions</h2><p id="bag-parcel"></p></div><div class="bag-legend"><span class="bag-mark auto">● Auto</span><span class="bag-mark review">◆ Review</span><span>⊕ New parcel</span></div></div>
+        <div class="bag-pair" id="bag-hook-plots"></div>
+        <p class="small">Each point is one training parcel. Weight and scan score are input features, and the Auto or Review label is the target. The lines show each tree’s first cut. Reveal the answers to see the fitted prediction regions.</p>
+        <div class="bag-actions"><button id="bag-hook-reveal" class="button primary" type="button" aria-pressed="false">Reveal the two predictions</button></div>
+        <p id="bag-hook-result" aria-live="polite">Find the new parcel on both plots. Which side of each first cut does it fall on?</p>
+      </div>
+      <div class="bag-say"><strong>An ensemble combines predictions from multiple models.</strong> Each model that contributes a prediction is a <strong>base learner</strong>. Here each base learner is a decision tree.</div>
+      <div class="bag-triptych">
+        <article><h3>Bagging</h3><p>Train models separately on resampled rows. Aggregate their predictions.</p></article>
+        <article><h3>Boosting</h3><p>Train models in sequence. Each stage helps correct errors of the ensemble so far.</p></article>
+        <article><h3>Stacking</h3><p>Train a second model to combine the base models’ predictions. Out-of-fold predictions can train that combiner.</p></article>
+      </div>
+      <details class="teaching-note"><summary>What stays the same when the two trees disagree?</summary><p>The prediction input and tree settings are fixed. The first and second bootstrap samples contain different rows and repeated counts, which changes the learned splits. A missed Review sends a parcel through that needed checking. An unnecessary Review adds work at the desk.</p></details>
+      <p class="transition">To understand why their answers differ, see how each tree gets its training sample.</p>
+    </section>
+
+    <section class="chapter" id="bootstrap" aria-labelledby="bootstrap-title">
+      <p class="eyebrow">Bagging</p><h2 id="bootstrap-title">Draw a bootstrap sample</h2>
+      <p class="lede"><strong>Bagging</strong> means bootstrap aggregating. Draw a training sample <strong>with replacement</strong>, fit one model on it, then repeat for the other models and combine their predictions.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Draw from the parcel desk</h2><p>Each original parcel remains eligible after every draw.</p></div><label>Sample <select id="bag-sample"><option value="0">Tree 1</option><option value="1">Tree 2</option><option value="2">Tree 3</option></select></label></div>
+        <div id="bag-source-rows" class="bag-source" aria-label="Original rows and their draw counts"></div>
+        <div class="bag-actions">
+          <button class="button primary" type="button" id="bag-draw">Draw next parcel</button>
+          <button class="button secondary" type="button" id="bag-play">Play draws</button>
+          <button class="button secondary" type="button" id="bag-fill">Show all draws</button>
+          <button class="button secondary" type="button" id="bag-reset">Reset sample</button>
+        </div>
+        <ol id="bag-drawn-rows" class="bag-drawn" aria-label="Draws in order"></ol>
+        <p id="bag-draw-current" class="bag-readout" aria-live="polite"></p>
+        <div id="bag-sample-counts" class="bag-sample-counts"></div>
+      </div>
+      <div class="bag-say"><strong>Another draw is another training occurrence.</strong> If P2 appears three times, it counts three times when the tree tallies labels. A row never drawn is out of bag for that tree.</div>
+      <details class="teaching-note"><summary>What changes without replacement?</summary><p>With 12 draws from 12 rows and no replacement, every row appears once. Drawing fewer than 12 without replacement would give a subset with no repeats. With replacement, repeated and omitted rows can occur even when the number of draws equals the original row count.</p></details>
+      <details class="teaching-note"><summary>How do we combine the predictions?</summary><p>For classification, one simple approach is to count the predicted classes and choose the majority. Another approach averages probabilities by class. For numerical regression, average the predicted numbers.</p></details>
+      <p class="transition">We have three different samples. Give each one to its own tree and follow the same new parcel through all three.</p>
+    </section>
+
+    <section class="chapter" id="forest" aria-labelledby="forest-title">
+      <p class="eyebrow">Random Forest intuition</p><h2 id="forest-title">Train three trees and combine their answers</h2>
+      <p class="lede">Each sample trains one decision tree with the same settings. A Random Forest adds randomized feature choices at each split. We’ll isolate the row sampling first so we can see where the differences come from.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Run the core code</h2><p>Change the sampling line, fit one tree, and predict the same parcel. Then run the cell that fits all three trees.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/bagging-intuition.ipynb" target="_blank" rel="noopener">Open intuition notebook</a></div>
+        <pre class="bag-code"><code>rng = np.random.default_rng(bootstrap_seed)
+draw = rng.choice(len(X), size=len(X), replace=True)
+tree = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=tree_seed)
+tree.fit(X.iloc[draw], y.iloc[draw])
+tree.predict(parcel)</code></pre>
+        <p class="small">Here <code>X</code> holds the weight and scan-score columns, <code>y</code> holds the recorded route, and <code>parcel</code> is the new input. <code>iloc</code> selects rows by position. The bootstrap seed is 11 and the tree seed is 0. Change <code>replace</code> to <code>False</code> in the notebook and count the unique rows. Restore <code>True</code> before fitting.</p>
+        <details class="teaching-note"><summary>Expected output and what to point at</summary><div id="bag-code-output"></div><p>Read the sample IDs first, then the tree prediction. This small hand-built ensemble makes the bootstrap and aggregation visible. The second notebook adds the full scikit-learn Random Forest workflow.</p></details>
+      </div>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Follow the parcel through each tree</h2><p>Click a tree to see its training sample, route and leaf mix.</p></div><div class="segmented bag-tree-picker" id="bag-tree-picker" aria-label="Select a tree"></div></div>
+        <div class="bag-tree-meta" id="bag-tree-meta"></div>
+        <div id="bag-tree-plot" class="tree-diagram"></div>
+        <div class="bag-actions"><button type="button" class="button primary" id="bag-vote-next">Reveal next vote</button><button type="button" class="button secondary" id="bag-vote-reset">Reset votes</button></div>
+        <div id="bag-votes" aria-live="polite"></div>
+      </div>
+      <details class="teaching-note"><summary>Is vote share the same as average predicted probability?</summary><p>Each hard vote contributes one class. In a probability average, a leaf with two Review rows and one Auto row contributes a Review probability of 2/3. For example, three Review probabilities of 0.49, 0.49 and 0.99 give two Auto hard votes but a mean Review probability of about 0.657. In scikit-learn, the forest classifier picks the class with the largest mean probability.</p><p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier.predict_proba">Scikit-learn probability reference</a></p></details>
+      <p class="transition">Different rows can change an entire tree. Next, see how changing the candidate features can change just one question.</p>
+    </section>
+
+    <section class="chapter" id="diversity" aria-labelledby="diversity-title">
+      <p class="eyebrow">How do we get different trees?</p><h2 id="diversity-title">Change the rows and the candidate features</h2>
+      <p class="lede">Each tree draws its own training rows. At each split in a Random Forest, it also samples candidate features. The best eligible question is chosen using the rows that reach that node.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>A different candidate list at each node</h2><p>Use rows from Tree 2’s bootstrap sample. Inspect the root and its Yes child.</p></div>
+        <label>Features considered <select id="bag-feature-mode"><option value="all">Both features</option><option value="one">One feature at each node</option></select></label></div>
+        <div class="bag-actions"><button id="bag-feature-next" class="button primary" type="button">Reveal next feature draw</button></div>
+        <div class="bag-pair" id="bag-features" aria-live="polite"></div>
+        <p class="small">These are seeded candidate-list comparisons at two fixed nodes from the original tree. A forest fits its own downstream nodes after each selected split.</p>
+      </div>
+      <div class="bag-say"><strong>Rows are resampled per tree. Candidate features are sampled per split.</strong> Both changes can reduce how often the trees make the same mistakes.</div>
+      <details class="teaching-note"><summary>Does choosing fewer features always help?</summary><p>Fewer candidates can diversify trees. It can also hide a strong feature at an important node. Compare settings on validation data. A feature can be eligible again at another split.</p></details>
+      <details class="teaching-note"><summary>What happens to a feature that was unavailable at this node?</summary><p>It was skipped only for this candidate draw. A later node can sample it and use it if it has a valid split.</p></details>
+      <p class="transition">Different decisions are useful when the individual models still capture some signal.</p>
+    </section>
+
+    <section class="chapter" id="base-learners" aria-labelledby="base-title">
+      <p class="eyebrow">Properties of base learners</p><h2 id="base-title">Useful alone, better able to disagree</h2>
+      <p class="lede">Decision trees can learn interactions, such as a scan cutoff that applies only to heavier parcels. Deep trees can also be sensitive to small changes in the training rows. Aggregation helps most when useful trees’ errors are less correlated.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Change the maximum depth</h2><p>Refit the same three bootstrap samples. One tree is the highlighted example.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · root only</option><option value="1">1 · one split</option><option value="2" selected>2 · two levels</option><option value="4">4 · deeper tree</option></select></label></div>
+        <div id="bag-depth-summary" class="bag-pair" aria-live="polite"></div>
+        <div id="bag-depth-tree" class="tree-diagram"></div>
+      </div>
+      <details class="teaching-note"><summary>Should every tree be weak?</summary><p>Bagging is especially helpful for learners that are sensitive to their training data, such as deep trees. Useful trees can vary in complexity. Shallow trees may miss an interaction. Deeper trees may pick up details that change from sample to sample.</p></details>
+      <details class="teaching-note"><summary>What if every tree makes the same mistake?</summary><p>Every vote points the same way, so the aggregate makes that same mistake. For a numerical prediction, averaging identical numbers also leaves the prediction unchanged.</p></details>
+      <p class="transition">Let’s measure what changes when we aggregate correlated predictions across training runs.</p>
+    </section>
+
+    <section class="chapter bag-later" id="variance" aria-labelledby="variance-title">
+  <p class="eyebrow">Variance</p>
+  <h2 id="variance-title">Why averaging steadies a prediction</h2>
+  <p class="lede">Hold one new parcel fixed. If we collect a different training batch and fit again, how much does the predicted probability of Review move? That variation across training batches is model variance at this parcel.</p>
+
+  <div class="panel">
+    <div class="bagl-heading">
+      <div>
+        <h3>Same parcel, five new training batches</h3>
+        <p class="small">Within each batch, a single tree and a bagged ensemble use the same training data. These illustrative probabilities make the spread easy to see.</p>
+      </div>
+      <button type="button" class="button secondary" id="bagl-next-batch">Reveal next batch</button>
+    </div>
+    <figure class="bagl-spread">
+      <figcaption class="legend">
+        <span><i class="bagl-symbol bagl-symbol-single" aria-hidden="true"></i> Single tree</span>
+        <span><i class="bagl-symbol bagl-symbol-bagged" aria-hidden="true"></i> Bagged trees</span>
+      </figcaption>
+      <div id="bagl-batches" class="bagl-spread-table"></div>
+    </figure>
+    <p class="bagl-result" id="bagl-batch-summary" aria-live="polite"></p>
+  </div>
+  <p>Here both sets of predictions average to 0.50 across the five batches, and one set moves less around that average. Accuracy is a separate check using true labels for held-out parcels.</p>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <div>
+        <h3>What if the trees move together?</h3>
+        <p class="small">Compare the variance of the average with the variance of one tree.</p>
+      </div>
+    </div>
+    <div class="bagl-variance-controls">
+      <div>
+        <label class="control-label" for="bagl-trees">Number of trees <output id="bagl-trees-value" for="bagl-trees"></output></label>
+        <input type="range" min="1" max="100" value="10" id="bagl-trees">
+      </div>
+      <div>
+        <label class="control-label" for="bagl-corr">Pairwise correlation <output id="bagl-corr-value" for="bagl-corr"></output></label>
+        <input type="range" min="0" max="1" step=".05" value=".30" id="bagl-corr">
+      </div>
+    </div>
+    <div class="bagl-variance-bars" aria-hidden="true">
+      <div><span>One tree</span><div class="bagl-track"><i class="bagl-single-fill"></i></div></div>
+      <div><span>Average of trees</span><div class="bagl-track"><i id="bagl-shared-fill"></i><i id="bagl-reducible-fill"></i></div></div>
+    </div>
+    <p class="legend bagl-variance-legend"><span><i class="key review" aria-hidden="true"></i> Shared part</span><span><i class="key" aria-hidden="true"></i> Part that shrinks</span></p>
+    <p class="bagl-result" id="bagl-variance-summary" aria-live="polite"></p>
+    <p class="small">This model assumes equal individual variances and the same correlation for each pair of trees. Think of numeric predictions or class probabilities, then take their average.</p>
+    <details class="teaching-note">
+      <summary>Derive the variance of the average</summary>
+      <p>Let <var>B</var> be the number of trees, <var>σ²</var> the variance of each prediction, and <var>ρ</var> the pairwise correlation. The variance of a sum has <var>B</var> variance terms and <var>B</var>(<var>B</var> − 1) ordered covariance terms. Each covariance is <var>ρσ²</var>. Dividing by <var>B²</var> for the average gives</p>
+      <p class="formula">Var(average) = [Bσ² + B(B − 1)ρσ²] / B² = σ²[ρ + (1 − ρ)/B]</p>
+      <p>Set correlation to 0 to see the independent case. Set it to 1 to see perfectly correlated predictions. Positive correlation leaves a shared part of the variance as the number of trees grows.</p>
+    </details>
+  </div>
+
+  <div class="explanation-grid">
+    <div><h3>Why sample features?</h3><p>A strong feature can dominate many trees. Giving a node a smaller candidate set lets different useful splits emerge, which can reduce how closely the trees move together.</p></div>
+    <div><h3>Can more trees fix bias?</h3><p>Averaging stabilizes the predictions available from the base learners. Check fit separately. A group of very shallow trees may still miss an interaction in the data.</p></div>
+  </div>
+  <p class="transition">The model has two jobs now. Grow individual trees and combine their predictions. Put both into a reproducible training workflow.</p>
+</section>
+
+    <section class="chapter" id="implementation" aria-labelledby="implementation-title">
+      <p class="eyebrow">Random Forest code implementation</p><h2 id="implementation-title">Fit, tune, and evaluate a forest</h2>
+      <p class="lede">Start with a tree and an untuned forest. Choose settings using only the training set, then evaluate the selected model on unseen parcels.</p>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Implementation notebook</h2><p>Run end to end on a larger synthetic parcel dataset with multiple input features.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/random-forest-implementation.ipynb" target="_blank" rel="noopener">Open implementation notebook</a></div>
+        <ol class="bag-workflow">
+          <li><strong>Split once.</strong> Set aside a stratified test set, which keeps roughly the same class proportions. Keep test labels out of model selection.</li>
+          <li><strong>Fit both baselines.</strong> Train a decision tree and a Random Forest on the same training partition.</li>
+          <li><strong>Define a search space.</strong> Pick plausible list values or distributions for the settings. Decide how many combinations to sample.</li>
+          <li><strong>Search on the training set.</strong> Each candidate fits the training part of each fold and scores its validation part. Choose the best mean validation score.</li>
+          <li><strong>Evaluate once on the holdout.</strong> Refit the selected settings on all training rows. Inspect precision, recall and the confusion matrix on unseen parcels.</li>
+        </ol>
+        <pre class="bag-code"><code>search = RandomizedSearchCV(
+    RandomForestClassifier(bootstrap=True, oob_score=True, random_state=seed),
+    parameter_space, n_iter=15, scoring='balanced_accuracy',
+    cv=folds, refit=True, random_state=seed
+)
+search.fit(X_train, y_train)
+test_predictions = search.predict(X_test)</code></pre>
+        <p class="small">The notebook names each variable and sets seeds for the data, split, model and search. A search seed replays the sampled candidate settings. A forest seed controls randomness inside the model.</p>
+        <details class="teaching-note"><summary>Read the worked notebook results</summary><p>With 1,050 training rows and 350 held-out rows, the selected candidate averaged 81.26% balanced accuracy across four validation folds. The held-out balanced accuracies were 72.65% for the single tree, 76.89% for the baseline forest, and 78.88% for the tuned forest. The tuned forest’s OOB accuracy was 81.24% across 1,050 covered training rows. That last value uses ordinary accuracy on the OOB predictions. Results are from the seeded run with scikit-learn 1.6.1.</p></details>
+      </div>
+      <details class="teaching-note"><summary>How does randomized search differ from a grid?</summary><p>A grid enumerates the specified combinations. Randomized search evaluates a budget of sampled combinations. The search reports the same kind of cross-validation scores for each candidate. <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html">RandomizedSearchCV reference</a></p></details>
+      <details class="teaching-note"><summary>Why balanced accuracy?</summary><p>It averages recall across classes, so both Auto and Review count equally even if their frequencies differ. For the parcel desk, also report Review recall and precision so you can reason about missed checks and manual workload.</p></details>
+      <p class="transition">Cross-validation reserves folds. Bootstrap sampling gives us another source of unused rows, one set for each tree.</p>
+    </section>
+
+    <section class="chapter bag-later" id="oob" aria-labelledby="oob-title">
+  <p class="eyebrow">Out-of-bag scoring</p>
+  <h2 id="oob-title">Which trees can evaluate this parcel?</h2>
+  <p class="lede">A training parcel is <strong>out of bag (OOB)</strong> for a tree if it was drawn zero times into that tree's bootstrap sample. Each row gets its own set of eligible trees.</p>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <div>
+        <h3>Pick a training parcel</h3>
+        <p class="small">This five-parcel example has three trees. Each draws five rows with replacement and learns one split on weight.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="bagl-oob-table">
+        <caption class="sr-only">Times each parcel was drawn into each tree's bootstrap sample</caption>
+        <thead>
+          <tr><th scope="col">Parcel</th><th scope="col">Weight</th><th scope="col">True label</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Tree 3</th></tr>
+        </thead>
+        <tbody id="bagl-oob-grid"></tbody>
+      </table>
+    </div>
+    <p class="small bagl-oob-help">A draw count of zero makes that tree eligible for the selected parcel.</p>
+    <div id="bagl-oob-selected" class="bagl-selection" aria-live="polite"></div>
+    <details class="teaching-note">
+      <summary>See the samples and their learned cuts</summary>
+      <div id="bagl-oob-samples"></div>
+    </details>
+  </div>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <div>
+        <h3>From one parcel to the OOB score</h3>
+        <p class="small">First predict each training row with its own eligible trees. Then compare those predictions with the recorded labels.</p>
+      </div>
+    </div>
+    <details class="bagl-score-details">
+      <summary>Reveal all OOB predictions</summary>
+      <div id="bagl-oob-score"></div>
+    </details>
+  </div>
+
+  <div class="explanation-grid">
+    <div><h3>Why roughly 37%?</h3><p>With <var>n</var> training rows, one uniform draw misses a particular row with probability <span class="formula">1 − 1/n</span>. If a tree takes <var>m</var> independent draws with replacement, the chance it misses that row throughout is <span class="formula">(1 − 1/n)<sup>m</sup></span>. When <var>m</var> equals <var>n</var> and <var>n</var> is large, this approaches <span class="formula">e<sup>−1</sup> ≈ 36.8%</span>. Here, with five rows and five draws, the probability is about 32.8%.</p></div>
+    <div><h3>What does this score estimate?</h3><p>OOB uses training rows to approximate performance on unseen data by using trees that missed each row. Reserve a separate held-out test set for final evaluation, especially after using OOB or cross-validation to choose settings. In scikit-learn Random Forest, enabling OOB scoring requires bootstrap sampling.</p></div>
+  </div>
+  <details class="teaching-note">
+    <summary>What if every tree saw the parcel?</summary>
+    <p>There is no eligible OOB prediction for that parcel. This lab reports coverage and scores only rows with predictions. With very few trees, check OOB coverage before interpreting an implementation's score.</p>
+  </details>
+  <p class="transition">You can now read three views of the forest. The trees' individual decisions, their combined prediction, and an estimate of generalization. Connect those views to model settings and interview questions.</p>
+</section>
+
+    <section class="chapter" id="interview" aria-labelledby="interview-title">
+      <p class="eyebrow">Interview questions</p><h2 id="interview-title">Explain importance and tune the trade-offs</h2>
+      <p class="lede">Use the same logic from the decision-tree lab when explaining what the forest learned. Then change one setting at a time and reason about the individual trees, their similarity, and the final validation score.</p>
+      <div class="panel">
+        <h2>How does a forest compute feature importance?</h2>
+        <p>For each tree, credit a feature with the weighted impurity decreases from the nodes where it splits. Sum repeated uses within the tree, then combine the tree-level importances and normalize in the forest.</p>
+        <div id="bag-importance" aria-label="Three fitted trees and their impurity importances"></div>
+        <p class="small">Impurity-based importance describes how this forest used its inputs during training. Features with many possible split points can get extra credit. Held-out permutation importance asks how much a chosen score falls when a feature’s values are shuffled.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Five settings, five different changes</h2><p>Select a setting and predict what happens before reading the answer.</p></div></div>
+        <div id="bag-knob-buttons" class="bag-actions" aria-label="Forest settings"></div>
+        <div id="bag-knob-explanation" class="bag-knob" aria-live="polite"></div>
+      </div>
+      <details class="teaching-note"><summary>Why can more trees give diminishing returns?</summary><p>More trees stabilize the average for fixed training settings. Similar trees share part of their error, and adding estimators cannot fully average that part away. Check validation gains and compute together.</p></details>
+      <details class="teaching-note"><summary>How do depth and pruning differ?</summary><p>Maximum depth stops growth once a path reaches a specified limit. Minimal cost-complexity pruning removes branches according to the balance of impurity and tree size. A larger <code>ccp_alpha</code> favors simpler trees. Both settings can trade variance for bias.</p></details>
+      <div class="bag-say"><strong>Recap</strong> Draw rows with replacement. Train several learners, consider random features at each forest split, and aggregate their predictions. Check stability separately from performance on unseen data.</div>
+      <p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">Random Forest parameter and scoring reference</a></p>
+    </section>
+    <footer class="lesson-footer">
+      <span>All parcel data is synthetic.</span>
+      <a href="../decision-trees/">Revisit decision trees</a>
+      <a href="https://github.com/sharanharsoor/ml-learning-lab/tree/main/labs/bagging/notebooks">View notebooks on GitHub</a>
+    </footer>
+  </main>
+</div>
+<noscript><p class="shell">Enable JavaScript to use the interactive visuals.</p></noscript>
+<script type="application/json" id="bag-data">{"rows":[{"id":"P1","x":1.2,"z":2.0,"label":0},{"id":"P2","x":2.0,"z":5.0,"label":0},{"id":"P3","x":2.5,"z":7.8,"label":0},{"id":"P4","x":3.5,"z":4.0,"label":0},{"id":"P5","x":4.0,"z":7.0,"label":1},{"id":"P6","x":5.0,"z":5.0,"label":0},{"id":"P7","x":6.1,"z":5.5,"label":1},{"id":"P8","x":7.0,"z":3.0,"label":0},{"id":"P9","x":7.5,"z":8.0,"label":1},{"id":"P10","x":8.2,"z":6.6,"label":1},{"id":"P11","x":8.8,"z":4.5,"label":1},{"id":"P12","x":9.2,"z":8.8,"label":1}],"parcel":{"x":5.65,"z":5.7},"samples":[{"draws":["P2","P2","P10","P6","P8","P8","P9","P1","P6","P2","P5","P12"],"tree":{"split":{"feature":"z","threshold":5.8},"stats":{"n":12,"auto":8,"review":4,"score":0.444444444444,"prediction":0},"left":{"split":null,"stats":{"n":8,"auto":8,"review":0,"score":0.0,"prediction":0},"left":null,"right":null},"right":{"split":null,"stats":{"n":4,"auto":0,"review":4,"score":0.0,"prediction":1},"left":null,"right":null}},"reviewProbability":0.0,"prediction":0},{"draws":["P7","P1","P7","P2","P10","P12","P12","P8","P11","P5","P2","P7"],"tree":{"split":{"feature":"z","threshold":5.25},"stats":{"n":12,"auto":4,"review":8,"score":0.444444444444,"prediction":1},"left":{"split":{"feature":"x","threshold":7.9},"stats":{"n":5,"auto":4,"review":1,"score":0.32,"prediction":0},"left":{"split":null,"stats":{"n":4,"auto":4,"review":0,"score":0.0,"prediction":0},"left":null,"right":null},"right":{"split":null,"stats":{"n":1,"auto":0,"review":1,"score":0.0,"prediction":1},"left":null,"right":null}},"right":{"split":null,"stats":{"n":7,"auto":0,"review":7,"score":0.0,"prediction":1},"left":null,"right":null}},"reviewProbability":1.0,"prediction":1},{"draws":["P6","P8","P12","P4","P11","P2","P5","P10","P3","P9","P6","P7"],"tree":{"split":{"feature":"x","threshold":7.25},"stats":{"n":12,"auto":6,"review":6,"score":0.5,"prediction":0},"left":{"split":{"feature":"z","threshold":5.25},"stats":{"n":8,"auto":6,"review":2,"score":0.375,"prediction":0},"left":{"split":null,"stats":{"n":5,"auto":5,"review":0,"score":0.0,"prediction":0},"left":null,"right":null},"right":{"split":null,"stats":{"n":3,"auto":1,"review":2,"score":0.444444444444,"prediction":1},"left":null,"right":null}},"right":{"split":null,"stats":{"n":4,"auto":0,"review":4,"score":0.0,"prediction":1},"left":null,"right":null}},"reviewProbability":0.6666666666666666,"prediction":1}]}</script>
+<script>(() => {
+  'use strict';
+
+  const TRAIN = [
+    { id: 'P1', x: 1, y: 'A', label: 0, minutes: 2 },
+    { id: 'P2', x: 2, y: 'B', label: 0, minutes: 2 },
+    { id: 'P3', x: 3, y: 'B', label: 0, minutes: 2 },
+    { id: 'P4', x: 4, y: 'B', label: 1, minutes: 6 },
+    { id: 'P5', x: 5, y: 'B', label: 1, minutes: 8 },
+    { id: 'P6', x: 6, y: 'B', label: 1, minutes: 8 },
+    { id: 'P7', x: 7, y: 'A', label: 0, minutes: 4 },
+    { id: 'P8', x: 8, y: 'B', label: 1, minutes: 8 },
+  ];
+  const HOLDOUT = [
+    { id: 'H1', x: 2, y: 'A', label: 0 },
+    { id: 'H2', x: 3, y: 'B', label: 0 },
+    { id: 'H3', x: 5, y: 'B', label: 1 },
+    { id: 'H4', x: 8, y: 'B', label: 1 },
+    { id: 'H5', x: 6, y: 'A', label: 1 },
+    { id: 'H6', x: 7, y: 'B', label: 0 },
+  ];
+  const DEEP_TRAIN = [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]
+    .map((label, index) => ({ id: 'D' + (index + 1), x: index + 1, y: 'A', label }));
+  const importancePackaging = 'AABAABBBABAAABBAAAAA';
+  const importanceScanScores = '33242422224244223423';
+  const IMPORTANCE_TRAIN = Array.from('11100001011011101111', (label, index) => ({
+    x: index + 1,
+    y: importancePackaging[index],
+    z: Number(importanceScanScores[index]),
+    label: Number(label),
+  }));
+  const processingTimes = [19, 19, 19, 10, 10, 10, 10, 19, 12, 19, 14.5, 13, 15.5, 19, 19, 14, 9, 9, 9, 9];
+  const REGRESSION_TRAIN = IMPORTANCE_TRAIN.map((row, index) => ({ ...row, minutes: processingTimes[index] }));
+
+  function entropy(p) {
+    if (p === 0 || p === 1) return 0;
+    return -p * Math.log2(p) - (1 - p) * Math.log2(1 - p);
+  }
+
+  function gini(p) {
+    return 2 * p * (1 - p);
+  }
+
+  function stats(rows, criterion) {
+    if (criterion !== 'entropy' && criterion !== 'gini' && criterion !== 'mse') {
+      throw new RangeError('Unknown split criterion.');
+    }
+    const n = rows.length;
+    if (n === 0) return { n, auto: 0, review: 0, mean: null, score: 0, prediction: null };
+
+    const review = rows.reduce((sum, row) => sum + row.label, 0);
+    const auto = n - review;
+    const hasTimes = rows.every(row => Number.isFinite(row.minutes));
+    const mean = hasTimes ? rows.reduce((sum, row) => sum + row.minutes, 0) / n : null;
+    if (criterion === 'mse') {
+      if (!hasTimes) throw new TypeError('Mean squared error requires a time for every row.');
+      const score = rows.reduce((sum, row) => sum + (row.minutes - mean) ** 2, 0) / n;
+      return { n, auto, review, mean, score, prediction: mean };
+    }
+
+    const score = criterion === 'entropy' ? entropy(review / n) : gini(review / n);
+    return { n, auto, review, mean, score, prediction: review > auto ? 1 : 0 };
+  }
+
+  function candidates(rows) {
+    const splits = ['x', 'z'].flatMap(feature => {
+      const readings = rows.map(row => row[feature]);
+      if (!readings.every(Number.isFinite)) return [];
+      const values = [...new Set(readings)].sort((a, b) => a - b);
+      return values.slice(1).map((next, index) => {
+        const previous = values[index];
+        const midpoint = previous / 2 + next / 2;
+        const threshold = midpoint >= previous && midpoint < next ? midpoint : previous;
+        return { feature, threshold };
+      });
+    });
+    if (rows.some(row => row.y === 'A') && rows.some(row => row.y === 'B')) {
+      splits.push({ feature: 'y', threshold: 'A' });
+    }
+    return splits;
+  }
+
+  function goesLeft(row, split) {
+    return split.feature === 'y' ? row.y === split.threshold : row[split.feature] <= split.threshold;
+  }
+
+  function evaluate(rows, split, criterion) {
+    const left = [];
+    const right = [];
+    for (const row of rows) {
+      const branch = goesLeft(row, split) ? left : right;
+      branch.push(row);
+    }
+    if (left.length === 0 || right.length === 0) return null;
+
+    const parent = stats(rows, criterion);
+    const leftStats = stats(left, criterion);
+    const rightStats = stats(right, criterion);
+    const weighted = (leftStats.n * leftStats.score + rightStats.n * rightStats.score) / parent.n;
+    const difference = parent.score - weighted;
+    const tolerance = 8 * Number.EPSILON * Math.max(parent.score, weighted);
+    const gain = Math.abs(difference) <= tolerance ? 0 : difference;
+    return { split, left, right, parent, leftStats, rightStats, weighted, gain };
+  }
+
+  function rank(rows, criterion) {
+    // A stable sort preserves feature and threshold order for tied gains.
+    return candidates(rows)
+      .map(split => evaluate(rows, split, criterion))
+      .filter(result => result !== null)
+      .sort((a, b) => b.gain - a.gain);
+  }
+
+  function fit(rows, criterion, maxDepth, minLeaf = 1) {
+    if (rows.length === 0) throw new RangeError('Fit needs at least one training row.');
+    if (!Number.isInteger(maxDepth) || maxDepth < 0) {
+      throw new RangeError('Maximum depth must be a nonnegative integer.');
+    }
+    if (!Number.isInteger(minLeaf) || minLeaf < 1) {
+      throw new RangeError('Minimum leaf size must be a positive integer.');
+    }
+
+    function grow(group, remainingDepth) {
+      const node = stats(group, criterion);
+      const leaf = { stats: node, split: null, left: null, right: null, gain: 0 };
+      if (remainingDepth === 0 || node.score === 0 || node.n < 2 * minLeaf) return leaf;
+
+      const winner = rank(group, criterion).find(result => (
+        result.gain > 0 && result.left.length >= minLeaf && result.right.length >= minLeaf
+      ));
+      if (!winner) return leaf;
+
+      return {
+        stats: node,
+        split: winner.split,
+        left: grow(winner.left, remainingDepth - 1),
+        right: grow(winner.right, remainingDepth - 1),
+        gain: winner.gain,
+      };
+    }
+
+    return grow(rows, maxDepth);
+  }
+
+  function terminalNode(tree, row, onSplit) {
+    let node = tree;
+    while (node.split) {
+      const yes = goesLeft(row, node.split);
+      onSplit?.(node.split, yes);
+      node = yes ? node.left : node.right;
+    }
+    return node;
+  }
+
+  function predict(tree, row) {
+    return terminalNode(tree, row).stats.prediction;
+  }
+
+  function trace(tree, row) {
+    const paths = ['root'];
+    const steps = [];
+    const leaf = terminalNode(tree, row, (split, yes) => {
+      steps.push({ split, yes });
+      paths.push(paths[paths.length - 1] + (yes ? 'l' : 'r'));
+    });
+    return { paths, steps, leaf: leaf.stats };
+  }
+
+  function confusion(tree, rows) {
+    const counts = { tn: 0, fp: 0, fn: 0, tp: 0 };
+    for (const row of rows) {
+      const prediction = predict(tree, row);
+      if (prediction !== 0 && prediction !== 1) {
+        throw new TypeError('A confusion matrix requires binary class predictions.');
+      }
+      const key = row.label === 1 ? (prediction === 1 ? 'tp' : 'fn') : (prediction === 1 ? 'fp' : 'tn');
+      counts[key] += 1;
+    }
+    return counts;
+  }
+
+  function importance(tree) {
+    const gains = { x: 0, y: 0, total: 0 };
+
+    function visit(node) {
+      if (!node.split) return;
+      const feature = node.split.feature;
+      gains[feature] = (gains[feature] ?? 0) + (node.stats.n / tree.stats.n) * node.gain;
+      visit(node.left);
+      visit(node.right);
+    }
+
+    visit(tree);
+    gains.total = Object.values(gains).reduce((sum, credit) => sum + credit, 0);
+    return gains;
+  }
+
+  globalThis.TreeLab = {
+    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, REGRESSION_TRAIN,
+    entropy, gini, stats, candidates, evaluate, rank, fit, predict, trace, confusion, importance,
+  };
+})();
+
+(() => {
+  'use strict';
+
+  const criterionNames = { entropy: 'Entropy', gini: 'Gini impurity', mse: 'MSE' };
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    })[character]);
+  }
+
+  function rounded(value) {
+    return String(Number(value.toFixed(3)));
+  }
+
+  function describeTree(node, path = 'root') {
+    if (!node.split) return { node, path, leaves: 1 };
+    const yes = describeTree(node.left, path + 'l');
+    const no = describeTree(node.right, path + 'r');
+    return { node, path, yes, no, leaves: yes.leaves + no.leaves };
+  }
+
+  function drawCard(item, options, branch) {
+    const { node, path } = item;
+    const { criterion, selectedPath, traced, interactive, showScore } = options;
+    const { n, auto, review, score, prediction } = node.stats;
+    const root = path === 'root';
+    const leaf = !node.split;
+    const onPath = traced.has(path);
+    const role = root ? (leaf ? 'Root and leaf' : 'Root') : (leaf ? 'Leaf' : 'Decision node');
+    const outcome = prediction === 1 ? 'Review' : 'Auto';
+    const condition = node.split && node.split.feature.toUpperCase() +
+      (node.split.feature === 'y' ? ' = ' : ' ≤ ') + node.split.threshold;
+    const title = node.split ? condition + '?' : 'Predict ' +
+      (criterion === 'mse' ? rounded(prediction) + ' min' : outcome);
+    const impurity = criterionNames[criterion] + ' ' + rounded(score) +
+      (criterion === 'entropy' ? (score === 1 ? ' bit' : ' bits') : (criterion === 'mse' ? ' min²' : ''));
+    const samples = n + (n === 1 ? ' parcel' : ' parcels');
+    const classes = ['dt-node', root && 'dt-node--root', leaf && 'dt-node--leaf',
+      onPath && 'dt-node--traced'].filter(Boolean).join(' ');
+    const tag = interactive ? 'button' : 'div';
+    const label = [branch && branch + ' branch', role, title, samples, showScore && impurity,
+      criterion !== 'mse' && auto + ' Auto, ' + review + ' Review',
+      onPath && 'On traced path'].filter(Boolean).join('. ');
+    const attrs = interactive
+      ? ' type="button" data-node="' + path + '" aria-pressed="' + String(path === selectedPath) +
+        '" aria-label="' + escapeHtml(label) + '"'
+      : ' role="group" aria-label="' + escapeHtml(label) + '"';
+    const mix = criterion === 'mse' ? '' : '<span class="dt-mix" aria-hidden="true">' +
+      '<span class="dt-mix-bar" style="--dt-auto:' + (100 * auto / n) + '%"></span>' +
+      '<span class="dt-mix-labels"><span><i class="dt-mark" aria-hidden="true"></i>' + auto +
+      ' Auto</span><span><i class="dt-mark dt-mark--review" aria-hidden="true"></i>' + review +
+      ' Review</span></span></span>';
+    return '<' + tag + ' class="' + classes + '"' + attrs + '>' +
+      '<span class="dt-node-top"><span class="dt-node-role">' + role +
+      '</span><span class="dt-node-samples">' + samples + '</span></span>' +
+      '<strong class="dt-node-title">' + escapeHtml(title) + '</strong>' +
+      (showScore ? '<span class="dt-node-score">' + impurity + '</span>' : '') + mix +
+      (onPath ? '<span class="dt-node-path" aria-hidden="true">On path</span>' : '') +
+      '</' + tag + '>';
+  }
+
+  function draw(item, options, branch) {
+    const card = drawCard(item, options, branch);
+    if (!item.yes) return '<div class="dt-subtree">' + card + '</div>';
+    const { yes, no } = item;
+    const firstWidth = 100 * yes.leaves / item.leaves;
+    const edges = [[yes, 'Yes', firstWidth / 2], [no, 'No', (100 + firstWidth) / 2]];
+    const lines = edges.map(([child, , x]) => '<path class="dt-edge' +
+      (options.traced.has(item.path) && options.traced.has(child.path) ? ' dt-edge--traced' : '') +
+      '" vector-effect="non-scaling-stroke" d="M50 0 V9 Q50 23 ' + x +
+      ' 23 V53"></path>').join('');
+    const branches = edges.map(([child, direction]) => '<div class="dt-child' +
+      (options.traced.has(child.path) ? ' dt-child--traced' : '') +
+      '"><span class="dt-answer">' + direction + '</span>' + draw(child, options, direction) + '</div>').join('');
+    return '<div class="dt-subtree">' + card +
+      '<div class="dt-branches" style="--dt-yes:' + yes.leaves + 'fr;--dt-no:' + no.leaves + 'fr">' +
+      '<svg class="dt-edges" viewBox="0 0 100 53" preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
+      lines + '</svg>' + branches + '</div></div>';
+  }
+
+  function render(tree, {
+    criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true, showScore = true,
+  } = {}) {
+    const item = describeTree(tree);
+    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive, showScore };
+    return '<div class="dt-viewport"><div class="dt-graph' +
+      (item.leaves > 4 ? ' dt-graph--dense' : '') +
+      '" role="group" aria-label="Decision tree diagram">' +
+      draw(item, options) + '</div></div>';
+  }
+
+  globalThis.TreeLabDiagram = { render };
+})();
+</script>
+<script>(() => {
+  'use strict';
+
+  const get = id => document.getElementById('bag-' + id);
+  const { rows, parcel, samples } = JSON.parse(get('data').textContent);
+  const rowMap = new Map(rows.map(row => [row.id, row]));
+  const route = label => label ? 'Review' : 'Auto';
+  const tone = label => label ? 'review' : 'auto';
+  const featureName = { x: 'Weight', z: 'Scan score' };
+  const fmt = value => String(Number(value.toFixed(4)));
+  const percent = value => Number((value * 100).toFixed(1)) + '%';
+  const mean = values => values.reduce((sum, value) => sum + value, 0) / values.length;
+  const question = split => split.feature.toUpperCase() + ' ≤ ' + fmt(split.threshold);
+  const sampleRows = sample => sample.draws.map(id => rowMap.get(id));
+  const treeMarkup = (tree, tracedPaths) => TreeLabDiagram.render(tree,
+    { criterion: 'gini', tracedPaths, interactive: false, showScore: false });
+
+  function setupNavigation() {
+    const chapters = [...document.querySelectorAll('.chapter')];
+    const menu = get('chapter');
+    const previous = get('previous');
+    const next = get('next');
+    const teaching = get('teaching');
+    const labels = ['Ensemble models', 'Bootstrap sampling', 'Forest intuition and code', 'Diverse trees',
+      'Base learners', 'Why variance falls', 'Fit and tune', 'Out-of-bag scoring', 'Interview questions'];
+    get('nav').innerHTML = chapters.map((chapter, i) =>
+      '<li><a href="#' + chapter.id + '">' + labels[i] + '</a></li>').join('');
+    menu.innerHTML = chapters.map((chapter, i) =>
+      '<option value="' + chapter.id + '">' + labels[i] + '</option>').join('');
+    const links = [...get('nav').querySelectorAll('a')];
+    let active = -1;
+
+    function goTo(index, move = true) {
+      if (index < 0 || index >= chapters.length) index = 0;
+      if (index === active) return;
+      active = index;
+      const selected = chapters[index];
+      chapters.forEach((chapter, i) => { chapter.hidden = i !== index; });
+      links.forEach((link, i) => {
+        if (i === index) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+      menu.value = selected.id;
+      previous.disabled = index === 0;
+      next.disabled = index === chapters.length - 1;
+      if (move) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        const heading = selected.querySelector('h1, h2');
+        heading.setAttribute('tabindex', '-1');
+        heading.focus({ preventScroll: true });
+      }
+    }
+
+    function jump(index) {
+      if (index < 0 || index >= chapters.length || index === active) return;
+      history.pushState(null, '', '#' + chapters[index].id);
+      goTo(index);
+    }
+
+    const hashIndex = () => chapters.findIndex(chapter => '#' + chapter.id === location.hash);
+    menu.addEventListener('change', () => jump(chapters.findIndex(chapter => chapter.id === menu.value)));
+    previous.addEventListener('click', () => jump(active - 1));
+    next.addEventListener('click', () => jump(active + 1));
+    links.forEach((link, i) => link.addEventListener('click', event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      jump(i);
+    }));
+    window.addEventListener('popstate', () => goTo(hashIndex()));
+    window.addEventListener('hashchange', () => goTo(hashIndex()));
+    teaching.addEventListener('click', () => {
+      const on = document.body.classList.toggle('teaching');
+      teaching.setAttribute('aria-pressed', String(on));
+    });
+    goTo(hashIndex(), false);
+  }
+
+  function scatter(sample, reveal) {
+    const x = value => 41 + 30 * value;
+    const z = value => 226 - 21 * value;
+    const line = (a, b, c, d, css) =>
+      '<line class="' + css + '" x1="' + a + '" y1="' + b + '" x2="' + c + '" y2="' + d + '"/>';
+    function regions(tree, bounds) {
+      const [left, right, bottom, top] = bounds;
+      if (!tree.split) {
+        return '<rect class="bag-area ' + tone(tree.stats.prediction) + '" x="' + x(left) +
+          '" y="' + z(top) + '" width="' + (x(right) - x(left)) + '" height="' + (z(bottom) - z(top)) + '"/>';
+      }
+      const { feature, threshold: t } = tree.split;
+      if (feature === 'x') return regions(tree.left, [left, t, bottom, top]) +
+        regions(tree.right, [t, right, bottom, top]) + line(x(t), z(top), x(t), z(bottom), 'bag-cut');
+      return regions(tree.left, [left, right, bottom, t]) +
+        regions(tree.right, [left, right, t, top]) + line(x(left), z(t), x(right), z(t), 'bag-cut');
+    }
+    const ticks = [0, 2, 4, 6, 8, 10];
+    const grid = ticks.map(t => line(x(t), z(10), x(t), z(0), 'bag-grid') +
+      line(x(0), z(t), x(10), z(t), 'bag-grid') +
+      '<text x="' + x(t) + '" y="243" text-anchor="middle">' + t + '</text>' +
+      '<text x="33" y="' + (z(t) + 4) + '" text-anchor="end">' + t + '</text>').join('');
+    const marks = rows.map(row => {
+      const px = x(row.x), py = z(row.z);
+      const mark = row.label === 0 ? '<circle cx="' + px + '" cy="' + py + '" r="4.8"' :
+        '<rect x="' + (px - 3.8) + '" y="' + (py - 3.8) + '" width="7.6" height="7.6" transform="rotate(45 ' + px + ' ' + py + ')"';
+      const tag = row.label === 0 ? 'circle' : 'rect';
+      return mark + ' class="bag-point ' + tone(row.label) + '"><title>' + row.id + ' · ' + route(row.label) + '</title></' + tag + '>';
+    }).join('');
+    const px = x(parcel.x), py = z(parcel.z);
+    const focus = '<circle class="bag-new-mark" cx="' + px + '" cy="' + py +
+      '" r="9"/>' + line(px - 5, py, px + 5, py, 'bag-cross') + line(px, py - 5, px, py + 5, 'bag-cross');
+    const root = sample.tree.split;
+    const firstCut = root.feature === 'x' ? line(x(root.threshold), z(10), x(root.threshold), z(0), 'bag-cut') :
+      line(x(0), z(root.threshold), x(10), z(root.threshold), 'bag-cut');
+    return '<svg class="bag-scatter" viewBox="0 0 360 268" role="img" aria-label="Training parcels by weight and scan score. ' +
+      (reveal ? 'This tree predicts ' + route(sample.prediction) + ' for the new parcel.' : 'The first split is ' + question(root) + '.') +
+      '">' + grid + (reveal ? regions(sample.tree, [0, 10, 0, 10]) : firstCut) + marks + focus +
+      '<text x="191" y="262" text-anchor="middle" class="bag-axis">Weight X</text>' +
+      '<text transform="translate(12 120) rotate(-90)" text-anchor="middle" class="bag-axis">Scan score Z</text></svg>';
+  }
+
+  function setupHook() {
+    const reveal = get('hook-reveal');
+    get('parcel').textContent = 'New parcel · Weight ' + parcel.x + ' · Scan score ' + parcel.z;
+    function paint(shown) {
+      get('hook-plots').innerHTML = samples.slice(0, 2).map((sample, i) => '<figure class="bag-plot-card"><figcaption><strong>Tree ' +
+        (i + 1) + '</strong>' + (shown ? '<span class="bag-badge ' + tone(sample.prediction) + '">' +
+        route(sample.prediction) + '</span>' : '') + '</figcaption>' + scatter(sample, shown) + '</figure>').join('');
+      reveal.setAttribute('aria-pressed', String(shown));
+      reveal.textContent = shown ? 'Hide predictions' : 'Reveal the two predictions';
+      get('hook-result').textContent = shown ?
+        'Tree 1 starts with ' + question(samples[0].tree.split) + '. Tree 2 starts with ' +
+        question(samples[1].tree.split) + '. The same parcel follows a different path.' :
+        'Find the new parcel on both plots. Which side of each first cut does it fall on?';
+    }
+    reveal.addEventListener('click', () => paint(reveal.getAttribute('aria-pressed') === 'false'));
+    paint(false);
+  }
+
+  function setupBootstrap() {
+    const selector = get('sample');
+    const nextDraw = get('draw');
+    const play = get('play');
+    const fill = get('fill');
+    const reset = get('reset');
+    let count = 0;
+    let timer = null;
+    const current = () => samples[Number(selector.value)].draws;
+
+    function paint() {
+      const ids = current();
+      const seen = ids.slice(0, count);
+      const counts = new Map();
+      for (const id of seen) counts.set(id, (counts.get(id) ?? 0) + 1);
+      const latest = seen.at(-1);
+      const omitted = rows.filter(row => !counts.has(row.id));
+      get('source-rows').innerHTML = rows.map(row => '<span class="bag-source-row ' + tone(row.label) +
+        (row.id === latest ? ' latest' : '') + '" title="' + route(row.label) + '">' +
+        row.id + '<small>×' + (counts.get(row.id) ?? 0) + '</small></span>').join('');
+      get('drawn-rows').innerHTML = ids.map((id, i) => '<li class="' + (i < count ? tone(rowMap.get(id).label) : 'empty') +
+        (i + 1 === count ? ' latest' : '') + '">' + (i < count ? id : '·') + '</li>').join('');
+      get('draw-current').textContent = latest ? 'Draw ' + count + ' picked ' + latest +
+        (counts.get(latest) > 1 ? ' again.' : ' for the first time.') : 'The sample tray is empty.';
+      get('sample-counts').innerHTML = '<span><strong>' + count + '/' + ids.length + '</strong> draws</span><span><strong>' +
+        counts.size + '</strong> unique parcels</span><span><strong>' + omitted.length + '</strong> ' +
+        (count === ids.length ? 'omitted · ' + (omitted.map(row => row.id).join(', ') || 'none') : 'not drawn yet') + '</span>';
+      nextDraw.disabled = fill.disabled = count === ids.length;
+      play.disabled = count === ids.length && timer === null;
+      play.textContent = timer === null ? 'Play draws' : 'Pause draws';
+      reset.disabled = count === 0;
+    }
+
+    function stop() {
+      if (timer === null) return;
+      clearInterval(timer);
+      timer = null;
+    }
+
+    nextDraw.addEventListener('click', () => { stop(); count += 1; paint(); });
+    play.addEventListener('click', () => {
+      if (timer !== null) stop();
+      else {
+        timer = setInterval(() => {
+          count += 1;
+          if (count >= current().length) stop();
+          paint();
+        }, 550);
+      }
+      paint();
+    });
+    fill.addEventListener('click', () => { stop(); count = current().length; paint(); });
+    function clearSample() { stop(); count = 0; paint(); }
+    reset.addEventListener('click', clearSample);
+    selector.addEventListener('change', clearSample);
+    paint();
+  }
+
+  function setupForest() {
+    const picker = get('tree-picker');
+    let active = 0;
+    let shown = 0;
+    picker.innerHTML = samples.map((_, index) => '<button type="button" data-tree="' + index + '">Tree ' +
+      (index + 1) + '</button>').join('');
+    const buttons = [...picker.querySelectorAll('button')];
+    get('code-output').innerHTML = '<p>Tree 1 draws <code>' + samples[0].draws.join(', ') +
+      '</code>. Its prediction is <strong>' + route(samples[0].prediction) +
+      '</strong>. All three predictions are <strong>' + samples.map(sample => route(sample.prediction)).join(', ') + '</strong>.</p>';
+    function drawTree() {
+      const sample = samples[active];
+      const traced = TreeLab.trace(sample.tree, parcel);
+      buttons.forEach((button, index) => { button.setAttribute('aria-pressed', String(active === index)); });
+      get('tree-meta').innerHTML = '<p><strong>Draws</strong> ' + sample.draws.join(', ') +
+        '</p><p><strong>Path</strong> ' + traced.steps.map(({ split, yes }) => question(split) +
+          ' (' + (yes ? 'Yes' : 'No') + ')').join(' · ') +
+        '</p><p><strong>Leaf</strong> ' + traced.leaf.auto + ' Auto · ' + traced.leaf.review + ' Review · ' +
+        percent(sample.reviewProbability) + ' Review probability · Predict <strong>' + route(sample.prediction) + '</strong></p>';
+      get('tree-plot').innerHTML = treeMarkup(sample.tree, traced.paths);
+    }
+    function drawVotes() {
+      get('vote-next').disabled = shown === samples.length;
+      get('vote-reset').disabled = shown === 0;
+      const votes = samples.slice(0, shown);
+      const cards = samples.map((sample, i) => '<div class="bag-vote"><span>Tree ' + (i + 1) + '</span><strong>' +
+        (i < shown ? route(sample.prediction) : 'Hidden') + '</strong></div>').join('');
+      const review = votes.filter(sample => sample.prediction === 1).length;
+      const auto = votes.length - review;
+      const result = shown === samples.length ? '<p class="bag-readout"><strong>Majority vote</strong> ' + auto + ' Auto · ' +
+        review + ' Review. Final prediction <strong>' + route(Number(review > auto)) + '</strong>.</p>' +
+        '<p><strong>Mean Review probability</strong> (' + samples.map(sample => {
+          const leaf = TreeLab.trace(sample.tree, parcel).leaf;
+          return leaf.review + '/' + leaf.n;
+        }).join(' + ') + ') ÷ ' + samples.length + ' = ' + percent(mean(samples.map(sample => sample.reviewProbability))) + '</p>' :
+        '<p class="bag-readout">' + shown + ' of ' + samples.length + ' votes revealed. ' +
+        (shown ? 'Auto ' + auto + ' · Review ' + review + '.' : 'Predict the result before revealing the votes.') + '</p>';
+      get('votes').innerHTML = '<div class="bag-triptych">' + cards + '</div>' + result;
+    }
+    picker.addEventListener('click', event => {
+      const button = event.target.closest('[data-tree]');
+      if (!button) return;
+      active = Number(button.dataset.tree);
+      drawTree();
+    });
+    get('vote-next').addEventListener('click', () => { active = shown; shown += 1; drawTree(); drawVotes(); });
+    get('vote-reset').addEventListener('click', () => { active = shown = 0; drawTree(); drawVotes(); });
+    drawTree();
+    drawVotes();
+  }
+
+  function setupFeatures() {
+    const mode = get('feature-mode');
+    const sample = samples[1];
+    const parent = sampleRows(sample);
+    const left = TreeLab.evaluate(parent, sample.tree.split, 'gini').left;
+    const presets = [['x', 'z'], ['z', 'x'], ['x', 'x'], ['z', 'z']];
+    let draw = 0;
+    function paint() {
+      get('features').innerHTML = [parent, left].map((group, index) => {
+        const eligible = mode.value === 'all' ? ['x', 'z'] : [presets[draw][index]];
+        const best = TreeLab.rank(group, 'gini').find(result => eligible.includes(result.split.feature));
+        return '<article><h3>' + (index ? 'Yes child' : 'Root') + ' · ' + group.length + ' rows</h3><p><strong>Candidate features</strong> ' +
+          eligible.map(feature => featureName[feature]).join(', ') + '</p><p>' +
+          (best && best.gain > 0 ? 'Best question <strong>' + question(best.split) + '</strong> · Gini decrease ' + fmt(best.gain) :
+            'No positive-gain question among these candidates.') + '</p></article>';
+      }).join('');
+    }
+    mode.addEventListener('change', paint);
+    get('feature-next').addEventListener('click', () => {
+      if (mode.value === 'all') mode.value = 'one';
+      else draw = (draw + 1) % presets.length;
+      paint();
+    });
+    paint();
+  }
+
+  function setupDepth() {
+    const depth = get('base-depth');
+    function paint() {
+      const trees = samples.map(sample => TreeLab.fit(sampleRows(sample), 'gini', Number(depth.value)));
+      const results = trees.map((tree, i) => {
+        const training = sampleRows(samples[i]);
+        const correct = training.filter(row => TreeLab.predict(tree, row) === row.label).length;
+        return '<article><h3>Tree ' + (i + 1) + '</h3><p>New parcel <strong>' +
+          route(TreeLab.predict(tree, parcel)) + '</strong></p><p>Training draws correct ' + correct + '/' + training.length + '</p></article>';
+      });
+      get('depth-summary').innerHTML = '<div class="bag-triptych">' + results.join('') + '</div>';
+      get('depth-tree').innerHTML = treeMarkup(trees[0], TreeLab.trace(trees[0], parcel).paths);
+    }
+    depth.addEventListener('change', paint);
+    paint();
+  }
+
+  function setupInterview() {
+    function credits(tree, totals) {
+      if (!tree.split) return;
+      const weightedScore = node => node.stats.n * node.stats.score;
+      totals[tree.split.feature] += weightedScore(tree) - weightedScore(tree.left) - weightedScore(tree.right);
+      credits(tree.left, totals);
+      credits(tree.right, totals);
+    }
+    const scores = samples.map(({ tree }) => {
+      const totals = { x: 0, z: 0 };
+      credits(tree, totals);
+      const total = totals.x + totals.z;
+      return { x: totals.x / total, z: totals.z / total };
+    });
+    const showScore = score => '<td>' + percent(score.x) + '</td><td>' + percent(score.z) + '</td>';
+    get('importance').innerHTML = '<div class="table-wrap"><table><thead><tr><th scope="col">Model</th><th scope="col">Weight</th>' +
+      '<th scope="col">Scan score</th></tr></thead><tbody>' + scores.map((score, i) => '<tr><th scope="row">Tree ' +
+      (i + 1) + '</th>' + showScore(score) + '</tr>').join('') + '<tr class="bag-average"><th scope="row">Ensemble mean</th>' +
+      showScore({ x: mean(scores.map(score => score.x)), z: mean(scores.map(score => score.z)) }) + '</tr></tbody></table></div>';
+    const settings = [
+      ['Number of trees', 'n_estimators', 'How many trees contribute?', 'More trees usually make the aggregate steadier. Training time, memory, and prediction cost grow. Look for a plateau in validation performance.'],
+      ['Row sample size', 'max_samples', 'How many rows does each tree draw with replacement?', 'Smaller samples can increase diversity and leave more rows eligible for OOB scoring. Each tree also trains on less evidence, which can weaken its predictions.'],
+      ['Columns sampled', 'max_features', 'How many features are candidate inputs at a split?', 'Fewer candidates can reduce similarity between trees. Strong features are available less often, which can increase bias.'],
+      ['Tree depth', 'max_depth', 'How many splits can a path contain?', 'A lower limit controls complexity while growing the tree. Too shallow a tree can miss interactions, and deeper trees can be more sensitive to the sample.'],
+      ['Pruning', 'ccp_alpha', 'How strongly do we penalize tree size?', 'A larger penalty favors smaller subtrees. Pruning can remove fragile details or discard useful structure. Compare values using validation folds.'],
+    ];
+    const knobs = get('knob-buttons');
+    knobs.innerHTML = settings.map(([label], i) => '<button class="button secondary" type="button" data-knob="' + i +
+      '">' + label + '</button>').join('');
+    function select(index) {
+      knobs.querySelectorAll('button').forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+      const [label, name, prompt, answer] = settings[index];
+      get('knob-explanation').innerHTML = '<h3>' + label + ' <code>' + name + '</code></h3><p>' + prompt + '</p><p>' + answer + '</p>';
+    }
+    knobs.addEventListener('click', event => {
+      const button = event.target.closest('[data-knob]');
+      if (button) select(Number(button.dataset.knob));
+    });
+    select(0);
+  }
+
+  setupNavigation();
+  setupHook();
+  setupBootstrap();
+  setupForest();
+  setupFeatures();
+  setupDepth();
+  setupInterview();
+})();
+
+(() => {
+  const byId = (id) => document.getElementById(id);
+  const percent = (value, places = 0) => (100 * value).toFixed(places) + '%';
+  const average = (values) => values.reduce((total, value) => total + value, 0) / values.length;
+
+  function initializeSpread() {
+    const batches = [[.10, .42], [.90, .56], [.25, .49], [.80, .55], [.45, .48]];
+    const letters = 'ABCDE';
+    const reveal = byId('bagl-next-batch');
+    let visible = 1;
+
+    function render() {
+      const rows = batches.map(([single, bagged], index) => {
+        const shown = visible > index;
+        const points = shown ? `
+          <i class="bagl-point bagl-symbol bagl-symbol-single" style="--position:${percent(single)}"></i>
+          <i class="bagl-point bagl-symbol bagl-symbol-bagged" style="--position:${percent(bagged)}"></i>` : '';
+        return `<tr>
+          <th scope="row">Batch ${letters[index]}</th>
+          <td>${shown ? single.toFixed(2) : 'Pending'}</td>
+          <td>${shown ? bagged.toFixed(2) : 'Pending'}</td>
+          <td><div class="bagl-plot-track" aria-hidden="true">${points}</div></td>
+        </tr>`;
+      }).join('');
+      byId('bagl-batches').innerHTML = `
+        <table>
+          <caption class="sr-only">Predicted Review probabilities for the same parcel by training batch</caption>
+          <thead><tr><th scope="col">Training batch</th><th scope="col">Single tree</th><th scope="col">Bagged trees</th><th scope="col">
+            <div class="bagl-plot-scale" aria-label="Probability from 0 to 1"><span>0</span><span>0.5</span><span>1</span></div>
+          </th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+
+      reveal.textContent = visible === batches.length ? 'Replay batches' : 'Reveal next batch';
+      if (visible === 1) {
+        byId('bagl-batch-summary').textContent = 'One batch is visible. Reveal another to compare how each prediction moves.';
+        return;
+      }
+      const shownBatches = batches.slice(0, visible);
+      const describe = (column) => {
+        const scores = shownBatches.map((batch) => batch[column]);
+        const mean = average(scores);
+        const spread = Math.sqrt(average(scores.map((score) => (score - mean) ** 2)));
+        return { mean: mean.toFixed(2), spread: spread.toFixed(3) };
+      };
+      const single = describe(0);
+      const bagged = describe(1);
+      byId('bagl-batch-summary').innerHTML = `<strong>${visible} of ${batches.length} batches</strong>
+        <span>Single tree mean ${single.mean}, spread ${single.spread}</span>
+        <span>Bagged trees mean ${bagged.mean}, spread ${bagged.spread}</span>
+        <small>Spread is the standard deviation across the visible batches.</small>`;
+    }
+
+    reveal.addEventListener('click', () => {
+      visible = visible === batches.length ? 1 : visible + 1;
+      render();
+    });
+    render();
+  }
+
+  function initializeVariance() {
+    const trees = byId('bagl-trees');
+    const correlation = byId('bagl-corr');
+
+    function render() {
+      const count = Number(trees.value);
+      const rho = Number(correlation.value);
+      const reducible = (1 - rho) / count;
+      const ratio = rho + reducible;
+      byId('bagl-trees-value').textContent = count;
+      byId('bagl-corr-value').textContent = rho.toFixed(2);
+      byId('bagl-shared-fill').style.width = percent(rho, 2);
+      byId('bagl-reducible-fill').style.width = percent(reducible, 2);
+      byId('bagl-variance-summary').innerHTML = `<strong>${percent(ratio, 1)} of one tree's variance</strong>
+        <span class="formula">${rho.toFixed(2)} + (1 − ${rho.toFixed(2)}) / ${count} = ${ratio.toFixed(3)}</span>`;
+    }
+
+    trees.addEventListener('input', render);
+    correlation.addEventListener('input', render);
+    render();
+  }
+
+  const parcels = [
+    { id: 'O1', weight: 2, review: 0 },
+    { id: 'O2', weight: 4, review: 0 },
+    { id: 'O3', weight: 3, review: 1 },
+    { id: 'O4', weight: 5, review: 1 },
+    { id: 'O5', weight: 6, review: 1 },
+  ];
+  const bagIds = [
+    ['O2', 'O2', 'O3', 'O5', 'O5'],
+    ['O2', 'O2', 'O4', 'O4', 'O5'],
+    ['O1', 'O2', 'O3', 'O3', 'O5'],
+  ];
+  const labelName = (review) => review ? 'Review' : 'Auto';
+  const countDraws = (draws, id) => draws.filter((draw) => draw.id === id).length;
+
+  function leafCounts(rows) {
+    return { review: rows.reduce((total, row) => total + row.review, 0), count: rows.length };
+  }
+
+  function fitStump(ids) {
+    const draws = ids.map((id) => parcels.find((row) => row.id === id));
+    const weights = [...new Set(draws.map((row) => row.weight))].sort((a, b) => a - b);
+    const candidates = weights.slice(1).map((weight, index) => {
+      const cut = (weights[index] + weight) / 2;
+      const left = leafCounts(draws.filter((row) => row.weight <= cut));
+      const right = leafCounts(draws.filter((row) => row.weight > cut));
+      const weighted = [left, right].reduce((sum, leaf) => {
+        const p = leaf.review / leaf.count;
+        return sum + leaf.count / draws.length * 2 * p * (1 - p);
+      }, 0);
+      return { cut, left, right, weighted };
+    });
+    const best = candidates.sort((a, b) => a.weighted - b.weighted)[0];
+    return { draws, ...best };
+  }
+
+  function initializeOob() {
+    const trees = bagIds.map(fitStump);
+    const grid = byId('bagl-oob-grid');
+    const selected = byId('bagl-oob-selected');
+    const scores = parcels.map((row) => {
+      const leaves = trees.flatMap((tree, index) => {
+        if (countDraws(tree.draws, row.id)) return [];
+        return [{ tree: index + 1, leaf: row.weight <= tree.cut ? tree.left : tree.right }];
+      });
+      const probability = leaves.length
+        ? average(leaves.map(({ leaf }) => leaf.review / leaf.count))
+        : null;
+      const prediction = probability === null ? null : Number(probability > .5);
+      return { row, leaves, probability, prediction };
+    });
+    grid.innerHTML = parcels.map((row, index) => `
+      <tr data-bagl-oob-row="${index}">
+        <th scope="row"><button type="button" class="button secondary bagl-row-button" data-bagl-pick="${index}" aria-pressed="false">${row.id}</button></th>
+        <td>${row.weight}</td><td>${labelName(row.review)}</td>
+        ${trees.map(({ draws }) => {
+          const count = countDraws(draws, row.id);
+          return `<td>${count ? `<span class="bagl-drawn">${count}×</span>` : '<span class="bagl-eligible">0 · OOB</span>'}</td>`;
+        }).join('')}
+      </tr>`).join('');
+
+    byId('bagl-oob-samples').innerHTML = `<div class="bagl-leaf-summaries">${trees.map((tree, index) => `
+      <div>
+        <h3>Tree ${index + 1}</h3>
+        <p>${tree.draws.map((row) => row.id).join(', ')}</p>
+        <p class="formula">Weight ≤ ${tree.cut}</p>
+        <p class="small">Yes leaf ${tree.left.review}/${tree.left.count} Review<br>No leaf ${tree.right.review}/${tree.right.count} Review</p>
+      </div>`).join('')}</div>`;
+
+    const covered = scores.filter((entry) => entry.prediction !== null);
+    const matches = covered.filter(({ row, prediction }) => row.review === prediction).length;
+    byId('bagl-oob-score').innerHTML = `
+      <div class="table-wrap"><table>
+        <caption class="sr-only">Out-of-bag predictions across the five training parcels</caption>
+        <thead><tr><th scope="col">Parcel</th><th scope="col">OOB trees</th><th scope="col">Review probability</th><th scope="col">Prediction</th><th scope="col">True label</th></tr></thead>
+        <tbody>${scores.map(({ row, leaves, probability, prediction }) => `
+          <tr><th scope="row">${row.id}</th><td>${leaves.length}</td>
+          <td>${probability === null ? 'Unavailable' : percent(probability, 1)}</td>
+          <td>${prediction === null ? 'Unavailable' : labelName(prediction)}</td><td>${labelName(row.review)}</td></tr>
+        `).join('')}</tbody>
+      </table></div>
+      <p class="bagl-result"><strong>Coverage ${covered.length} / ${scores.length}</strong>
+        <span>OOB accuracy among covered rows <strong>${matches} / ${covered.length} ≈ ${percent(matches / covered.length, 1)}</strong></span></p>
+      <p class="small">O1 and O4 match. O3 gives one error. O2 and O5 have zero eligible trees.</p>`;
+
+    function renderSelection(index) {
+      grid.querySelectorAll('[data-bagl-pick]').forEach((button, buttonIndex) => {
+        const active = buttonIndex === index;
+        button.setAttribute('aria-pressed', String(active));
+        button.closest('tr').classList.toggle('is-selected', active);
+      });
+      const { row, leaves, probability, prediction } = scores[index];
+      if (!leaves.length) {
+        selected.innerHTML = `<h3>${row.id} has no eligible trees</h3>
+          <p>All three samples contain this parcel. Its OOB prediction is unavailable.</p>`;
+        return;
+      }
+      const fraction = ({ leaf }) => leaf.review + '/' + leaf.count;
+      const sum = leaves.map(fraction).join(' + ');
+      selected.innerHTML = `<h3>${row.id} can use ${leaves.length} of 3 trees</h3>
+        <div class="bagl-votes">${leaves.map((entry) => `
+          <span><strong>Tree ${entry.tree}</strong> <span class="formula">${fraction(entry)}</span> Review in its leaf</span>
+        `).join('')}</div>
+        <p class="formula">Average Review probability = (${sum}) / ${leaves.length} ≈ ${percent(probability, 1)}</p>
+        <p>OOB prediction <strong>${labelName(prediction)}</strong>. True label <strong>${labelName(row.review)}</strong>.</p>`;
+    }
+
+    grid.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-bagl-pick]');
+      if (button) renderSelection(Number(button.dataset.baglPick));
+    });
+    renderSelection(0);
+  }
+
+  initializeSpread();
+  initializeVariance();
+  initializeOob();
+})();
+</script>
+</body>
+</html>
