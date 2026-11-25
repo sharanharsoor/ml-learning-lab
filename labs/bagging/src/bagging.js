@@ -331,11 +331,11 @@
       (i + 1) + '</th>' + showScore(score) + '</tr>').join('') + '<tr class="bag-average"><th scope="row">Ensemble mean</th>' +
       showScore({ x: mean(scores.map(score => score.x)), z: mean(scores.map(score => score.z)) }) + '</tr></tbody></table></div>';
     const settings = [
-      ['Number of trees', 'n_estimators', 'How many trees contribute?', 'More trees usually make the aggregate steadier. Training time, memory, and prediction cost grow. Look for a plateau in validation performance.'],
-      ['Row sample size', 'max_samples', 'How many rows does each tree draw with replacement?', 'Smaller samples can increase diversity and leave more rows eligible for OOB scoring. Each tree also trains on less evidence, which can weaken its predictions.'],
-      ['Columns sampled', 'max_features', 'How many features are candidate inputs at a split?', 'Fewer candidates can reduce similarity between trees. Strong features are available less often, which can increase bias.'],
-      ['Tree depth', 'max_depth', 'How many splits can a path contain?', 'A lower limit controls complexity while growing the tree. Too shallow a tree can miss interactions, and deeper trees can be more sensitive to the sample.'],
-      ['Pruning', 'ccp_alpha', 'How strongly do we penalize tree size?', 'A larger penalty favors smaller subtrees. Pruning can remove fragile details or discard useful structure. Compare values using validation folds.'],
+      ['Number of trees', 'n_estimators', 'How many trees answer for the same parcel?', 'If 10 trees already give similar Review probabilities, the next few may barely move their average. Compare validation scores as you add trees. Every extra tree also takes time to train and to consult for a prediction.'],
+      ['Row sample size', 'max_samples', 'How many tickets go into each training tray?', 'Switch from 12 draws per tree to 6. Each tray now has fewer tickets, so more parcels can be left out for an out-of-bag check. The trees may learn different rules, and each tree has fewer examples to learn from.'],
+      ['Columns sampled', 'max_features', 'Which measurements can a node consider?', 'Try one candidate instead of both weight and scan score. Some nodes can now ask only about weight, so the trees have more reason to learn different rules. A node with only weight can also miss a more useful scan-score cutoff.'],
+      ['Tree depth', 'max_depth', 'How many questions can a parcel answer?', 'At depth 1 a tree asks a single question. Depth 2 lets it use scan score in just one weight range. More questions can capture useful patterns or rules that happen to fit only the parcels in the training tray.'],
+      ['Pruning', 'ccp_alpha', 'How much does a branch have to earn to stay?', 'Imagine a split that creates two leaves and corrects just one training prediction. A larger penalty for extra leaves makes that split more likely to be removed. Check validation scores to see whether pruning helps on fresh parcels.'],
     ];
     const knobs = get('knob-buttons');
     knobs.innerHTML = settings.map(([label], i) => '<button class="button secondary" type="button" data-knob="' + i +

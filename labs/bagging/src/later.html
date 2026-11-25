@@ -1,11 +1,12 @@
 <section class="chapter bag-later" id="variance" aria-labelledby="variance-title">
   <p class="eyebrow">Variance</p>
   <h2 id="variance-title">Why averaging steadies a prediction</h2>
-  <p class="lede">Send the same new parcel through models trained on different batches. A single tree might call it almost certainly Auto on Monday and almost certainly Review on Tuesday. Model variance measures how much the prediction moves when the training data changes.</p>
+  <p class="lede">Imagine we train one tree on a batch of past parcel records, then start over with a fresh batch. We give both trees the same new parcel. A different mix of training rows can change the first split, where the parcel lands, and the chance of Review the tree assigns.</p>
+  <p><strong>Model variance</strong> measures how spread out those predictions are across training runs. In each batch, we’ll also train several trees and average their Review probabilities for that parcel. We can then compare how far the single-tree prediction and the average move from batch to batch.</p>
 
   <ol class="bag-steps">
     <li><strong>Keep the parcel fixed.</strong> Its weight, scan score and true route stay the same.</li>
-    <li><strong>Refit both models.</strong> Each new training batch supplies data for one tree and a bagged ensemble.</li>
+    <li><strong>Refit both models.</strong> Train one tree on the batch. To build the ensemble, draw several bootstrap samples from that same batch and train one tree per sample.</li>
     <li><strong>Compare the spread.</strong> Look at the Review probability across batches for each model.</li>
   </ol>
 
@@ -13,7 +14,7 @@
     <div class="bagl-heading">
       <div>
         <h3>Same parcel, five new training batches</h3>
-        <p class="small">Within each batch, a single tree and a bagged ensemble use the same training data. These illustrative probabilities make the spread easy to see.</p>
+        <p class="small">Each row is one training run. Its two dots show the chance of Review for the same parcel, on a scale from 0 to 1. Reveal a second row and compare how far each dot moves. The probabilities here are illustrative.</p>
       </div>
       <button type="button" class="button secondary" id="bagl-next-batch">Reveal next batch</button>
     </div>
@@ -33,13 +34,13 @@
       </div>
     </details>
   </div>
-  <p>Across all five batches, both means are 0.50. The bagged probabilities still move less. A model that always gives an Auto parcel a Review probability of 0.80 is perfectly stable. With a 50% decision cutoff it makes the same mistake every time. Check accuracy against recorded routes for held-out parcels.</p>
+  <p>Across all five batches, both sets of predictions average 0.50. The bagged predictions sit closer to that average. A steady prediction can still be wrong. If the parcel’s recorded route is Auto and a model always predicts an 80% chance of Review, a 50% cutoff gives the wrong route every time. To measure accuracy, compare predicted routes with recorded routes on held-out parcels.</p>
 
   <div class="panel">
     <div class="panel-heading">
       <div>
         <h3>What if the trees move together?</h3>
-        <p class="small">Compare the variance of the average with the variance of one tree.</p>
+        <p class="small">Suppose one tree’s Review estimate rises 10 percentage points from its usual value and another’s falls 10 points. The changes cancel in the average. When both rise 10 points, their average rises by 10 points too.</p>
       </div>
     </div>
     <div class="bagl-variance-controls">
@@ -58,9 +59,9 @@
     </div>
     <p class="legend bagl-variance-legend"><span><i class="key review" aria-hidden="true"></i> Shared part</span><span><i class="key" aria-hidden="true"></i> Part that shrinks</span></p>
     <p class="bagl-result" id="bagl-variance-summary" aria-live="polite"></p>
-    <p class="small">This model assumes equal individual variances and the same correlation for each pair of trees. Think of numeric predictions or class probabilities, then take their average.</p>
+    <p><strong>Pairwise correlation</strong> describes how much two trees’ predictions tend to move together across training runs. On this scale, 0 means their changes have no linear relationship, and 1 means they move in perfect step. The bar treats each tree as equally variable and gives every pair the same correlation.</p>
     <div class="bag-worked">
-      <p><strong>Start with 10 trees and correlation 0.30.</strong> The shared part is 0.30. Averaging divides the remaining 0.70 by 10, leaving 0.07. Together, that is 37% of one tree's variance. Increase to 100 trees and the ratio falls to 30.7%. The scale measures variance relative to one tree.</p>
+      <p><strong>Start with 10 trees and correlation 0.30.</strong> Take one tree’s variance as 100%. The shared 30% stays in the average. Averaging 10 trees divides the remaining 70% by 10, leaving 7%. Together, that is 37% of one tree’s variance. Increase to 100 trees and the ratio falls to 30.7%.</p>
     </div>
     <details class="teaching-note">
       <summary>Derive the variance of the average</summary>
@@ -73,7 +74,7 @@
 
   <div class="explanation-grid">
     <div><h3>Why sample features?</h3><p>A strong feature can dominate many trees. Giving a node a smaller candidate set lets different useful splits emerge, which can reduce how closely the trees move together.</p></div>
-    <div><h3>Can more trees fix bias?</h3><p>Averaging stabilizes the predictions available from the base learners. Check fit separately. A group of very shallow trees may still miss an interaction in the data.</p></div>
+    <div><h3>Can a stable prediction still be biased?</h3><p>Suppose heavier parcels with a high scan score need review far more often than other parcels. Trees that can ask only one question may keep underestimating Review for that group. If the average prediction across fresh training batches is still too low, that systematic error is <strong>bias</strong>. Adding trees can make the average steadier while leaving that error in place.</p></div>
   </div>
   <p class="transition">The model has two jobs now. Grow individual trees and combine their predictions. Put both into a reproducible training workflow.</p>
 </section>
@@ -83,11 +84,12 @@
 <section class="chapter bag-later" id="oob" aria-labelledby="oob-title">
   <p class="eyebrow">Out-of-bag scoring</p>
   <h2 id="oob-title">Which trees can evaluate this parcel?</h2>
-  <p class="lede">A training parcel is <strong>out of bag (OOB)</strong> for a tree if it was drawn zero times into that tree's bootstrap sample. Each row gets its own set of eligible trees.</p>
+  <p class="lede">Look for the ticket for parcel O1 in three training trays. Trees 1 and 2 drew it zero times, so they learned their splits using other parcels. We can ask those two trees to predict O1’s route, then compare their joint answer with the route the courier recorded.</p>
+  <p>We say that O1 is <strong>out of bag (OOB)</strong> for Trees 1 and 2. The “bag” is one tree’s bootstrap sample. O1 appears in Tree 3’s tray, so Tree 3 is left out of this check. Another parcel may have a different group of trees available.</p>
 
   <figure class="bag-scene">
     <img src="{{OOB_IMAGE}}" width="1344" height="756" loading="lazy" alt="A parcel ticket sits beside the trays while an operator sorts other tickets into them.">
-    <figcaption>A ticket left out of a tree's sample gives that tree a parcel it can evaluate without having trained on it.</figcaption>
+    <figcaption>Each tree trains on the tickets in its own tray. A ticket left on the desk can be used to check that tree’s prediction.</figcaption>
   </figure>
 
   <div class="panel">
@@ -106,11 +108,11 @@
         <tbody id="bagl-oob-grid"></tbody>
       </table>
     </div>
-    <p class="small bagl-oob-help">A draw count of zero makes that tree eligible for the selected parcel.</p>
+    <p class="small bagl-oob-help">Read across a row to see how often each tree drew that parcel. A 2× means the tree trained on two copies. A zero means that tree can take part in the OOB check.</p>
     <ol class="bag-steps">
       <li><strong>Find the zeros.</strong> Try O1. Only Trees 1 and 2 left it out of their training trays.</li>
       <li><strong>Read the leaves.</strong> Follow that parcel's weight through each eligible tree. Average the fractions of Review draws in those leaves.</li>
-      <li><strong>Check the route.</strong> Compare the combined prediction with the recorded label. Try O2 for a parcel that appears in every tray.</li>
+      <li><strong>Check the route.</strong> For O1, the two Review fractions are 1/3 and 0/2. Their mean is about 16.7%, so the combined answer is Auto. That matches O1’s recorded label. Then try O2, whose ticket appears in every tray.</li>
     </ol>
     <div id="bagl-oob-selected" class="bagl-selection" aria-live="polite"></div>
     <details class="teaching-note">
@@ -123,7 +125,7 @@
     <div class="panel-heading">
       <div>
         <h3>From one parcel to the OOB score</h3>
-        <p class="small">First predict each training row with its own eligible trees. Then compare those predictions with the recorded labels.</p>
+        <p class="small">Do the same check for every parcel. First count how many parcels got an OOB prediction. Then, among that group, count how many predicted routes match the recorded routes.</p>
       </div>
     </div>
     <details class="bagl-score-details">
