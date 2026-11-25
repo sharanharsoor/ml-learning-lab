@@ -22,16 +22,15 @@
 
   function drawCard(item, options, branch) {
     const { node, path } = item;
-    const { criterion, selectedPath, traced, interactive } = options;
+    const { criterion, selectedPath, traced, interactive, showScore } = options;
     const { n, auto, review, score, prediction } = node.stats;
     const root = path === 'root';
     const leaf = !node.split;
     const onPath = traced.has(path);
     const role = root ? (leaf ? 'Root and leaf' : 'Root') : (leaf ? 'Leaf' : 'Decision node');
     const outcome = prediction === 1 ? 'Review' : 'Auto';
-    const condition = node.split?.feature === 'x'
-      ? 'X ≤ ' + node.split.threshold
-      : 'Y = ' + node.split?.threshold;
+    const condition = node.split && node.split.feature.toUpperCase() +
+      (node.split.feature === 'y' ? ' = ' : ' ≤ ') + node.split.threshold;
     const title = node.split ? condition + '?' : 'Predict ' +
       (criterion === 'mse' ? rounded(prediction) + ' min' : outcome);
     const impurity = criterionNames[criterion] + ' ' + rounded(score) +
@@ -40,7 +39,7 @@
     const classes = ['dt-node', root && 'dt-node--root', leaf && 'dt-node--leaf',
       onPath && 'dt-node--traced'].filter(Boolean).join(' ');
     const tag = interactive ? 'button' : 'div';
-    const label = [branch && branch + ' branch', role, title, samples, impurity,
+    const label = [branch && branch + ' branch', role, title, samples, showScore && impurity,
       criterion !== 'mse' && auto + ' Auto, ' + review + ' Review',
       onPath && 'On traced path'].filter(Boolean).join('. ');
     const attrs = interactive
@@ -56,7 +55,7 @@
       '<span class="dt-node-top"><span class="dt-node-role">' + role +
       '</span><span class="dt-node-samples">' + samples + '</span></span>' +
       '<strong class="dt-node-title">' + escapeHtml(title) + '</strong>' +
-      '<span class="dt-node-score">' + impurity + '</span>' + mix +
+      (showScore ? '<span class="dt-node-score">' + impurity + '</span>' : '') + mix +
       (onPath ? '<span class="dt-node-path" aria-hidden="true">On path</span>' : '') +
       '</' + tag + '>';
   }
@@ -81,10 +80,10 @@
   }
 
   function render(tree, {
-    criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true,
+    criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true, showScore = true,
   } = {}) {
     const item = describeTree(tree);
-    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive };
+    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive, showScore };
     return '<div class="dt-viewport"><div class="dt-graph' +
       (item.leaves > 4 ? ' dt-graph--dense' : '') +
       '" role="group" aria-label="Decision tree diagram">' +

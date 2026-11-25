@@ -14,6 +14,7 @@
 {{IMPORTANCE_CSS}}
 {{REGRESSION_CSS}}
 {{GINI_CSS}}
+{{BOUNDARY_CSS}}
 </style>
 </head>
 <body>
@@ -30,6 +31,7 @@
       <p class="eyebrow">Decision trees</p>
       <ol class="chapters">
         <li><a href="#parcel" aria-current="location">The parcel desk</a></li>
+        <li><a href="#draw-splits">Draw the splits</a></li>
         <li><a href="#entropy">Surprise and entropy</a></li>
         <li><a href="#gini">Gini vs. entropy</a></li>
         <li><a href="#split">Find a split</a></li>
@@ -50,6 +52,7 @@
     <label for="chapter-select" class="sr-only">Go to a chapter</label>
     <select id="chapter-select">
       <option value="parcel">The parcel desk</option>
+      <option value="draw-splits">Draw the splits</option>
       <option value="entropy">Surprise and entropy</option>
       <option value="gini">Gini vs. entropy</option>
       <option value="split">Find a split</option>
@@ -101,9 +104,11 @@
         <div class="tree-diagram" id="preview-tree"></div>
         <div class="route-steps" id="preview-route"></div>
       </details>
-      <p class="transition">Those questions came from the training data. To see why the tree chose them, first measure how mixed the labels are before any question.</p>
-      <a class="button primary" href="#entropy">Start with surprise</a>
+      <p class="transition">Each question divides the parcels that reach it. On a plot with two numerical inputs, you can draw those cuts yourself.</p>
+      <a class="button primary" href="#draw-splits">Draw a cut</a>
     </section>
+
+    {{BOUNDARY_CHAPTER}}
 
     <section class="chapter" id="entropy" aria-labelledby="entropy-title">
       <p class="eyebrow">Score one node</p>
@@ -335,6 +340,11 @@
 </script>
 <script>
 {{TREE_DIAGRAM_JS}}
+</script>
+<script>
+{{BOUNDARY_MODEL}}
+{{BOUNDARY_PLOT}}
+{{BOUNDARY_JS}}
 </script>
 <script>
 {{DEEP_GRAPH_JS}}

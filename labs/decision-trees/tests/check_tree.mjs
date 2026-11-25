@@ -216,4 +216,30 @@ const regressionGraph = context.TreeLabDeepDiagram.render(regressionFive, 'rootl
 });
 assert.equal((regressionGraph.match(/deep-graph-edge--traced/g) || []).length, 5);
 assert.match(regressionGraph, /Predict 15 min/);
-console.log('PASS: split scores, stopping, evaluation, deep entropy, feature credit, and deep regression tracing.');
+
+for (const file of ['boundary-model.js', 'boundary-plot.js', 'tree-diagram.js']) {
+  const source = new URL('../src/' + file, import.meta.url);
+  vm.runInContext(fs.readFileSync(source, 'utf8'), context, { filename: source.pathname });
+}
+const boundary = context.TreeLabBoundaryModel;
+const uncut = boundary.create();
+const { first, second } = boundary.demo;
+const once = boundary.applyCut(uncut, 'root', first.feature, first.threshold);
+const twice = boundary.applyCut(once, second.path, second.feature, second.threshold);
+assert.equal(uncut.split, null, 'Undo can reuse the original tree');
+assert.strictEqual(once.left, twice.left, 'The second cut preserves the other region');
+assert.deepEqual(plain(twice.right.left.bounds), { xMin: 5, xMax: 10, zMin: 0, zMax: 5 });
+assert.deepEqual(plain(twice.right.right.bounds), { xMin: 5, xMax: 10, zMin: 5, zMax: 10 });
+assert.deepEqual(Array.from(boundary.leaves(twice), node => [node.stats.n, node.stats.prediction]), [[8, 0], [5, 0], [8, 1]]);
+assert.ok(uncut.rows.every(row => predict(twice, row) === row.label));
+assert.equal(predict(twice, { x: 5, z: 9 }), 0, 'Equality follows the Yes branch on Weight');
+assert.equal(predict(twice, { x: 8, z: 5 }), 0, 'Equality follows the Yes branch on Scan score');
+assert.equal(boundary.applyCut(twice, 'root', 'x', 5), null, 'A committed cut cannot be overwritten');
+assert.equal(boundary.applyCut(once, 'rootr', 'z', 10), null, 'An empty child is invalid');
+const alternative = boundary.applyCut(uncut, 'root', 'z', 5.75);
+assert.equal(alternative.left.bounds.zMax, 5.75, 'The root can also be cut horizontally');
+const boundaryPlot = context.TreeLabBoundaryPlot.render(twice, 'rootr');
+assert.match(boundaryPlot, /x1="290" y1="162" x2="516" y2="162" data-boundary-split="rootr"/);
+assert.equal((boundaryPlot.match(/data-boundary-region=/g) || []).length, 3);
+assert.match(context.TreeLabDiagram.render(twice), /Z ≤ 5\?/);
+console.log('PASS: split scores, stopping, evaluation, deep entropy, feature credit, regression, and drawn decision regions.');

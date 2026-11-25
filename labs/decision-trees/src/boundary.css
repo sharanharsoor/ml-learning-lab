@@ -1,0 +1,288 @@
+.boundary-lab {
+  --boundary-auto-region: #d5e9df;
+  --boundary-review-region: #f4e0d5;
+  --boundary-selection: #5d438e;
+  container: boundary-lab / inline-size;
+}
+
+.boundary-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: .52rem .75rem;
+  margin-block: .9rem;
+}
+
+.boundary-settings label {
+  display: grid;
+  align-content: start;
+  gap: .22rem;
+  color: var(--ink);
+  font-size: .92rem;
+  font-weight: 650;
+}
+
+.boundary-settings select:disabled {
+  opacity: .62;
+  cursor: default;
+}
+
+.boundary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-block: .8rem 0;
+}
+
+.boundary-instructions, .boundary-next {
+  color: var(--muted);
+}
+
+.boundary-status {
+  border-block-start: 1px solid var(--line);
+  margin-block-start: .95rem;
+  padding-block-start: .65rem;
+}
+
+.boundary-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .15rem 1rem;
+  color: var(--muted);
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.boundary-summary > p {
+  margin: 0;
+}
+
+#boundary-selection {
+  color: var(--ink);
+}
+
+#boundary-feedback {
+  color: var(--boundary-selection);
+  margin-top: .15rem;
+}
+
+.boundary-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 1.15rem;
+  margin-block-start: .9rem;
+}
+
+.boundary-figure, .boundary-tree-panel {
+  min-width: 0;
+  margin: 0;
+}
+
+.boundary-tree-panel > h3, .boundary-figure figcaption {
+  margin-bottom: .55rem;
+}
+
+.boundary-figure figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .24rem .6rem;
+}
+
+.boundary-figure > p {
+  margin-top: .4rem;
+}
+
+.boundary-legend {
+  gap: .3rem 1rem;
+  color: var(--muted);
+}
+
+.boundary-legend .key.review {
+  border-radius: .09rem;
+  transform: scale(.83) rotate(45deg);
+}
+
+.boundary-region-key {
+  display: inline-block;
+  width: 1.05rem;
+  height: .7rem;
+  border: 1px solid var(--line);
+  border-radius: .12rem;
+  background: linear-gradient(90deg, var(--boundary-auto-region) 50%, var(--boundary-review-region) 50%);
+}
+
+#boundary-plot {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  background: color-mix(in srgb, var(--light) 19%, var(--surface));
+  container: boundary-plot / inline-size;
+}
+
+.boundary-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.boundary-chart__surface, .boundary-chart__region {
+  cursor: crosshair;
+}
+
+.boundary-chart__surface {
+  fill: var(--surface);
+}
+
+.boundary-chart__region--auto {
+  fill: var(--boundary-auto-region);
+}
+
+.boundary-chart__region--review {
+  fill: var(--boundary-review-region);
+}
+
+.boundary-chart__grid, .boundary-chart__frame, .boundary-chart__selection,
+.boundary-chart__split, .boundary-chart__draft {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.boundary-chart__grid {
+  stroke: color-mix(in srgb, var(--ink) 13%, transparent);
+  stroke-width: 1;
+}
+
+.boundary-chart__frame {
+  stroke: color-mix(in srgb, var(--ink) 48%, var(--line));
+  stroke-width: 1.1;
+}
+
+.boundary-chart__selection {
+  stroke: var(--boundary-selection);
+  stroke-width: 2.25;
+}
+
+.boundary-chart__split {
+  stroke: var(--ink);
+  stroke-width: 2.75;
+}
+
+.boundary-chart__split--selected {
+  stroke: var(--boundary-selection);
+  stroke-width: 3.25;
+}
+
+.boundary-chart__draft {
+  stroke: var(--boundary-selection);
+  stroke-width: 2.75;
+  stroke-dasharray: 6 5;
+}
+
+.boundary-chart__point {
+  stroke: var(--surface);
+  stroke-width: 1.3;
+  cursor: crosshair;
+}
+
+.boundary-chart__point--auto {
+  fill: var(--teal);
+}
+
+.boundary-chart__point--review {
+  fill: var(--rust);
+}
+
+.boundary-chart__tick {
+  fill: var(--muted);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.boundary-chart__axis-title, .boundary-chart__region-label {
+  fill: var(--ink);
+  font-size: 18px;
+  font-weight: 720;
+  pointer-events: none;
+}
+
+.boundary-chart__region-label--auto {
+  fill: #07594f;
+}
+
+.boundary-chart__region-label--review {
+  fill: #783a2a;
+}
+
+#boundary-tree button[aria-pressed="true"] {
+  outline-color: var(--boundary-selection);
+  border-color: var(--boundary-selection);
+}
+
+#boundary-tree button:focus-visible {
+  outline-color: var(--focus);
+}
+
+#boundary-tree .dt-node-title {
+  font-size: clamp(1rem, 2.8cqw, 1.2rem);
+}
+
+@container boundary-lab (min-width: 35rem) {
+  .boundary-settings {
+    grid-template-columns: 1.22fr 1.05fr .73fr auto;
+  }
+}
+
+@container boundary-lab (min-width: 48rem) {
+  .boundary-layout {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    gap: 1rem;
+  }
+}
+
+@container boundary-plot (max-width: 24rem) {
+  .boundary-chart__tick {
+    font-size: 19px;
+  }
+
+  .boundary-chart__axis-title, .boundary-chart__region-label {
+    font-size: 21px;
+  }
+}
+
+@container lesson-tree (min-width: 22rem) {
+  #boundary-tree .dt-graph {
+    --dt-track-height: 2.65rem;
+    --dt-columns: minmax(0, var(--dt-yes)) minmax(0, var(--dt-no));
+    --dt-branch-gap: 0;
+    --dt-branch-padding: var(--dt-track-height);
+    --dt-indent: 0;
+    --dt-side-rule: none;
+    --dt-sibling-padding: .2rem;
+    --dt-svg-display: block;
+    --dt-elbow-display: none;
+    --dt-answer-position: absolute;
+    --dt-answer-transform: translate(-50%, -50%);
+    --dt-answer-gap: 0;
+    --dt-card-margin: auto;
+    padding-inline: .28rem;
+  }
+
+  #boundary-tree .dt-node {
+    width: min(100%, 13rem);
+    padding: .52rem .48rem;
+    line-height: 1.18;
+    gap: .27rem;
+  }
+
+  #boundary-tree .dt-node-top, #boundary-tree .dt-mix-labels {
+    gap: .14rem .2rem;
+  }
+}

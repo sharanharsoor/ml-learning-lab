@@ -10,6 +10,14 @@ Ask learners to choose a first question using the eight training parcels. Offer 
 
 Open the worked parcel route after the prediction prompt. Start with the root, follow the No branch for weight 7, then the Yes branch for packaging A. Point out the difference between a decision node, which asks another question, and a leaf, which returns a class.
 
+## Draw the splits
+
+Open [Draw the splits](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#draw-splits). Ask where learners would place a first cut on the weight and scan-score plot. Choose Vertical and mark Weight 5, then apply it. The Yes region contains eight Auto parcels. The No region still has five Auto and eight Review parcels.
+
+Select the No region on either the plot or the tree. Choose Horizontal and apply Scan score 5. Point out where the line ends at the first cut. It divides only the No region. Compare the three leaf predictions with the shaded regions, then undo a cut to try a different question. The worked example builds these same two cuts.
+
+Ask how the tree could compare the possible cuts without our help. Use that question to introduce entropy.
+
 ## Turn surprise into a split score
 
 Ask how surprised you would be to observe an outcome with probability 1, ½, or ¼.

@@ -1,0 +1,50 @@
+    <section class="chapter" id="draw-splits" aria-labelledby="boundary-title">
+      <p class="eyebrow">Build a tree by hand</p>
+      <h2 id="boundary-title">Draw the splits</h2>
+      <p class="lede">A new batch of synthetic parcels has two numerical inputs, weight and scan score. Where would you draw the first cut to separate Auto from Review?</p>
+
+      <div class="panel boundary-lab">
+        <form class="boundary-settings" id="boundary-settings">
+          <label>Region <select id="boundary-region"></select></label>
+          <label>Direction <select id="boundary-feature">
+            <option value="x">Vertical · Weight X</option>
+            <option value="z">Horizontal · Scan score Z</option>
+          </select></label>
+          <label>Cutoff <select id="boundary-threshold" aria-describedby="boundary-instructions"></select></label>
+          <button type="submit" class="button primary" id="boundary-apply">Apply cut</button>
+        </form>
+        <p class="small boundary-instructions" id="boundary-instructions">Click or drag on the plot to place the dashed cut, or choose a cutoff above. Apply the cut, then select one child on the plot or tree to make the next cut there.</p>
+
+        <div class="boundary-layout">
+          <figure class="boundary-figure">
+            <figcaption>
+              <h3>Parcel plot</h3>
+              <div class="legend boundary-legend" aria-label="Recorded parcel labels">
+                <span><i class="key auto" aria-hidden="true"></i>Auto</span>
+                <span><i class="key review" aria-hidden="true"></i>Review</span>
+              </div>
+            </figcaption>
+            <div id="boundary-plot"></div>
+            <p class="small"><i class="boundary-region-key" aria-hidden="true"></i> Shading shows what the leaf predicts. Each point keeps its recorded label.</p>
+          </figure>
+          <div class="boundary-tree-panel">
+            <h3>Matching tree</h3>
+            <div id="boundary-tree" class="tree-diagram"></div>
+          </div>
+        </div>
+
+        <div class="boundary-status">
+          <div class="boundary-summary" aria-live="polite">
+            <p id="boundary-selection"></p>
+            <p id="boundary-feedback" class="small"></p>
+          </div>
+          <div class="boundary-actions">
+            <button type="button" class="button secondary" id="boundary-undo">Undo cut</button>
+            <button type="button" class="button secondary" id="boundary-reset">Reset</button>
+            <button type="button" class="button secondary" id="boundary-demo">Show worked example</button>
+          </div>
+        </div>
+      </div>
+      <p class="transition">Some cuts leave the labels more mixed than others. Entropy gives us a way to score how mixed they are.</p>
+      <p class="boundary-next"><a class="button primary" href="#entropy">Start with surprise</a></p>
+    </section>

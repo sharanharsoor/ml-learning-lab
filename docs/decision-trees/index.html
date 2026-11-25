@@ -1281,6 +1281,295 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
 .gini-counterexample .gini-winning { color: var(--teal); }
 @media (max-width: 760px) { .gini-grid { grid-template-columns: minmax(0, 1fr); } }
 
+.boundary-lab {
+  --boundary-auto-region: #d5e9df;
+  --boundary-review-region: #f4e0d5;
+  --boundary-selection: #5d438e;
+  container: boundary-lab / inline-size;
+}
+
+.boundary-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: .52rem .75rem;
+  margin-block: .9rem;
+}
+
+.boundary-settings label {
+  display: grid;
+  align-content: start;
+  gap: .22rem;
+  color: var(--ink);
+  font-size: .92rem;
+  font-weight: 650;
+}
+
+.boundary-settings select:disabled {
+  opacity: .62;
+  cursor: default;
+}
+
+.boundary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-block: .8rem 0;
+}
+
+.boundary-instructions, .boundary-next {
+  color: var(--muted);
+}
+
+.boundary-status {
+  border-block-start: 1px solid var(--line);
+  margin-block-start: .95rem;
+  padding-block-start: .65rem;
+}
+
+.boundary-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .15rem 1rem;
+  color: var(--muted);
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.boundary-summary > p {
+  margin: 0;
+}
+
+#boundary-selection {
+  color: var(--ink);
+}
+
+#boundary-feedback {
+  color: var(--boundary-selection);
+  margin-top: .15rem;
+}
+
+.boundary-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 1.15rem;
+  margin-block-start: .9rem;
+}
+
+.boundary-figure, .boundary-tree-panel {
+  min-width: 0;
+  margin: 0;
+}
+
+.boundary-tree-panel > h3, .boundary-figure figcaption {
+  margin-bottom: .55rem;
+}
+
+.boundary-figure figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .24rem .6rem;
+}
+
+.boundary-figure > p {
+  margin-top: .4rem;
+}
+
+.boundary-legend {
+  gap: .3rem 1rem;
+  color: var(--muted);
+}
+
+.boundary-legend .key.review {
+  border-radius: .09rem;
+  transform: scale(.83) rotate(45deg);
+}
+
+.boundary-region-key {
+  display: inline-block;
+  width: 1.05rem;
+  height: .7rem;
+  border: 1px solid var(--line);
+  border-radius: .12rem;
+  background: linear-gradient(90deg, var(--boundary-auto-region) 50%, var(--boundary-review-region) 50%);
+}
+
+#boundary-plot {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  background: color-mix(in srgb, var(--light) 19%, var(--surface));
+  container: boundary-plot / inline-size;
+}
+
+.boundary-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.boundary-chart__surface, .boundary-chart__region {
+  cursor: crosshair;
+}
+
+.boundary-chart__surface {
+  fill: var(--surface);
+}
+
+.boundary-chart__region--auto {
+  fill: var(--boundary-auto-region);
+}
+
+.boundary-chart__region--review {
+  fill: var(--boundary-review-region);
+}
+
+.boundary-chart__grid, .boundary-chart__frame, .boundary-chart__selection,
+.boundary-chart__split, .boundary-chart__draft {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.boundary-chart__grid {
+  stroke: color-mix(in srgb, var(--ink) 13%, transparent);
+  stroke-width: 1;
+}
+
+.boundary-chart__frame {
+  stroke: color-mix(in srgb, var(--ink) 48%, var(--line));
+  stroke-width: 1.1;
+}
+
+.boundary-chart__selection {
+  stroke: var(--boundary-selection);
+  stroke-width: 2.25;
+}
+
+.boundary-chart__split {
+  stroke: var(--ink);
+  stroke-width: 2.75;
+}
+
+.boundary-chart__split--selected {
+  stroke: var(--boundary-selection);
+  stroke-width: 3.25;
+}
+
+.boundary-chart__draft {
+  stroke: var(--boundary-selection);
+  stroke-width: 2.75;
+  stroke-dasharray: 6 5;
+}
+
+.boundary-chart__point {
+  stroke: var(--surface);
+  stroke-width: 1.3;
+  cursor: crosshair;
+}
+
+.boundary-chart__point--auto {
+  fill: var(--teal);
+}
+
+.boundary-chart__point--review {
+  fill: var(--rust);
+}
+
+.boundary-chart__tick {
+  fill: var(--muted);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.boundary-chart__axis-title, .boundary-chart__region-label {
+  fill: var(--ink);
+  font-size: 18px;
+  font-weight: 720;
+  pointer-events: none;
+}
+
+.boundary-chart__region-label--auto {
+  fill: #07594f;
+}
+
+.boundary-chart__region-label--review {
+  fill: #783a2a;
+}
+
+#boundary-tree button[aria-pressed="true"] {
+  outline-color: var(--boundary-selection);
+  border-color: var(--boundary-selection);
+}
+
+#boundary-tree button:focus-visible {
+  outline-color: var(--focus);
+}
+
+#boundary-tree .dt-node-title {
+  font-size: clamp(1rem, 2.8cqw, 1.2rem);
+}
+
+@container boundary-lab (min-width: 35rem) {
+  .boundary-settings {
+    grid-template-columns: 1.22fr 1.05fr .73fr auto;
+  }
+}
+
+@container boundary-lab (min-width: 48rem) {
+  .boundary-layout {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    gap: 1rem;
+  }
+}
+
+@container boundary-plot (max-width: 24rem) {
+  .boundary-chart__tick {
+    font-size: 19px;
+  }
+
+  .boundary-chart__axis-title, .boundary-chart__region-label {
+    font-size: 21px;
+  }
+}
+
+@container lesson-tree (min-width: 22rem) {
+  #boundary-tree .dt-graph {
+    --dt-track-height: 2.65rem;
+    --dt-columns: minmax(0, var(--dt-yes)) minmax(0, var(--dt-no));
+    --dt-branch-gap: 0;
+    --dt-branch-padding: var(--dt-track-height);
+    --dt-indent: 0;
+    --dt-side-rule: none;
+    --dt-sibling-padding: .2rem;
+    --dt-svg-display: block;
+    --dt-elbow-display: none;
+    --dt-answer-position: absolute;
+    --dt-answer-transform: translate(-50%, -50%);
+    --dt-answer-gap: 0;
+    --dt-card-margin: auto;
+    padding-inline: .28rem;
+  }
+
+  #boundary-tree .dt-node {
+    width: min(100%, 13rem);
+    padding: .52rem .48rem;
+    line-height: 1.18;
+    gap: .27rem;
+  }
+
+  #boundary-tree .dt-node-top, #boundary-tree .dt-mix-labels {
+    gap: .14rem .2rem;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1297,6 +1586,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
       <p class="eyebrow">Decision trees</p>
       <ol class="chapters">
         <li><a href="#parcel" aria-current="location">The parcel desk</a></li>
+        <li><a href="#draw-splits">Draw the splits</a></li>
         <li><a href="#entropy">Surprise and entropy</a></li>
         <li><a href="#gini">Gini vs. entropy</a></li>
         <li><a href="#split">Find a split</a></li>
@@ -1317,6 +1607,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
     <label for="chapter-select" class="sr-only">Go to a chapter</label>
     <select id="chapter-select">
       <option value="parcel">The parcel desk</option>
+      <option value="draw-splits">Draw the splits</option>
       <option value="entropy">Surprise and entropy</option>
       <option value="gini">Gini vs. entropy</option>
       <option value="split">Find a split</option>
@@ -1368,9 +1659,61 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
         <div class="tree-diagram" id="preview-tree"></div>
         <div class="route-steps" id="preview-route"></div>
       </details>
-      <p class="transition">Those questions came from the training data. To see why the tree chose them, first measure how mixed the labels are before any question.</p>
-      <a class="button primary" href="#entropy">Start with surprise</a>
+      <p class="transition">Each question divides the parcels that reach it. On a plot with two numerical inputs, you can draw those cuts yourself.</p>
+      <a class="button primary" href="#draw-splits">Draw a cut</a>
     </section>
+
+        <section class="chapter" id="draw-splits" aria-labelledby="boundary-title">
+      <p class="eyebrow">Build a tree by hand</p>
+      <h2 id="boundary-title">Draw the splits</h2>
+      <p class="lede">A new batch of synthetic parcels has two numerical inputs, weight and scan score. Where would you draw the first cut to separate Auto from Review?</p>
+
+      <div class="panel boundary-lab">
+        <form class="boundary-settings" id="boundary-settings">
+          <label>Region <select id="boundary-region"></select></label>
+          <label>Direction <select id="boundary-feature">
+            <option value="x">Vertical · Weight X</option>
+            <option value="z">Horizontal · Scan score Z</option>
+          </select></label>
+          <label>Cutoff <select id="boundary-threshold" aria-describedby="boundary-instructions"></select></label>
+          <button type="submit" class="button primary" id="boundary-apply">Apply cut</button>
+        </form>
+        <p class="small boundary-instructions" id="boundary-instructions">Click or drag on the plot to place the dashed cut, or choose a cutoff above. Apply the cut, then select one child on the plot or tree to make the next cut there.</p>
+
+        <div class="boundary-layout">
+          <figure class="boundary-figure">
+            <figcaption>
+              <h3>Parcel plot</h3>
+              <div class="legend boundary-legend" aria-label="Recorded parcel labels">
+                <span><i class="key auto" aria-hidden="true"></i>Auto</span>
+                <span><i class="key review" aria-hidden="true"></i>Review</span>
+              </div>
+            </figcaption>
+            <div id="boundary-plot"></div>
+            <p class="small"><i class="boundary-region-key" aria-hidden="true"></i> Shading shows what the leaf predicts. Each point keeps its recorded label.</p>
+          </figure>
+          <div class="boundary-tree-panel">
+            <h3>Matching tree</h3>
+            <div id="boundary-tree" class="tree-diagram"></div>
+          </div>
+        </div>
+
+        <div class="boundary-status">
+          <div class="boundary-summary" aria-live="polite">
+            <p id="boundary-selection"></p>
+            <p id="boundary-feedback" class="small"></p>
+          </div>
+          <div class="boundary-actions">
+            <button type="button" class="button secondary" id="boundary-undo">Undo cut</button>
+            <button type="button" class="button secondary" id="boundary-reset">Reset</button>
+            <button type="button" class="button secondary" id="boundary-demo">Show worked example</button>
+          </div>
+        </div>
+      </div>
+      <p class="transition">Some cuts leave the labels more mixed than others. Entropy gives us a way to score how mixed they are.</p>
+      <p class="boundary-next"><a class="button primary" href="#entropy">Start with surprise</a></p>
+    </section>
+
 
     <section class="chapter" id="entropy" aria-labelledby="entropy-title">
       <p class="eyebrow">Score one node</p>
@@ -2147,16 +2490,15 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 
   function drawCard(item, options, branch) {
     const { node, path } = item;
-    const { criterion, selectedPath, traced, interactive } = options;
+    const { criterion, selectedPath, traced, interactive, showScore } = options;
     const { n, auto, review, score, prediction } = node.stats;
     const root = path === 'root';
     const leaf = !node.split;
     const onPath = traced.has(path);
     const role = root ? (leaf ? 'Root and leaf' : 'Root') : (leaf ? 'Leaf' : 'Decision node');
     const outcome = prediction === 1 ? 'Review' : 'Auto';
-    const condition = node.split?.feature === 'x'
-      ? 'X ≤ ' + node.split.threshold
-      : 'Y = ' + node.split?.threshold;
+    const condition = node.split && node.split.feature.toUpperCase() +
+      (node.split.feature === 'y' ? ' = ' : ' ≤ ') + node.split.threshold;
     const title = node.split ? condition + '?' : 'Predict ' +
       (criterion === 'mse' ? rounded(prediction) + ' min' : outcome);
     const impurity = criterionNames[criterion] + ' ' + rounded(score) +
@@ -2165,7 +2507,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     const classes = ['dt-node', root && 'dt-node--root', leaf && 'dt-node--leaf',
       onPath && 'dt-node--traced'].filter(Boolean).join(' ');
     const tag = interactive ? 'button' : 'div';
-    const label = [branch && branch + ' branch', role, title, samples, impurity,
+    const label = [branch && branch + ' branch', role, title, samples, showScore && impurity,
       criterion !== 'mse' && auto + ' Auto, ' + review + ' Review',
       onPath && 'On traced path'].filter(Boolean).join('. ');
     const attrs = interactive
@@ -2181,7 +2523,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
       '<span class="dt-node-top"><span class="dt-node-role">' + role +
       '</span><span class="dt-node-samples">' + samples + '</span></span>' +
       '<strong class="dt-node-title">' + escapeHtml(title) + '</strong>' +
-      '<span class="dt-node-score">' + impurity + '</span>' + mix +
+      (showScore ? '<span class="dt-node-score">' + impurity + '</span>' : '') + mix +
       (onPath ? '<span class="dt-node-path" aria-hidden="true">On path</span>' : '') +
       '</' + tag + '>';
   }
@@ -2206,10 +2548,10 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   function render(tree, {
-    criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true,
+    criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true, showScore = true,
   } = {}) {
     const item = describeTree(tree);
-    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive };
+    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive, showScore };
     return '<div class="dt-viewport"><div class="dt-graph' +
       (item.leaves > 4 ? ' dt-graph--dense' : '') +
       '" role="group" aria-label="Decision tree diagram">' +
@@ -2217,6 +2559,417 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   globalThis.TreeLabDiagram = { render };
+})();
+
+</script>
+<script>
+(() => {
+  'use strict';
+
+  const { stats, candidates, evaluate } = TreeLab;
+  const auto = [
+    [1.1, 1.6], [2.6, 2.9], [3.7, 4.2], [1.6, 5.5],
+    [3, 6.7], [2, 8.8], [4, 8.1], [3.6, 9.3],
+    [6, 2.4], [6.8, 3.7], [7.6, 1.4], [8.6, 4], [9.1, 2.6],
+  ];
+  const review = [
+    [6, 6.6], [6.4, 8.6], [7.1, 7.3], [7.7, 9.2],
+    [8.1, 6], [8.7, 7.9], [9, 6.9], [9.2, 8.9],
+  ];
+  const rows = [auto, review]
+    .flatMap((points, label) => points.map(([x, z]) => ({ x, z, label })))
+    .map((row, index) => ({ id: 'Parcel ' + (index + 1), ...row }));
+  const bounds = { xMin: 0, xMax: 10, zMin: 0, zMax: 10 };
+  const demo = { first: { feature: 'x', threshold: 5 }, second: { path: 'rootr', feature: 'z', threshold: 5 } };
+
+  function leaf(path, bounds, rows, summary = stats(rows, 'entropy')) {
+    return { path, bounds, rows, stats: summary, split: null, left: null, right: null, gain: 0 };
+  }
+
+  function create() {
+    return leaf('root', bounds, rows);
+  }
+
+  function getNode(tree, path) {
+    if (typeof path !== 'string' || !path.startsWith(tree.path)) return null;
+    let node = tree;
+    for (const direction of path.slice(tree.path.length)) {
+      if (!node.split || (direction !== 'l' && direction !== 'r')) return null;
+      node = direction === 'l' ? node.left : node.right;
+    }
+    return node;
+  }
+
+  function leaves(node) {
+    return node.split ? [...leaves(node.left), ...leaves(node.right)] : [node];
+  }
+
+  function availableCuts(node, feature) {
+    if (!node || node.split || (feature !== 'x' && feature !== 'z')) return [];
+    // The fixture records tenths, so its exact decimal midpoints use at most two places.
+    return candidates(node.rows).filter(split => split.feature === feature)
+      .map(split => Number(split.threshold.toFixed(2)));
+  }
+
+  function applyCut(tree, path, feature, threshold) {
+    const target = getNode(tree, path);
+    if (!availableCuts(target, feature).includes(threshold)) return null;
+
+    const split = { feature, threshold };
+    const { left, right, leftStats, rightStats, gain } = evaluate(target.rows, split, 'entropy');
+    const replacement = {
+      ...target,
+      split,
+      gain,
+      left: leaf(path + 'l', { ...target.bounds, [feature + 'Max']: threshold }, left, leftStats),
+      right: leaf(path + 'r', { ...target.bounds, [feature + 'Min']: threshold }, right, rightStats),
+    };
+
+    function replace(node) {
+      if (node === target) return replacement;
+      const branch = path[node.path.length] === 'l' ? 'left' : 'right';
+      return { ...node, [branch]: replace(node[branch]) };
+    }
+
+    return replace(tree);
+  }
+
+  globalThis.TreeLabBoundaryModel = { rows, bounds, demo, create, getNode, leaves, availableCuts, applyCut };
+})();
+
+(() => {
+  'use strict';
+
+  const viewWidth = 540;
+  const viewHeight = 370;
+  const box = { left: 64, right: 516, top: 16, bottom: 308 };
+  const width = box.right - box.left;
+  const height = box.bottom - box.top;
+
+  const escape = value => String(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
+  const round = value => Number(value.toFixed(3));
+  const route = label => label === 1 ? 'Review' : 'Auto';
+  const className = label => route(label).toLowerCase();
+  const ticks = (min, max) =>
+    Array.from({ length: Math.floor(max) - Math.ceil(min) + 1 }, (_, index) => Math.ceil(min) + index);
+  const pointX = (x, bounds) => box.left + width * (x - bounds.xMin) / (bounds.xMax - bounds.xMin);
+  const pointY = (z, bounds) => box.bottom - height * (z - bounds.zMin) / (bounds.zMax - bounds.zMin);
+
+  function plotRect(area, bounds) {
+    const left = pointX(area.xMin, bounds);
+    const right = pointX(area.xMax, bounds);
+    const top = pointY(area.zMax, bounds);
+    const bottom = pointY(area.zMin, bounds);
+    return { left, top, width: right - left, height: bottom - top };
+  }
+
+  function rect({ left, top, width, height }, classes, attrs = '') {
+    return '<rect class="' + classes + '" x="' + round(left) + '" y="' + round(top) +
+      '" width="' + round(width) + '" height="' + round(height) + '"' + attrs + '></rect>';
+  }
+
+  function line(x1, y1, x2, y2, classes, attrs = '') {
+    return '<line class="' + classes + '" x1="' + round(x1) + '" y1="' + round(y1) +
+      '" x2="' + round(x2) + '" y2="' + round(y2) + '"' + attrs + '></line>';
+  }
+
+  function splitLine(node, split, bounds, classes, attrs) {
+    const area = node.bounds;
+    if (split.feature === 'x') {
+      const x = pointX(split.threshold, bounds);
+      return line(x, pointY(area.zMax, bounds), x, pointY(area.zMin, bounds), classes, attrs);
+    }
+    const y = pointY(split.threshold, bounds);
+    return line(pointX(area.xMin, bounds), y, pointX(area.xMax, bounds), y, classes, attrs);
+  }
+
+  function splits(node, bounds, selectedPath) {
+    if (!node.split) return '';
+    const classes = 'boundary-chart__split' + (node.path === selectedPath ? ' boundary-chart__split--selected' : '');
+    return splitLine(node, node.split, bounds, classes, ' data-boundary-split="' + escape(node.path) + '"') +
+      splits(node.left, bounds, selectedPath) + splits(node.right, bounds, selectedPath);
+  }
+
+  function regionRects(leaves, bounds) {
+    return leaves.map(node => rect(plotRect(node.bounds, bounds),
+      'boundary-chart__region boundary-chart__region--' + className(node.stats.prediction),
+      ' data-boundary-region="' + escape(node.path) + '"')).join('');
+  }
+
+  function regionLabels(leaves, bounds) {
+    return leaves.map(node => {
+      const area = plotRect(node.bounds, bounds);
+      if (area.width < 90 || area.height < 44) return '';
+      const label = route(node.stats.prediction);
+      return '<text class="boundary-chart__region-label boundary-chart__region-label--' + className(node.stats.prediction) +
+        '" x="' + round(area.left + 12) + '" y="' + round(area.top + 21) + '">' + label + '</text>';
+    }).join('');
+  }
+
+  function selection(node, bounds) {
+    if (!node) return '';
+    const area = plotRect(node.bounds, bounds);
+    const inset = Math.min(3, area.width / 4, area.height / 4);
+    return rect({
+      left: area.left + inset, top: area.top + inset,
+      width: area.width - 2 * inset, height: area.height - 2 * inset,
+    }, 'boundary-chart__selection');
+  }
+
+  function marks(rows, bounds) {
+    return rows.map(row => {
+      const x = pointX(row.x, bounds);
+      const y = pointY(row.z, bounds);
+      const title = '<title>' + escape(row.id) + ', weight ' + row.x + ', scan score ' + row.z + ', ' +
+        route(row.label) + '</title>';
+      if (row.label === 0) {
+        return '<circle class="boundary-chart__point boundary-chart__point--auto" cx="' + round(x) +
+          '" cy="' + round(y) + '" r="5.6">' + title + '</circle>';
+      }
+      const diamond = [[x, y - 7], [x + 7, y], [x, y + 7], [x - 7, y]];
+      return '<polygon class="boundary-chart__point boundary-chart__point--review" points="' +
+        diamond.map(([pointX, pointY]) => round(pointX) + ',' + round(pointY)).join(' ') + '">' + title + '</polygon>';
+    }).join('');
+  }
+
+  function coordinates(bounds) {
+    const xTicks = ticks(bounds.xMin, bounds.xMax);
+    const zTicks = ticks(bounds.zMin, bounds.zMax);
+    const grid = xTicks.map(tick => {
+      const x = pointX(tick, bounds);
+      return line(x, box.top, x, box.bottom, 'boundary-chart__grid');
+    }).join('') + zTicks.map(tick => {
+      const y = pointY(tick, bounds);
+      return line(box.left, y, box.right, y, 'boundary-chart__grid');
+    }).join('');
+    const labels = xTicks.map(tick => '<text class="boundary-chart__tick" text-anchor="middle" x="' +
+      round(pointX(tick, bounds)) + '" y="' + (box.bottom + 23) + '">' + tick + '</text>').join('') +
+      zTicks.map(tick => '<text class="boundary-chart__tick" text-anchor="end" dominant-baseline="middle" x="' +
+      (box.left - 11) + '" y="' + round(pointY(tick, bounds)) + '">' + tick + '</text>').join('');
+    return { grid, labels };
+  }
+
+  function render(tree, selectedPath, draft = null) {
+    const { bounds, rows } = tree;
+    const selected = TreeLabBoundaryModel.getNode(tree, selectedPath);
+    const leaves = tree.split ? TreeLabBoundaryModel.leaves(tree) : [];
+    const chartRect = { left: box.left, top: box.top, width, height };
+    const { grid, labels } = coordinates(bounds);
+    const preview = selected && !selected.split && draft
+      ? splitLine(selected, draft, bounds, 'boundary-chart__draft', ' data-boundary-draft')
+      : '';
+    const description = 'Weight by scan score for ' + rows.length + ' labeled parcels. ' +
+      (leaves.length ? leaves.length + ' prediction regions. ' : 'No cut applied. ') +
+      'Circles are Auto. Diamonds are Review.';
+    return '<svg class="boundary-chart" viewBox="0 0 ' + viewWidth + ' ' + viewHeight +
+      '" data-boundary-chart role="img" aria-label="' + description +
+      '" data-x-min="' + bounds.xMin + '" data-x-max="' + bounds.xMax +
+      '" data-z-min="' + bounds.zMin + '" data-z-max="' + bounds.zMax + '">' +
+      rect(chartRect, 'boundary-chart__surface') + regionRects(leaves, bounds) + grid +
+      rect(chartRect, 'boundary-chart__frame') + selection(selected, bounds) +
+      splits(tree, bounds, selectedPath) + preview + regionLabels(leaves, bounds) + marks(rows, bounds) + labels +
+      '<text class="boundary-chart__axis-title" text-anchor="middle" x="' + (box.left + width / 2) +
+      '" y="357">Weight X</text>' +
+      '<text class="boundary-chart__axis-title" text-anchor="middle" transform="translate(18 ' +
+      (box.top + height / 2) + ') rotate(-90)">Scan score Z</text></svg>';
+  }
+
+  function pointAt(svg, event) {
+    const matrix = svg?.getScreenCTM();
+    if (!matrix) return null;
+    const devicePoint = svg.createSVGPoint();
+    devicePoint.x = event.clientX;
+    devicePoint.y = event.clientY;
+    const point = devicePoint.matrixTransform(matrix.inverse());
+    if (!(point.x >= box.left && point.x <= box.right && point.y >= box.top && point.y <= box.bottom)) return null;
+
+    const { xMin, xMax, zMin, zMax } = svg.dataset;
+    return {
+      x: +xMin + (point.x - box.left) / width * (+xMax - +xMin),
+      z: +zMin + (box.bottom - point.y) / height * (+zMax - +zMin),
+    };
+  }
+
+  globalThis.TreeLabBoundaryPlot = { render, pointAt };
+})();
+
+(() => {
+  'use strict';
+
+  const { create, getNode, leaves, availableCuts, applyCut, demo } = TreeLabBoundaryModel;
+  const { render: drawPlot, pointAt } = TreeLabBoundaryPlot;
+  const get = name => document.getElementById('boundary-' + name);
+  const form = get('settings');
+  const plot = get('plot');
+  const diagram = get('tree');
+  const region = get('region');
+  const direction = get('feature');
+  const cutoff = get('threshold');
+  const applyButton = get('apply');
+  const undo = get('undo');
+  const reset = get('reset');
+  const example = get('demo');
+  const maxCuts = 2;
+  const history = [];
+  let tree = create();
+  let selectedPath = tree.path;
+  let draft = null;
+  let pointer = null;
+
+  function regionName(path) {
+    if (path === 'root') return 'All parcels';
+    return Array.from(path.slice(4), branch => branch === 'l' ? 'Yes' : 'No').join(', then ');
+  }
+
+  function regionOptions(node) {
+    const name = regionName(node.path);
+    const option = '<option value="' + node.path + '">' + name + ' · ' + node.stats.n + ' parcels</option>';
+    return node.split ? option + regionOptions(node.left) + regionOptions(node.right) : option;
+  }
+
+  function paintPlot() {
+    plot.innerHTML = drawPlot(tree, selectedPath, draft);
+  }
+
+  function render() {
+    const node = getNode(tree, selectedPath);
+    const canCut = history.length < maxCuts && !node.split;
+    const cuts = canCut ? availableCuts(node, direction.value) : [];
+    region.innerHTML = regionOptions(tree);
+    region.value = selectedPath;
+    direction.disabled = !canCut;
+    cutoff.innerHTML = '<option value="">Choose cutoff</option>' + cuts.map(value =>
+      '<option value="' + value + '">' + value + '</option>').join('');
+    cutoff.value = draft?.threshold ?? '';
+    cutoff.disabled = cuts.length === 0;
+    applyButton.disabled = !draft;
+    undo.disabled = history.length === 0;
+    reset.disabled = history.length === 0 && !draft && direction.value === 'x';
+    diagram.innerHTML = TreeLabDiagram.render(tree, { selectedPath, showScore: false });
+    paintPlot();
+
+    const { n, auto, review } = node.stats;
+    get('selection').textContent = regionName(node.path) + ' · ' + n + ' parcels (' + auto + ' Auto, ' + review + ' Review)';
+    const matches = leaves(tree).reduce((sum, leaf) => sum + Math.max(leaf.stats.auto, leaf.stats.review), 0);
+    let next = 'Draw or choose a cutoff for this region.';
+    if (history.length === maxCuts) next = 'Click a node to see its region, or undo a cut.';
+    else if (node.split) next = 'Select one child region for the next cut.';
+    else if (cuts.length === 0) next = 'Try the other direction or choose another region.';
+    get('feedback').textContent = matches + ' of ' + tree.stats.n + ' training labels match the predictions. ' + next;
+  }
+
+  function selectRegion(path) {
+    if (path === selectedPath) return;
+    selectedPath = path;
+    draft = null;
+    render();
+  }
+
+  function setDraft(threshold) {
+    draft = threshold === '' ? null : { feature: direction.value, threshold: Number(threshold) };
+    cutoff.value = threshold;
+    applyButton.disabled = !draft;
+    reset.disabled = history.length === 0 && !draft && direction.value === 'x';
+    paintPlot();
+  }
+
+  function placeCut(point) {
+    if (cutoff.disabled) return;
+    const axis = direction.value;
+    const cuts = availableCuts(getNode(tree, selectedPath), axis);
+    const nearest = cuts.reduce((best, value) =>
+      Math.abs(point[axis] - value) < Math.abs(point[axis] - best) ? value : best);
+    if (draft?.threshold !== nearest) setDraft(nearest);
+  }
+
+  function commit(path, feature, threshold) {
+    const next = applyCut(tree, path, feature, threshold);
+    if (!next) return;
+    history.push({ tree, path });
+    tree = next;
+    selectedPath = path;
+    draft = null;
+  }
+
+  function clear() {
+    history.length = 0;
+    tree = create();
+    selectedPath = tree.path;
+    draft = null;
+    direction.value = 'x';
+  }
+
+  region.addEventListener('change', () => selectRegion(region.value));
+  direction.addEventListener('change', () => {
+    draft = null;
+    render();
+  });
+  cutoff.addEventListener('change', () => setDraft(cutoff.value));
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!draft || history.length >= maxCuts) return;
+    commit(selectedPath, draft.feature, draft.threshold);
+    render();
+    region.focus({ preventScroll: true });
+  });
+
+  diagram.addEventListener('click', event => {
+    const button = event.target.closest('[data-node]');
+    if (!button) return;
+    selectRegion(button.dataset.node);
+    diagram.querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
+  });
+
+  function plotPoint(event) {
+    return pointAt(plot.querySelector('[data-boundary-chart]'), event);
+  }
+
+  plot.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || pointer) return;
+    const point = plotPoint(event);
+    if (!point) return;
+    const paths = TreeLab.trace(tree, point).paths;
+    const path = paths.at(-1);
+    const isNewRegion = path !== selectedPath;
+    selectRegion(path);
+    if (cutoff.disabled) return;
+
+    pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, isNewRegion };
+    plot.setPointerCapture(event.pointerId);
+    if (!isNewRegion) placeCut(point);
+  });
+  plot.addEventListener('pointermove', event => {
+    if (event.pointerId !== pointer?.id) return;
+    const distance = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y);
+    if (distance > 5) pointer.isNewRegion = false;
+    const point = plotPoint(event);
+    if (point && !pointer.isNewRegion) placeCut(point);
+  });
+  plot.addEventListener('lostpointercapture', () => { pointer = null; });
+
+  undo.addEventListener('click', () => {
+    const previous = history.pop();
+    tree = previous.tree;
+    selectedPath = previous.path;
+    draft = null;
+    render();
+    if (undo.disabled) region.focus({ preventScroll: true });
+  });
+  reset.addEventListener('click', () => {
+    clear();
+    render();
+    direction.focus({ preventScroll: true });
+  });
+  example.addEventListener('click', () => {
+    clear();
+    commit('root', demo.first.feature, demo.first.threshold);
+    commit(demo.second.path, demo.second.feature, demo.second.threshold);
+    render();
+  });
+
+  render();
 })();
 
 </script>
