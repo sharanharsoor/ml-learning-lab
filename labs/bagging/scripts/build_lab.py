@@ -13,14 +13,15 @@ TREE = LABS / "decision-trees" / "src"
 
 def build():
     variance, oob = (SOURCE / "later.html").read_text().split("<!-- BAGGING_IMPLEMENTATION -->")
-    data = json.loads((SOURCE / "intuition-data.json").read_text())
     parts = {
         "CSS": [TREE / "lesson.css", TREE / "tree-diagram.css", SOURCE / "bagging.css", SOURCE / "later.css"],
         "SHARED_JS": [TREE / "engine.js", TREE / "tree-diagram.js"],
-        "LAB_JS": [SOURCE / "bagging.js", SOURCE / "later.js"],
+        "LAB_JS": [SOURCE / "bagging.js", SOURCE / "later.js", SOURCE / "tuning.js"],
     }
     replacements = {key: "\n".join(path.read_text() for path in paths) for key, paths in parts.items()}
-    replacements["DATA"] = json.dumps(data, separators=(",", ":")).replace("<", "\\u003c")
+    for marker, filename in {"DATA": "intuition-data.json", "TUNING_DATA": "tuning-data.json"}.items():
+        data = json.loads((SOURCE / filename).read_text())
+        replacements[marker] = json.dumps(data, separators=(",", ":")).replace("<", "\\u003c")
     images = {
         "PARCEL_DESK_IMAGE": "parcel-desk.jpg",
         "BOOTSTRAP_IMAGE": "scene-bootstrap.jpg",

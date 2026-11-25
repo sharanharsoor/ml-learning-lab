@@ -11,6 +11,14 @@
   </ol>
 
   <div class="panel">
+    <h3>What changes if one training label changes?</h3>
+    <p>Freeze the three bootstrap trays and the new parcel. Then flip P3’s recorded route from Auto to Review and refit. Check which trees actually saw P3.</p>
+    <div class="bag-actions"><button class="button secondary" id="bag-flip-p3" type="button" aria-pressed="false">Flip P3’s recorded route</button></div>
+    <div id="bag-perturbation" aria-live="polite"></div>
+    <p class="small">Trays that omitted P3 are unchanged. A tray that included P3 can learn a different rule or leaf probability. In a bigger forest, a row may appear in many trays.</p>
+  </div>
+
+  <div class="panel">
     <div class="bagl-heading">
       <div>
         <h3>Same parcel, five new training batches</h3>
@@ -76,6 +84,17 @@
     <div><h3>Why sample features?</h3><p>A strong feature can dominate many trees. Giving a node a smaller candidate set lets different useful splits emerge, which can reduce how closely the trees move together.</p></div>
     <div><h3>Can a stable prediction still be biased?</h3><p>Suppose heavier parcels with a high scan score need review far more often than other parcels. Trees that can ask only one question may keep underestimating Review for that group. If the average prediction across fresh training batches is still too low, that systematic error is <strong>bias</strong>. Adding trees can make the average steadier while leaving that error in place.</p></div>
   </div>
+  <details class="teaching-note">
+    <summary>Where do bias, variance, and noise show up in squared error?</summary>
+    <p>At a fixed parcel, average the squared prediction error over fresh training sets and possible dispatch times. When the new outcome is independent of the training draw, the expected error has three components.</p>
+    <p class="bag-worked"><strong>Expected squared error = bias² + prediction variance + irreducible noise.</strong></p>
+    <div class="bag-triptych">
+      <article><h3>Bias² · 1 min²</h3><p>Across two equally likely training samples, the model predicts 12 or 16 minutes. The mean prediction is 14. The true mean is 13, so the squared gap is (14 − 13)².</p></article>
+      <article><h3>Variance · 4 min²</h3><p>Both predictions are 2 minutes from their own mean of 14. The average squared distance is 4.</p></article>
+      <article><h3>Noise · 9 min²</h3><p>For identical measured inputs, actual dispatch takes 10 or 16 minutes with equal probability. Both are 3 minutes away from the true mean of 13.</p></article>
+    </div>
+    <p>These parts sum to <strong>14 min²</strong>. Averaging can shrink the variance part. A systematic prediction gap or unpredictable dispatch delay can still remain.</p>
+  </details>
   <p class="transition">The model has two jobs now. Grow individual trees and combine their predictions. Put both into a reproducible training workflow.</p>
 </section>
 
@@ -134,17 +153,18 @@
       <div class="bag-worked">
         <p><strong>Coverage asks which parcels we could score.</strong> O1, O3 and O4 have eligible predictions, so coverage is 3 out of 5.</p>
         <p><strong>Accuracy asks how many of those predictions match.</strong> O1 and O4 match. O3 was recorded as Review, and its OOB prediction is Auto. That gives 2 correct out of 3 scored parcels, or about 66.7%.</p>
+        <p><strong>Classification error asks how many are wrong.</strong> On the same scored parcels, OOB error is <strong>1 − 2/3 = 1/3 ≈ 33.3%</strong>. The two parcels without an OOB prediction count toward coverage only.</p>
       </div>
     </details>
   </div>
 
   <div class="explanation-grid">
     <div><h3>Why roughly 37%?</h3><p>With <var>n</var> training rows, one uniform draw misses a particular row with probability <span class="formula">1 − 1/n</span>. If a tree takes <var>m</var> independent draws with replacement, the chance it misses that row throughout is <span class="formula">(1 − 1/n)<sup>m</sup></span>. When <var>m</var> equals <var>n</var> and <var>n</var> is large, this approaches <span class="formula">e<sup>−1</sup> ≈ 36.8%</span>. Here, with five rows and five draws, the probability is about 32.8%.</p></div>
-    <div><h3>What does this score estimate?</h3><p>OOB uses training rows to approximate performance on unseen data by using trees that missed each row. Reserve a separate held-out test set for final evaluation, especially after using OOB or cross-validation to choose settings. In scikit-learn Random Forest, enabling OOB scoring requires bootstrap sampling.</p></div>
+    <div><h3>When is this score useful?</h3><p>OOB gives a convenient internal check when a bootstrapped forest already has trees that missed each row. Cross-validation can compare different models on shared folds. Reserve a separate held-out test set for final evaluation, especially after using OOB or cross-validation to choose settings. In scikit-learn Random Forest, enabling OOB scoring requires bootstrap sampling.</p></div>
   </div>
   <details class="teaching-note">
     <summary>What if every tree saw the parcel?</summary>
-    <p>There is no eligible OOB prediction for that parcel. This lab reports coverage and scores only rows with predictions. With very few trees, check OOB coverage before interpreting an implementation's score.</p>
+    <p>There is no eligible OOB prediction for that parcel. This lab reports coverage and scores only rows with predictions. If every tree instead omitted the parcel, all of them would be eligible. The number of omitted rows in one tray is the original row count minus the number of <strong>distinct</strong> rows drawn.</p>
   </details>
   <p class="transition">You can now read three views of the forest. The trees' individual decisions, their combined prediction, and an estimate of generalization. Connect those views to model settings and interview questions.</p>
 </section>

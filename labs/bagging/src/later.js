@@ -163,7 +163,8 @@
         `).join('')}</tbody>
       </table></div>
       <p class="bagl-result"><strong>Coverage ${covered.length} / ${scores.length}</strong>
-        <span>OOB accuracy among covered rows <strong>${matches} / ${covered.length} ≈ ${percent(matches / covered.length, 1)}</strong></span></p>`;
+        <span>OOB accuracy <strong>${matches} / ${covered.length} ≈ ${percent(matches / covered.length, 1)}</strong></span>
+        <span>OOB error <strong>${covered.length - matches} / ${covered.length} ≈ ${percent(1 - matches / covered.length, 1)}</strong></span></p>`;
 
     function renderSelection(index) {
       grid.querySelectorAll('[data-bagl-pick]').forEach((button, buttonIndex) => {

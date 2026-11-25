@@ -208,6 +208,10 @@
   overflow-wrap: anywhere;
 }
 .bag-steps li::marker { color: var(--teal); font-weight: 750; }
+.bag-agenda { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.bag-agenda li { padding: .95rem 1rem; }
+.bag-agenda li a { font-weight: 750; }
+.bag-agenda li span { display: block; margin-top: .3rem; color: var(--muted); }
 .bag-worked {
   margin-block: .8rem;
   padding: .65rem .9rem;
@@ -244,11 +248,28 @@
 .bag-vote strong { color: var(--ink); }
 #bag-votes > p { margin-top: .55rem; }
 #bag-depth-tree { margin-top: .8rem; }
-.bag-workflow { padding-inline-start: 1.5rem; }
-.bag-workflow li + li { margin-top: .45rem; }
 .bag-average { background: var(--light); }
 .bag-knob p + p { margin-top: .4rem; }
-#bag-knob-buttons [aria-pressed="true"] { background: var(--light); border-color: var(--teal); }
+:is(#bag-knob-buttons, #bag-tuning-explorer, #bag-search-explorer) .button[aria-pressed="true"] {
+  background: var(--light);
+  border-color: var(--teal);
+}
+.bag-split-limits { margin-top: 1.15rem; }
+.bag-tuning-frame { overflow-x: auto; max-width: 45rem; }
+.bag-tuning-plot { display: block; min-width: 26.25rem; height: auto; }
+.bag-importance-track {
+  display: block;
+  min-width: 4rem;
+  height: .45rem;
+  margin-top: .35rem;
+  overflow: hidden;
+  border-radius: .25rem;
+  background: var(--forest-grid);
+}
+.bag-importance-track span { display: block; height: 100%; background: var(--teal); }
+.bag-pruning-control { max-width: 26rem; margin: .9rem 0; }
+.bag-pruning-control input { width: 100%; }
+.bag-pair > .bag-cost-lowest { border-color: var(--teal); background: var(--light); }
 
 @media (max-width: 760px) {
   .bag-source, .bag-drawn { grid-template-columns: repeat(6, minmax(0, 1fr)); }

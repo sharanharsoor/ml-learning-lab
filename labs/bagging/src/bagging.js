@@ -21,12 +21,16 @@
     const previous = get('previous');
     const next = get('next');
     const teaching = get('teaching');
-    const labels = ['Ensemble models', 'Bootstrap sampling', 'Forest intuition and code', 'Diverse trees',
-      'Base learners', 'Why variance falls', 'Fit and tune', 'Out-of-bag scoring', 'Interview questions'];
-    get('nav').innerHTML = chapters.map((chapter, i) =>
-      '<li><a href="#' + chapter.id + '">' + labels[i] + '</a></li>').join('');
-    menu.innerHTML = chapters.map((chapter, i) =>
-      '<option value="' + chapter.id + '">' + labels[i] + '</option>').join('');
+    const labels = {
+      agenda: 'Agenda', ensemble: 'Ensemble models', bootstrap: 'Bootstrap sampling',
+      forest: 'Forest intuition and code', diversity: 'Diverse trees', 'base-learners': 'Base learners',
+      variance: 'Why variance falls', implementation: 'Fit and tune', 'randomized-search': 'Randomized Search',
+      oob: 'Out-of-bag scoring', interview: 'Interview questions',
+    };
+    get('nav').innerHTML = chapters.map(({ id }) =>
+      '<li><a href="#' + id + '">' + labels[id] + '</a></li>').join('');
+    menu.innerHTML = chapters.map(({ id }) =>
+      '<option value="' + id + '">' + labels[id] + '</option>').join('');
     const links = [...get('nav').querySelectorAll('a')];
     let active = -1;
 
@@ -41,7 +45,7 @@
         else link.removeAttribute('aria-current');
       });
       menu.value = selected.id;
-      previous.disabled = index === 0 && get('model-stage').hidden;
+      previous.disabled = index === 0;
       next.disabled = index === chapters.length - 1;
       if (move) {
         window.scrollTo({ top: 0, behavior: 'instant' });
@@ -60,11 +64,11 @@
     const hashIndex = () => chapters.findIndex(chapter => '#' + chapter.id === location.hash);
     menu.addEventListener('change', () => jump(chapters.findIndex(chapter => chapter.id === menu.value)));
     previous.addEventListener('click', () => {
-      if (active === 0) get('back-desk').click();
+      if (chapters[active].id === 'ensemble' && !get('model-stage').hidden) get('back-desk').click();
       else jump(active - 1);
     });
     next.addEventListener('click', () => {
-      if (active === 0 && get('model-stage').hidden) get('meet-trees').click();
+      if (chapters[active].id === 'ensemble' && get('model-stage').hidden) get('meet-trees').click();
       else jump(active + 1);
     });
     links.forEach((link, i) => link.addEventListener('click', event => {
@@ -133,7 +137,6 @@
       models.hidden = !showModels;
       const heading = get(showModels ? 'model-title' : 'title');
       chapter.setAttribute('aria-labelledby', heading.id);
-      get('previous').disabled = !showModels;
       if (!showModels) paint(false);
       window.scrollTo({ top: 0, behavior: 'instant' });
       heading.focus({ preventScroll: true });
@@ -311,6 +314,55 @@
     paint();
   }
 
+  function setupPerturbation() {
+    const control = get('flip-p3');
+    const changedID = 'P3';
+    const original = samples.map(sample => sample.reviewProbability);
+    const afterEdit = samples.map(sample => {
+      const training = sampleRows(sample).map(row => row.id === changedID ? { ...row, label: 1 } : row);
+      const leaf = TreeLab.trace(TreeLab.fit(training, 'gini', 2), parcel).leaf;
+      return leaf.review / leaf.n;
+    });
+    function paint(changed) {
+      const probabilities = changed ? afterEdit : original;
+      control.setAttribute('aria-pressed', String(changed));
+      control.textContent = changed ? 'Restore P3’s recorded route' : 'Flip P3’s recorded route';
+      const cards = samples.map((sample, i) => {
+        const count = sample.draws.filter(id => id === changedID).length;
+        return `<article><h3>Tree ${i + 1}</h3><p>P3 drawn ${count} ${count === 1 ? 'time' : 'times'}.</p>
+          <p><strong>${percent(probabilities[i])} Review</strong>${changed && probabilities[i] !== original[i] ?
+            ' · was ' + percent(original[i]) : ''}</p></article>`;
+      });
+      get('perturbation').innerHTML = `<div class="bag-triptych">${cards.join('')}</div>
+        <p class="bag-worked"><strong>P3 recorded as ${changed ? 'Review' : 'Auto'}.</strong>
+        Mean Review probability ${percent(mean(probabilities))}${changed ? ' · was ' + percent(mean(original)) : ''}.</p>`;
+    }
+    control.addEventListener('click', () => paint(control.getAttribute('aria-pressed') === 'false'));
+    paint(false);
+  }
+
+  function setupPruning() {
+    const penalty = get('prune-alpha');
+    const candidates = [
+      { name: 'Keep the larger subtree', impurity: 0.12, leaves: 4 },
+      { name: 'Use the smaller subtree', impurity: 0.18, leaves: 2 },
+    ];
+    function paint() {
+      const alpha = Number(penalty.value);
+      const costs = candidates.map(({ impurity, leaves }) => (impurity + alpha * leaves).toFixed(2));
+      const lowest = Math.min(...costs.map(Number));
+      get('prune-alpha-value').textContent = alpha.toFixed(2);
+      get('prune-costs').innerHTML = candidates.map(({ name, impurity, leaves }, i) => {
+        const preferred = Number(costs[i]) === lowest;
+        const status = costs[0] === costs[1] ? ' · Tie' : preferred ? ' · Lower cost' : '';
+        return `<article class="${preferred ? 'bag-cost-lowest' : ''}"><h3>${name}</h3>
+          <p>${impurity.toFixed(2)} + ${alpha.toFixed(2)} × ${leaves} = <strong>${costs[i]}</strong>${status}</p></article>`;
+      }).join('');
+    }
+    penalty.addEventListener('input', paint);
+    paint();
+  }
+
   function setupInterview() {
     function credits(tree, totals) {
       if (!tree.split) return;
@@ -325,7 +377,8 @@
       const total = totals.x + totals.z;
       return { x: totals.x / total, z: totals.z / total };
     });
-    const showScore = score => '<td>' + percent(score.x) + '</td><td>' + percent(score.z) + '</td>';
+    const showScore = score => [score.x, score.z].map(value => `<td><strong>${percent(value)}</strong>
+      <span class="bag-importance-track" aria-hidden="true"><span style="width:${percent(value)}"></span></span></td>`).join('');
     get('importance').innerHTML = '<div class="table-wrap"><table><thead><tr><th scope="col">Model</th><th scope="col">Weight</th>' +
       '<th scope="col">Scan score</th></tr></thead><tbody>' + scores.map((score, i) => '<tr><th scope="row">Tree ' +
       (i + 1) + '</th>' + showScore(score) + '</tr>').join('') + '<tr class="bag-average"><th scope="row">Ensemble mean</th>' +
@@ -358,5 +411,7 @@
   setupForest();
   setupFeatures();
   setupDepth();
+  setupPerturbation();
   setupInterview();
+  setupPruning();
 })();

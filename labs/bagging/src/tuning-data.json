@@ -1,0 +1,143 @@
+{
+  "folds": 4,
+  "curves": [
+    {
+      "key": "max_depth",
+      "label": "Tree depth",
+      "explanation": "Depth changes how many questions a parcel can answer. Compare the two scores as the limit increases.",
+      "values": [
+        "2",
+        "4",
+        "8",
+        "None"
+      ],
+      "train": [
+        0.7139119351673231,
+        0.852152179118774,
+        0.9595441421007155,
+        0.9989492069233449
+      ],
+      "validation": [
+        0.6934838291080577,
+        0.8078720345075485,
+        0.8041364861259942,
+        0.8058284897521804
+      ]
+    },
+    {
+      "key": "n_estimators",
+      "label": "Number of trees",
+      "explanation": "More trees add more predictions to the average. Look for the point where extra trees buy little validation improvement.",
+      "values": [
+        "10",
+        "25",
+        "40",
+        "70"
+      ],
+      "train": [
+        0.9415346581698952,
+        0.9565026089810573,
+        0.9595441421007155,
+        0.9583710425709349
+      ],
+      "validation": [
+        0.8034479572182358,
+        0.8030025964307836,
+        0.8041364861259942,
+        0.8017436609561015
+      ]
+    },
+    {
+      "key": "max_features",
+      "label": "Candidate features",
+      "explanation": "A smaller candidate list can diversify the trees. It can also hide a useful measurement at a split.",
+      "values": [
+        "1",
+        "sqrt",
+        "None"
+      ],
+      "train": [
+        0.9588078543224018,
+        0.9595441421007155,
+        0.9648169150054926
+      ],
+      "validation": [
+        0.788527523070593,
+        0.8041364861259942,
+        0.8031660743594264
+      ]
+    },
+    {
+      "key": "min_samples_split",
+      "label": "Parent size",
+      "explanation": "The parent needs this many training samples to attempt a split. Candidate splits still have to meet the child-size limit.",
+      "values": [
+        "2",
+        "10",
+        "25",
+        "60"
+      ],
+      "train": [
+        0.9595441421007155,
+        0.9235684618901214,
+        0.8773745411676446,
+        0.8412496253148193
+      ],
+      "validation": [
+        0.8041364861259942,
+        0.8114551259444135,
+        0.8156716413692697,
+        0.814903422269848
+      ]
+    },
+    {
+      "key": "min_samples_leaf",
+      "label": "Leaf size",
+      "explanation": "A split can proceed only if both proposed children meet this minimum. Tiny groups get fewer separate predictions.",
+      "values": [
+        "1",
+        "4",
+        "12",
+        "24"
+      ],
+      "train": [
+        0.9595441421007155,
+        0.9098537388138681,
+        0.8596558568945422,
+        0.8370194086923612
+      ],
+      "validation": [
+        0.8041364861259942,
+        0.8117779842563831,
+        0.8129902924912624,
+        0.8063822235485081
+      ]
+    }
+  ],
+  "choices": [
+    {
+      "depth": 2,
+      "features": "1",
+      "score": 0.6811023188150238,
+      "sampled": false
+    },
+    {
+      "depth": 2,
+      "features": "sqrt",
+      "score": 0.6934838291080577,
+      "sampled": true
+    },
+    {
+      "depth": 4,
+      "features": "1",
+      "score": 0.7714863972799081,
+      "sampled": true
+    },
+    {
+      "depth": 4,
+      "features": "sqrt",
+      "score": 0.8078720345075485,
+      "sampled": false
+    }
+  ]
+}
