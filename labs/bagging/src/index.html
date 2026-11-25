@@ -30,24 +30,49 @@
   </div>
   <main class="lesson" id="lesson">
     <section class="chapter hero" id="ensemble" aria-labelledby="bag-title">
-      <p class="eyebrow">From a single tree to a forest</p>
-      <h1 id="bag-title">Bagging &amp;<br> Random Forests</h1>
-      <p class="lede">At a fictional parcel desk, each package goes straight through <strong>Auto</strong> or to manual <strong>Review</strong>. Two trees trained with the same settings can disagree about the same new parcel. How would you make one decision?</p>
-      <div class="panel bag-hook">
-        <div class="panel-heading"><div><h2>One new parcel, two decisions</h2><p id="bag-parcel"></p></div><div class="bag-legend"><span class="bag-mark auto">● Auto</span><span class="bag-mark review">◆ Review</span><span>⊕ New parcel</span></div></div>
-        <div class="bag-pair" id="bag-hook-plots"></div>
-        <p class="small">Each point is one training parcel. Weight and scan score are input features, and the Auto or Review label is the target. The lines show each tree’s first cut. Reveal the answers to see the fitted prediction regions.</p>
-        <div class="bag-actions"><button id="bag-hook-reveal" class="button primary" type="button" aria-pressed="false">Reveal the two predictions</button></div>
-        <p id="bag-hook-result" aria-live="polite">Find the new parcel on both plots. Which side of each first cut does it fall on?</p>
+      <div id="bag-desk-stage">
+        <p class="eyebrow">Bagging &amp; Random Forests</p>
+        <h1 id="bag-title" tabindex="-1">Where should this parcel go?</h1>
+        <figure class="bag-desk">
+          <!-- Original Bagging opener artwork, generated with built-in ImageGen. Prompt follows.
+          Use case: scientific-educational. Asset type: widescreen classroom slide illustration for an introductory machine learning lesson. Show a modern parcel sorting center with two visually distinct routes, understandable at a glance from a classroom projector. A friendly warehouse operator at the intake in the middle receives a small kraft parcel. At the LEFT, a different small cardboard parcel passes straight through a low teal automated scanner/conveyor toward dispatch. At the RIGHT, a second warehouse worker checks a different cardboard parcel by hand at a simple terracotta inspection counter, holding a small handheld scanner or checking the label. Each of the three stations and people is clear at small size, fully visible, and reads from left, center, to right in one continuous space. Communicate the route difference through poses and job actions. Clean editorial vector-like raster illustration, confident simple shapes, a warm off-white backdrop, deep evergreen and clay accents, thin consistent outlines, bright even lighting, approachable adult figures, minimal background detail. Wide horizontal 16:9 composition, centered, full-width and no cut-off objects, with breathing room at sides. No text, letters, signage, arrows, chart axes, labels, branding, or watermark.
+          -->
+          <img src="{{PARCEL_DESK_IMAGE}}" width="1672" height="941" alt="At a sorting center, a parcel goes through a scanner on the left, an operator receives a new parcel in the middle, and a worker checks another parcel by hand on the right.">
+          <figcaption class="bag-desk-routes">
+            <div class="auto"><strong>Auto</strong><span>Goes straight through</span></div>
+            <div><strong>New parcel</strong><span>Which way?</span></div>
+            <div class="review"><strong>Review</strong><span>A person checks it</span></div>
+          </figcaption>
+        </figure>
+        <div class="bag-desk-actions"><button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button></div>
       </div>
-      <div class="bag-say"><strong>An ensemble combines predictions from multiple models.</strong> Each model that contributes a prediction is a <strong>base learner</strong>. Here each base learner is a decision tree.</div>
-      <div class="bag-triptych">
-        <article><h3>Bagging</h3><p>Train models separately on resampled rows. Aggregate their predictions.</p></article>
-        <article><h3>Boosting</h3><p>Train models in sequence. Each stage helps correct errors of the ensemble so far.</p></article>
-        <article><h3>Stacking</h3><p>Train a second model to combine the base models’ predictions. Out-of-fold predictions can train that combiner.</p></article>
+
+      <div id="bag-model-stage" hidden>
+        <p class="eyebrow">Ensemble intuition</p>
+        <h2 id="bag-model-title" class="bag-stage-title" tabindex="-1">Same parcel. Two trees.</h2>
+        <p class="lede">Both trees use the same settings. They learn from different samples of the same parcel records.</p>
+        <div class="panel bag-hook">
+          <div class="panel-heading"><p id="bag-parcel"></p><div class="bag-legend"><span class="bag-mark auto">● Auto</span><span class="bag-mark review">◆ Review</span><span>⊕ New parcel</span></div></div>
+          <div class="bag-pair" id="bag-hook-plots"></div>
+          <p id="bag-hook-result" class="bag-hook-result" aria-live="polite">Find the new parcel. Which side of each cut does it fall on?</p>
+          <div class="bag-actions">
+            <button id="bag-hook-reveal" class="button primary" type="button" aria-controls="bag-hook-plots bag-ensemble-takeaway" aria-pressed="false">Show the two calls</button>
+            <button id="bag-back-desk" class="button secondary" type="button" aria-controls="bag-desk-stage">Back to parcel desk</button>
+          </div>
+          <details class="teaching-note"><summary>How to read the plots</summary><p>Each dot is a training parcel. Weight and scan score are the two inputs. Auto or Review is the recorded route. Start with the first cut in each tree. Revealing the calls shades the regions by predicted route.</p></details>
+        </div>
+        <div id="bag-ensemble-takeaway" hidden>
+          <div class="bag-say"><strong>An ensemble combines predictions from several models.</strong> Each model that contributes is a <strong>base learner</strong>. Here the base learners are trees.</div>
+          <div class="bag-triptych">
+            <article><h3>Bagging</h3><p>Train models separately on resampled rows. Combine their predictions.</p></article>
+            <article><h3>Boosting</h3><p>Train models in sequence. Each stage helps correct errors of the ensemble so far.</p></article>
+            <article><h3>Stacking</h3><p>Train another model to combine the base models’ predictions. Out-of-fold predictions can train that combiner.</p></article>
+          </div>
+          <details class="teaching-note"><summary>What changed between the two trees?</summary><p>Different rows and repeated counts can change the learned splits. Both trees answer for the same parcel. A missed Review sends through a parcel that needed checking. An unnecessary Review adds work at the desk.</p></details>
+          <p class="transition">Where did the two training samples come from?</p>
+          <div class="bag-actions"><a href="#bootstrap" class="button primary">Draw a training sample</a></div>
+        </div>
       </div>
-      <details class="teaching-note"><summary>What stays the same when the two trees disagree?</summary><p>The prediction input and tree settings are fixed. The first and second bootstrap samples contain different rows and repeated counts, which changes the learned splits. A missed Review sends a parcel through that needed checking. An unnecessary Review adds work at the desk.</p></details>
-      <p class="transition">To understand why their answers differ, see how each tree gets its training sample.</p>
     </section>
 
     <section class="chapter" id="bootstrap" aria-labelledby="bootstrap-title">

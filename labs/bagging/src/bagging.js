@@ -41,11 +41,11 @@
         else link.removeAttribute('aria-current');
       });
       menu.value = selected.id;
-      previous.disabled = index === 0;
+      previous.disabled = index === 0 && get('model-stage').hidden;
       next.disabled = index === chapters.length - 1;
       if (move) {
         window.scrollTo({ top: 0, behavior: 'instant' });
-        const heading = selected.querySelector('h1, h2');
+        const heading = document.getElementById(selected.getAttribute('aria-labelledby'));
         heading.setAttribute('tabindex', '-1');
         heading.focus({ preventScroll: true });
       }
@@ -59,8 +59,14 @@
 
     const hashIndex = () => chapters.findIndex(chapter => '#' + chapter.id === location.hash);
     menu.addEventListener('change', () => jump(chapters.findIndex(chapter => chapter.id === menu.value)));
-    previous.addEventListener('click', () => jump(active - 1));
-    next.addEventListener('click', () => jump(active + 1));
+    previous.addEventListener('click', () => {
+      if (active === 0) get('back-desk').click();
+      else jump(active - 1);
+    });
+    next.addEventListener('click', () => {
+      if (active === 0 && get('model-stage').hidden) get('meet-trees').click();
+      else jump(active + 1);
+    });
     links.forEach((link, i) => link.addEventListener('click', event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
@@ -119,17 +125,33 @@
 
   function setupHook() {
     const reveal = get('hook-reveal');
+    const desk = get('desk-stage');
+    const models = get('model-stage');
+    const chapter = desk.closest('.chapter');
+    function showStage(showModels) {
+      desk.hidden = showModels;
+      models.hidden = !showModels;
+      const heading = get(showModels ? 'model-title' : 'title');
+      chapter.setAttribute('aria-labelledby', heading.id);
+      get('previous').disabled = !showModels;
+      if (!showModels) paint(false);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      heading.focus({ preventScroll: true });
+    }
+    get('meet-trees').addEventListener('click', () => showStage(true));
+    get('back-desk').addEventListener('click', () => showStage(false));
     get('parcel').textContent = 'New parcel · Weight ' + parcel.x + ' · Scan score ' + parcel.z;
     function paint(shown) {
       get('hook-plots').innerHTML = samples.slice(0, 2).map((sample, i) => '<figure class="bag-plot-card"><figcaption><strong>Tree ' +
         (i + 1) + '</strong>' + (shown ? '<span class="bag-badge ' + tone(sample.prediction) + '">' +
         route(sample.prediction) + '</span>' : '') + '</figcaption>' + scatter(sample, shown) + '</figure>').join('');
       reveal.setAttribute('aria-pressed', String(shown));
-      reveal.textContent = shown ? 'Hide predictions' : 'Reveal the two predictions';
+      reveal.textContent = shown ? 'Hide the two calls' : 'Show the two calls';
+      get('ensemble-takeaway').hidden = !shown;
       get('hook-result').textContent = shown ?
-        'Tree 1 starts with ' + question(samples[0].tree.split) + '. Tree 2 starts with ' +
-        question(samples[1].tree.split) + '. The same parcel follows a different path.' :
-        'Find the new parcel on both plots. Which side of each first cut does it fall on?';
+        'Tree 1 says ' + route(samples[0].prediction) + '. Tree 2 says ' + route(samples[1].prediction) +
+        '. How could we combine their answers?' :
+        'Find the new parcel. Which side of each cut does it fall on?';
     }
     reveal.addEventListener('click', () => paint(reveal.getAttribute('aria-pressed') === 'false'));
     paint(false);

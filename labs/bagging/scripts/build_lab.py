@@ -1,6 +1,7 @@
 """Build the standalone Bagging lesson using the collection's teaching styles."""
 
 import argparse
+import base64
 import json
 import re
 from pathlib import Path
@@ -21,6 +22,8 @@ def build():
     replacements = {key: "\n".join(path.read_text() for path in paths) for key, paths in parts.items()}
     replacements.update(VARIANCE=variance.strip(), OOB=oob.strip(),
                         DATA=json.dumps(data, separators=(",", ":")).replace("<", "\\u003c"))
+    image = (SOURCE / "parcel-desk.jpg").read_bytes()
+    replacements["PARCEL_DESK_IMAGE"] = "data:image/jpeg;base64," + base64.b64encode(image).decode("ascii")
     template = (SOURCE / "index.html").read_text()
     return re.sub(r"\{\{([A-Z_]+)\}\}", lambda match: replacements[match[1]], template).encode("utf-8")
 
