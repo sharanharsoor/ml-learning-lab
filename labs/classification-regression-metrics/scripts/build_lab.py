@@ -9,6 +9,7 @@ from pathlib import Path
 from export_demo import render_demo
 
 LAB = Path(__file__).resolve().parents[1]
+SOURCE = LAB / "src"
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--output", type=Path, default=LAB.parents[1] / "docs" / LAB.name / "index.html")
 parser.add_argument("--check", action="store_true")
@@ -21,8 +22,8 @@ if args.check:
         raise SystemExit("Generated Python script is out of date")
 else:
     script_path.write_text(expected_script)
-template = (LAB / "src/studio.html").read_text()
-guide = (LAB / "src/guide.html").read_text()
+template = (SOURCE / "studio.html").read_text()
+guide = (SOURCE / "guide.html").read_text()
 toc = '''<nav class="guide-toc" aria-label="Learning guide contents"><strong>Learning reference</strong>
 <a href="#guide-tools">Using the tools</a><a href="#guide-data">Data and labels</a>
 <a href="#guide-math">Metric definitions</a><a href="#guide-hands-on">Python examples</a>
@@ -31,6 +32,8 @@ toc = '''<nav class="guide-toc" aria-label="Learning guide contents"><strong>Lea
 resources = {
     "metrics_core.ipynb": (LAB / "notebooks/metrics_core.ipynb").read_bytes(),
     "metrics_public_data.ipynb": (LAB / "notebooks/metrics_public_data.ipynb").read_bytes(),
+    "classification-metrics-teaching.ipynb": (LAB / "notebooks/classification-metrics-teaching.ipynb").read_bytes(),
+    "regression-metrics-teaching.ipynb": (LAB / "notebooks/regression-metrics-teaching.ipynb").read_bytes(),
     "metrics_demo.py": (LAB / "scripts/metrics_demo.py").read_bytes(),
     "data/delivery_classification.csv": (LAB / "data/delivery_classification.csv").read_bytes(),
     "data/delivery_regression.csv": (LAB / "data/delivery_regression.csv").read_bytes(),
@@ -61,10 +64,12 @@ From this extracted resource folder:
     python -m jupyterlab
 On Windows, activate with .venv\\Scripts\\activate instead.
 
-Start with metrics_core.ipynb and run it from the beginning. Its synthetic
-examples need no external dataset, model training, GPU, or network after
-installation. metrics_demo.py contains the same notebook as interactive
-Python cells. INSTRUCTOR_GUIDE.md describes a reusable workshop sequence.
+Start with classification-metrics-teaching.ipynb or
+regression-metrics-teaching.ipynb for a guided walkthrough of one task.
+Run all cells, then use the examples and controls beside the code. The
+synthetic lessons include their own data. metrics_core.ipynb and
+metrics_demo.py are the combined reference. INSTRUCTOR_GUIDE.md describes
+a reusable workshop sequence.
 
 metrics_public_data.ipynb is an optional fitted-model exercise. It uses the
 bundled data/winequality-red.csv, removes exact duplicates before splitting,
@@ -110,9 +115,11 @@ for name, content in resources.items():
     mime = "application/json" if name.endswith((".ipynb", ".json")) else "text/csv;charset=utf-8" if name.endswith(".csv") else "text/plain;charset=utf-8"
     download_assets[basename] = {"mime": mime, "b64": base64.b64encode(content).decode()}
 
-downloads = '''<p>Download one ZIP to get both notebooks, the matching Python script, all datasets, requirements, and setup instructions. Extract it into one folder. The main lesson needs only the core notebook.</p>
+downloads = '''<p>Get the two guided teaching notebooks, the combined reference, the optional public-data exercise, and their supporting files in one ZIP.</p>
 <div class="button-row"><button class="button primary" data-kit-asset="metrics-teaching-resources.zip">Download notebooks and data ZIP</button><button class="button" id="save-offline-kit">Save an offline HTML copy</button></div>
 <details class="individual-downloads"><summary>Download individual files</summary><div class="download-list">
+<button class="button small" data-kit-asset="classification-metrics-teaching.ipynb">Classification teaching notebook</button>
+<button class="button small" data-kit-asset="regression-metrics-teaching.ipynb">Regression teaching notebook</button>
 <button class="button small" data-kit-asset="metrics_core.ipynb">Core notebook</button>
 <button class="button small" data-kit-asset="metrics_public_data.ipynb">Public data notebook</button>
 <button class="button small" data-kit-asset="metrics_demo.py">Core Python script</button>
@@ -175,7 +182,7 @@ asset_script = '''<script id="kit-embedded-assets" type="application/json">''' +
     }
   });
   window.addEventListener('hashchange', () => {
-    if (!['#board','#playground'].includes(location.hash)) {
+    if (!['#board','#playground','#classification','#regression'].includes(location.hash)) {
       document.body.classList.remove('projector-layout'); updateFocus();
     }
   });
@@ -207,6 +214,28 @@ assert template.count("<!-- INSTRUCTOR_GUIDE_SLOT -->") == 1
 assert template.count("<!-- DOWNLOADS_SLOT -->") == 1
 result = template.replace("<!-- INSTRUCTOR_GUIDE_SLOT -->", toc + guide)
 result = result.replace("<!-- DOWNLOADS_SLOT -->", downloads)
+teaching_alts = {
+    "classification": "A dispatcher checks a parcel label before a courier delivers the parcel to its recipient.",
+    "regression": "A dispatcher holds a stopwatch as a courier arrives carrying a parcel.",
+}
+teaching_styles = []
+teaching_scripts = []
+for topic, alt in teaching_alts.items():
+    slot = f"<!-- {topic.upper()}_TEACHING_SLOT -->"
+    story_slot = f"<!-- {topic.upper()}_STORY_IMAGE -->"
+    lesson = (SOURCE / f"{topic}-teaching.html").read_text()
+    assert result.count(slot) == lesson.count(story_slot) == 1
+    image = base64.b64encode((SOURCE / f"delivery-{topic}-teaching.jpg").read_bytes()).decode("ascii")
+    figure = (f'<figure class="metric-lesson-art"><img src="data:image/jpeg;base64,{image}" '
+              f'width="1440" height="810" alt="{alt}"></figure>')
+    result = result.replace(slot, lesson.replace(story_slot, figure))
+    teaching_styles.append((SOURCE / f"{topic}-teaching.css").read_text())
+    teaching_scripts.append(f'<script id="{topic}-teaching-code">\n' +
+                            (SOURCE / f"{topic}-teaching.js").read_text() + "</script>")
+regression_slot = "<!-- REGRESSION_TEACHING_DATA -->"
+regression_fixture = json.loads(resources["data/delivery_metrics.json"])["regression"]
+assert result.count(regression_slot) == 1
+result = result.replace(regression_slot, json.dumps(regression_fixture, separators=(",", ":")).replace("<", "\\u003c"))
 projector_anchor = '<button class="button" data-mode="classroom">Classroom ↗</button>'
 assert result.count(projector_anchor) == 1
 result = result.replace(projector_anchor,
@@ -214,8 +243,9 @@ result = result.replace(projector_anchor,
 result = result.replace('<button class="button" id="download-board">Save board as PNG ↓</button>',
                         '<div class="button-row"><button class="button small focus-toggle" aria-pressed="false">Projector layout</button><button class="button small" id="download-board">Save board as PNG ↓</button></div>')
 assert result.count('class="button small focus-toggle"') == 2
-result = result.replace("</head>", extra_style + "\n</head>")
-result = result.replace("</body>", asset_script + "\n</body>")
+art_style = ".metric-lesson-art{margin:0}.metric-lesson-art img{display:block;width:100%;height:auto;border-radius:.75rem}"
+result = result.replace("</head>", extra_style + "\n<style>\n" + "\n".join([art_style, *teaching_styles]) + "\n</style>\n</head>")
+result = result.replace("</body>", "\n".join([*teaching_scripts, asset_script, "</body>"]))
 assert "\u2014" not in result
 if args.check:
     if not output.is_file() or output.read_text() != result:

@@ -1,0 +1,61 @@
+.course-route {
+  margin-block: 1.45rem;
+  border-block: 1px solid var(--line);
+  padding-block: .85rem 1rem;
+}
+
+.course-route ol {
+  list-style: none;
+  padding: 0;
+  margin: .6rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: .5rem .9rem;
+}
+
+.course-route li {
+  border-inline-start: 2px solid var(--teal);
+  padding-inline-start: .65rem;
+  color: var(--muted);
+}
+
+.course-route li a { display: block; font-weight: 700; }
+.course-route li span { display: block; margin-top: .15rem; font-size: .94em; }
+.course-story { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .65rem; }
+.course-story > div { padding: .75rem 1rem; border-radius: .65rem; background: var(--light); }
+.course-story > div:last-child { background: #f9e8df; }
+.course-story p { margin-top: .3rem; }
+.course-opener { margin: 1.1rem 0; }
+.course-opener img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: .85rem;
+}
+@media (min-width: 800px) {
+  .course-opener img { max-height: min(20rem, 43vh); object-position: center 63%; }
+}
+.course-opener figcaption { margin-top: .45rem; color: var(--muted); }
+.course-code-link { display: flex; gap: .55rem; flex-wrap: wrap; margin: .9rem 0; }
+.course-worked { padding: .85rem 1.1rem; border-inline-start: 3px solid var(--teal); background: var(--light); }
+.course-worked h3 + p, .course-worked p + p { margin-top: .4rem; }
+.multiway-controls { display: flex; flex-wrap: wrap; gap: .8rem 1.4rem; align-items: end; }
+.multiway-controls label { display: grid; gap: .28rem; }
+.multiway-demo h3, .multiway-demo h4 { margin-block: 0 .32rem; }
+.multiway-demo .course-worked { margin-top: .8rem; }
+.multiway-branches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: .6rem;
+  margin-top: .8rem;
+}
+.multiway-branch { padding: .7rem .8rem; border: 1px solid var(--line); border-radius: .6rem; }
+.multiway-branch p { margin-top: .32rem; }
+.multiway-branch p:nth-child(2) { color: var(--muted); }
+.multiway-band { display: flex; height: .8rem; border-radius: .25rem; overflow: hidden; margin-block: .55rem .42rem; }
+.multiway-band > span:nth-child(1) { background: var(--teal); }
+.multiway-band > span:nth-child(2) { background: var(--rust); }
+.multiway-band > span:nth-child(3) { background: #64479e; }
+.multiway-legend { display: flex; gap: .4rem 1.1rem; flex-wrap: wrap; margin: .55rem 0; }
+.multiway-legend .key.hold { background: #64479e; border-radius: .14rem; }

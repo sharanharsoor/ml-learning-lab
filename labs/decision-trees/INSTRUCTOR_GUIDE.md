@@ -1,6 +1,8 @@
 # Teach the Decision Tree Lab
 
-Open the [Decision Tree Lab](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) before class. The same fictional parcel desk carries the lesson from a first prediction to split scoring, evaluation, regression, and Python. Budget about 30 minutes for the full walkthrough.
+Open the [Decision Tree Lab](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) before class. The same fictional parcel desk carries the lesson from a first prediction to split scoring, evaluation, regression, and Python. Budget about 30 minutes for the walkthrough below, or pause at the deeper applications for a full class. Use Teaching view while screen-sharing. The introduction links to the main stages of the lesson, and the chapter selector can jump to each worked example.
+
+Open the [Colab notebook](https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb) and run all cells before class. Begin the live code at **Score the first cut**. Change the cutoff from 3.5 to 2.5 and rerun the short cell. The notebook also has expandable tree paths, scored nodes, depth comparisons, and regression examples.
 
 ## Begin with a decision
 

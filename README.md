@@ -16,7 +16,7 @@ An interactive lesson connecting predictions, outcomes, error measures, and mode
 - Use the drawing board and classroom questions to explain the ideas with learners.
 - Run the accompanying notebooks to verify the calculations in Python.
 
-[Open the playground](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/) · [Python notebooks](labs/classification-regression-metrics/notebooks/) · [Instructor guide](labs/classification-regression-metrics/INSTRUCTOR_GUIDE.md)
+[Classification Metrics lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification) · [Regression Metrics lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#regression) · [Python notebooks](labs/classification-regression-metrics/notebooks/) · [Instructor guide](labs/classification-regression-metrics/INSTRUCTOR_GUIDE.md)
 
 ![Classification and regression metrics playground](docs/assets/classification-regression-metrics.jpg)
 
@@ -31,7 +31,7 @@ Teach a full decision-tree lesson with one fictional parcel-sorting dataset. Fol
 - Attribute split gains to features and switch to mean squared error for a numerical target.
 - Run Python in the browser to verify the calculations.
 
-[Open the playground](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) · [Instructor guide](labs/decision-trees/INSTRUCTOR_GUIDE.md)
+[Open the playground](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) · [Python notebooks](labs/decision-trees/notebooks/) · [Instructor guide](labs/decision-trees/INSTRUCTOR_GUIDE.md)
 
 ## Run the website locally
 

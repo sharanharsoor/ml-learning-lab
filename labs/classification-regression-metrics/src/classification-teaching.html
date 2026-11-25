@@ -1,0 +1,60 @@
+<section id="classification-teaching" class="class-teach" aria-labelledby="class-teach-title">
+ <header class="class-teach-opening">
+  <div>
+   <h2 id="class-teach-title">When should we say “On track”?</h2>
+   <p>Asha’s delivery desk promised an order by <strong>12:40</strong>. At <strong>12:00</strong>, when the courier leaves, the app needs to decide what status to show. The model supplies an on-time score. A cutoff turns that score into one of two messages.</p>
+  </div>
+  <!-- CLASSIFICATION_STORY_IMAGE -->
+ </header>
+ <ol class="class-teach-timeline" aria-label="Timeline of a delivery forecast">
+  <li><strong>Order accepted</strong><span>Fix the promised deadline.</span></li>
+  <li><strong>Courier dispatches</strong><span>Score the order and show a status.</span></li>
+  <li><strong>Order arrives</strong><span>Record whether it met the deadline.</span></li>
+ </ol>
+ <nav class="class-teach-route" aria-label="Classification teaching sequence">
+  <button class="button" type="button" data-class-lesson-stage="one" aria-controls="class-teach-one" aria-pressed="true">Follow one order</button>
+  <button class="button" type="button" data-class-lesson-stage="policies" aria-controls="class-teach-policies" aria-pressed="false">Compare two cutoffs</button>
+  <button class="button" type="button" data-class-lesson-stage="rates" aria-controls="class-teach-rates" aria-pressed="false">Read rates and rankings</button>
+  <button class="button" type="button" data-class-lesson-stage="python" aria-controls="class-teach-python" aria-pressed="false">Run the code</button>
+ </nav>
+ <section class="class-teach-panel" id="class-teach-one" aria-labelledby="class-teach-one-title">
+  <div class="class-teach-heading">
+   <div><h3 id="class-teach-one-title">Follow an order into the matrix</h3><p>At cutoff 0.25, scores of 0.25 or higher produce <strong>On track</strong>. A lower score produces <strong>Likely late</strong>. Positive (P) means on time. Negative (N) means late.</p></div>
+   <label for="class-teach-order">Order <select id="class-teach-order"></select></label>
+  </div>
+  <div id="class-teach-replay" aria-live="polite"></div>
+  <div class="button-row class-teach-actions">
+   <button class="button primary" type="button" id="class-teach-reveal">Show dispatch forecast</button>
+   <button class="button" type="button" id="class-teach-reset" hidden>Restart order</button>
+  </div>
+ </section>
+ <section class="class-teach-panel" id="class-teach-policies" aria-labelledby="class-teach-policies-title" hidden>
+  <div class="class-teach-heading">
+   <div><h3 id="class-teach-policies-title">Change the cutoff, keep the scores</h3><p>Keep the same 20 orders and their recorded outcomes. Compare cutoff 0.25 with a second policy. Only the forecast can change for each order.</p></div>
+   <label for="class-teach-comparison">Second cutoff <select id="class-teach-comparison"><option value="0.10">0.10</option><option value="0.50">0.50</option><option value="0.00">0.00</option><option value="1.01">1.01</option></select></label>
+  </div>
+  <div id="class-teach-comparison-result" aria-live="polite"></div>
+  <div class="button-row class-teach-actions"><button class="button primary" id="class-teach-use-cutoff" type="button">Use second cutoff in playground</button></div>
+ </section>
+ <section class="class-teach-panel" id="class-teach-rates" aria-labelledby="class-teach-rates-title" hidden>
+  <h3 id="class-teach-rates-title">Ask a question before choosing a metric</h3>
+  <p>At cutoff 0.25, 15 on-time orders were forecast On track. That same true-positive count belongs to two different groups.</p>
+  <div class="class-teach-rate-cards">
+   <article><h4>Precision</h4><p>Of the orders we called On track, how many got there on time?</p><p class="class-teach-equation">15 ÷ (15 + 1 FP) = 93.75%</p><button class="button small" type="button" data-class-focus="precision">Highlight predicted positives</button></article>
+   <article><h4>Recall</h4><p>Of the orders that actually arrived on time, how many did we call On track?</p><p class="class-teach-equation">15 ÷ (15 + 1 FN) = 93.75%</p><button class="button small" type="button" data-class-focus="recall">Highlight actual positives</button></article>
+   <article><h4>Accuracy and F1</h4><p>Accuracy counts every correct forecast. F1 combines precision and recall and gives a low rate more influence.</p><p class="class-teach-equation">Accuracy = (15 + 3) ÷ 20 = 90%</p><button class="button small" type="button" data-class-focus="f1">Read the F1 calculation</button></article>
+   <article><h4>ROC and AUC</h4><p>One cutoff gives one point. Moving the cutoff traces recall against the false-positive rate. AUC summarizes how the scores rank on-time orders above late orders.</p><p class="class-teach-equation">AUC = 59 ÷ 64 ≈ 0.922</p><button class="button small" type="button" data-class-focus="roc">Explore the ROC point</button></article>
+  </div>
+  <details class="class-teach-note"><summary>Why does the equal percentage hide an important difference?</summary><p>At 0.25, precision adds D14 to its denominator because we called it On track and it arrived late. Recall adds D19 because it arrived on time and we called it Likely late. The denominators are both 16 here and contain different orders.</p></details>
+ </section>
+ <section class="class-teach-panel" id="class-teach-python" aria-labelledby="class-teach-python-title" hidden>
+  <h3 id="class-teach-python-title">Build the decision rule in Python</h3>
+  <p>Start with the same fixed scores and actual labels. This line makes one predicted label per order. Change the cutoff, then count which decisions moved.</p>
+  <pre class="class-teach-code"><code>cutoff = 0.25
+predicted = [int(score &gt;= cutoff) for score in scores]
+correct = sum(p == y for p, y in zip(predicted, actual))
+accuracy = correct / len(actual)</code></pre>
+  <p>The notebook continues from one order to full confusion counts, the denominator comparison, and the ROC/AUC check.</p>
+  <div class="button-row"><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/classification-regression-metrics/notebooks/classification-metrics-teaching.ipynb" target="_blank" rel="noopener noreferrer">Open Classification Metrics in Colab</a></div>
+ </section>
+</section>

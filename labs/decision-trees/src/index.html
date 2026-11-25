@@ -15,6 +15,7 @@
 {{REGRESSION_CSS}}
 {{GINI_CSS}}
 {{BOUNDARY_CSS}}
+{{COURSE_CSS}}
 </style>
 </head>
 <body>
@@ -75,7 +76,23 @@
     <section class="chapter hero" id="parcel" aria-labelledby="parcel-title">
       <p class="eyebrow">Classification &amp; regression</p>
       <h1 id="parcel-title">Decision trees</h1>
-      <p class="lede">At a fictional parcel desk, every parcel can go straight through <strong>Auto</strong> or to manual <strong>Review</strong>. Can two simple questions explain the routing?</p>
+      <p class="lede">A parcel arrives at the sorting desk. The team knows its weight and packaging code and needs to decide whether it can go straight through. Can the past records teach us which questions to ask?</p>
+      {{COURSE_IMAGE}}
+      <div class="course-story">
+        <div><h3>Auto</h3><p>The parcel can continue through the automated line.</p></div>
+        <div><h3>Review</h3><p>A worker checks the parcel before it continues.</p></div>
+      </div>
+      <p>The inputs are what the team knows before routing. The label is the route each past parcel actually took. We fit a rule from those records and check it on parcels it has never seen.</p>
+      <nav class="course-route" aria-label="Teaching agenda">
+        <h2>From one cut to a fitted tree</h2>
+        <ol>
+          <li><a href="#draw-splits">Draw</a><span>Pick a cut and follow the branches.</span></li>
+          <li><a href="#entropy">Score</a><span>Compare the label mix before and after a cut.</span></li>
+          <li><a href="#evaluate">Check</a><span>Trace mistakes and choose a depth.</span></li>
+          <li><a href="#importance">Explain</a><span>Give each split its share of credit.</span></li>
+          <li><a href="#regression">Predict</a><span>Use the same idea to estimate minutes.</span></li>
+        </ol>
+      </nav>
       <div class="parcel-board">
         <div class="panel-heading">
           <div><h2>Eight training parcels</h2><p>Position shows weight <var>X</var>. Each row is a packaging code <var>Y</var>.</p></div>
@@ -141,6 +158,11 @@
           <div id="entropy-plot" class="entropy-plot"></div>
         </div>
       </div>
+      <div class="course-worked">
+        <h3>Check the weighting at a 25% Review share</h3>
+        <p>Set the slider to 25%. Auto has probability ¾, so its surprise is about 0.415 bits. Review has probability ¼, so its surprise is 2 bits. Multiply by the two shares and add. <span class="formula">¾ × 0.415 + ¼ × 2 ≈ 0.811</span> bits.</p>
+        <p>The base of the logarithm sets the unit. Base 2 gives bits. The natural logarithm gives nats and rescales every entropy gain by the same positive constant.</p>
+      </div>
       <p><strong>Entropy is the average surprise.</strong> If you averaged one surprise per row, a label that appears in four out of eight rows would show up four times. Grouping those rows gives <span class="formula">H = −Σ p(label) log₂ p(label)</span>. Sum over distinct labels. A label with probability zero contributes zero by the limit of <span class="formula">−p log₂ p</span>.</p>
       <p class="transition">A good question lowers the uncertainty that remains. There’s another way to measure the same label mix, using the chance of a mismatch.</p>
     </section>
@@ -178,13 +200,34 @@
         </div>
         <div>
           <h3>How thresholds become candidates</h3>
-          <p>Exact search tries a midpoint per gap between distinct weights. Coarse search tries only 2.5, 4.5, and 6.5 here. It sums the label counts on both sides of each edge. Packaging A versus B adds its own candidate in either mode.</p>
+          <p>Exact search tries a midpoint per gap between distinct weights. Coarse search tries only 2.5, 4.5, and 6.5 here. It sums the label counts on both sides of each edge. Packaging A versus B adds its own candidate in either mode. Try both search modes while the criterion is Entropy. Exact search finds weight 3.5 at about 0.549 bits of gain. With the coarse edges, weight 2.5 and packaging A tie at about 0.311 bits.</p>
         </div>
       </div>
       <details class="teaching-note">
         <summary>What about categorical features and scaling?</summary>
         <p>The feature <var>Y</var> has values A and B, so one yes-or-no question separates them. With more categories, a binary tree can test membership in a group of categories, or test one category at a time after one-hot encoding. Multiway trees can use more than two branches. Each branch still earns its weight from the same immediate parent.</p>
         <p>For an exact numerical search, a strictly increasing rescaling preserves the ordering of the training values and therefore the candidate partitions. The cutoff itself changes units. A tree can also reuse a feature deeper down when a different cutoff still divides the rows.</p>
+      </details>
+      <div class="course-code-link"><a class="button secondary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb">Open the split calculation in Colab</a></div>
+      <details class="panel multiway-demo">
+        <summary>Compare two or three branches on the same parcels</summary>
+        <p>In a new batch, packaging can be A, B, or C, and the desk can also <strong>Hold</strong> a parcel for a later decision. Each child gets its own label mix and its weight comes from the same 12-row parent.</p>
+        <div class="multiway-controls">
+          <label>Question <select id="multiway-structure">
+            <option value="A">Packaging A or other?</option>
+            <option value="B">Packaging B or other?</option>
+            <option value="C">Packaging C or other?</option>
+            <option value="all">One branch per packaging type</option>
+          </select></label>
+          <label>Node score <select id="multiway-criterion">
+            <option value="entropy">Entropy</option>
+            <option value="gini">Gini impurity</option>
+          </select></label>
+        </div>
+        <div class="legend multiway-legend"><span><i class="key auto" aria-hidden="true"></i>Auto</span><span><i class="key review" aria-hidden="true"></i>Review</span><span><i class="key hold" aria-hidden="true"></i>Hold</span></div>
+        <div id="multiway-branches" class="multiway-branches"></div>
+        <div id="multiway-math" class="course-worked" aria-live="polite"></div>
+        <p class="small">The three outcomes are target labels. The branch count comes from the question the algorithm allows. Scikit-learn uses binary splits. A multiway split can separate more groups in one step and needs its own stopping checks.</p>
       </details>
       <p class="transition">A mixed child can become a new parent, with its own counts and candidate search. See how <a href="#deep-tree">the weighted average works deeper in a tree</a>.</p>
     </section>
@@ -263,7 +306,16 @@
         <div><h3>When growth stops at a node</h3><p>A pure node can stop. A mixed node can also stop if it reaches the depth limit, can’t give both children the required number of rows, or has no eligible split with enough gain. These rules limit growth during fitting.</p></div>
         <div><h3>How to choose the limit</h3><p>Compare depth and leaf-size settings using validation data or cross-validation. Keep an independent test set for the final estimate. When you use the six held-out parcels here to choose depth, they serve as validation data.</p></div>
       </div>
-      <p><strong>Pruning is another option.</strong> Fit a larger tree, then remove branches whose improvement is too small to justify their added leaves. Tune how much to prune on validation data.</p>
+      <details class="teaching-note">
+        <summary>Compare the same tree before and after pruning</summary>
+        <p>Cost-complexity pruning compares <span class="formula">weighted leaf impurity + α × leaf count</span>. The parcel tree has three pure leaves and 0 remaining entropy. Removing the packaging question leaves two leaves and 0.4512 bits. Keeping just the root leaves one leaf and 1 bit.</p>
+        <div class="table-wrap"><table>
+          <caption>Cost under two leaf penalties</caption>
+          <thead><tr><th scope="col">Penalty</th><th scope="col">Three leaves</th><th scope="col">Two leaves</th><th scope="col">Root only</th></tr></thead>
+          <tbody><tr><th scope="row">α = 0.20</th><td><strong>0.6000</strong></td><td>0.8512</td><td>1.2000</td></tr><tr><th scope="row">α = 0.47</th><td>1.4100</td><td><strong>1.3912</strong></td><td>1.4700</td></tr></tbody>
+        </table></div>
+        <p>The lowest cost shifts to the two-leaf tree at 0.47. A depth limit constrains growth while fitting. Pruning chooses a subtree from a larger fitted tree. Use validation scores to choose the penalty.</p>
+      </details>
       <p class="transition">Now look back at the fitted tree and ask how much each feature contributed to the reduction in training impurity.</p>
     </section>
 
@@ -286,6 +338,11 @@
         <p id="importance-note" class="small" aria-live="polite"></p>
       </div>
       <p>Divide each feature’s credit by the total credit to report its share. One strong split near the root can earn more than several small splits. This score describes how <em>this fitted tree</em> reduced impurity on its training data.</p>
+      <details class="teaching-note">
+        <summary>What if two features measure nearly the same thing?</summary>
+        <p>A split credits the feature the tree actually chose. If weight and another measurement are interchangeable, either one can get most of the credit while the other earns little. Importance describes the fitted model, so it can move when the data, features, or depth change.</p>
+        <p>Permutation importance asks a different question. After fitting, shuffle one feature across validation rows and check how much the score drops. A feature with a close substitute can have a small drop. Neither calculation establishes that changing a feature would cause the real-world outcome to change.</p>
+      </details>
       <p class="transition">Now follow a feature that <a href="#deep-importance">appears three times in a deeper tree</a> and add up its contributions.</p>
     </section>
 
@@ -311,7 +368,8 @@
           <div id="regression-tree" class="tree-diagram"></div>
         </details>
       </div>
-      <p>The cutoff search is the same: compare weighted child scores using only the rows in the immediate parent. The mean and MSE are recalculated inside each child. A fitted regression tree predicts one constant per leaf.</p>
+      <p>The cutoff search compares weighted child scores using the rows in the immediate parent. Each child gets its own mean and MSE. A fitted regression tree predicts one constant per leaf.</p>
+      <p>Use <strong>MSE</strong> to compare candidate cuts. Its units are minutes squared. After the tree predicts new timed parcels, take the square root of their average squared error to report <strong>RMSE</strong> in minutes.</p>
       <details class="teaching-note">
         <summary>Why does the mean minimize squared error?</summary>
         <p>For any constant prediction <var>c</var>, the average squared error equals <span class="formula">MSE at the mean + (c − mean)²</span>. That extra square is smallest at zero, which is exactly when <var>c</var> equals the mean. The tree uses that best constant separately in each child while choosing a split.</p>
@@ -325,6 +383,8 @@
       <p class="eyebrow">Reproduce the numbers</p>
       <h2 id="python-title">Verify in Python</h2>
       <p>The first script checks the arithmetic for the questions we chose. The scikit-learn example fits both trees from the training rows, then checks the learned models.</p>
+      <div class="course-code-link"><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb">Open the teaching notebook in Colab</a></div>
+      <p>Run the notebook from the top before teaching. Jump to the split calculation for a short live run, then use the tree trace, depth comparison, and numerical prediction sections when you return.</p>
       {{PYTHON_PANEL}}
     </section>
     <footer class="lesson-footer">
@@ -360,6 +420,9 @@
 </script>
 <script>
 {{GINI_JS}}
+</script>
+<script>
+{{MULTIWAY_JS}}
 </script>
 <script>
 {{JS}}

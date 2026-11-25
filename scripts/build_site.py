@@ -47,6 +47,12 @@ def load_labs():
                 raise SystemExit(f"Missing {field} in {manifest}")
         if bool(lab.get("builder")) == bool(lab.get("entry")):
             raise SystemExit(f"Specify exactly one builder or entry in {manifest}")
+        links = lab.get("lesson_links", {})
+        if not isinstance(links, dict) or not all(
+            re.fullmatch(r"[a-z0-9-]+", anchor) and isinstance(label, str) and label.strip()
+            for anchor, label in links.items()
+        ):
+            raise SystemExit(f"Invalid lesson links in {manifest}")
         seen.add(slug)
         lab["directory"] = manifest.parent
         labs.append(lab)
@@ -71,10 +77,18 @@ def render_card(lab):
     notebook_link = ""
     if (lab["directory"] / "notebooks").is_dir():
         notebook_link = f'<a class="text-link" href="{GITHUB_URL}/tree/main/labs/{slug}/notebooks">Python notebooks ↗</a>'
+    lesson_links = lab.get("lesson_links", {})
+    if lesson_links:
+        actions = "".join(
+            f'<a class="button{" primary" if index == 0 else ""}" href="./{slug}/#{anchor}">{html.escape(label)}</a>'
+            for index, (anchor, label) in enumerate(lesson_links.items())
+        )
+    else:
+        actions = f'<a class="button primary" href="./{slug}/">Open playground <span aria-hidden="true">→</span></a>'
     return f'''<article class="lab-card">
 <a class="lab-preview" href="./{slug}/" aria-label="Open {title}">{artwork}</a>
 <div class="lab-copy"><div class="topic-tags">{tags}</div><h2>{title}</h2><p>{description}</p>
-<div class="card-actions"><a class="button primary" href="./{slug}/">Open playground <span aria-hidden="true">→</span></a>{notebook_link}</div></div>
+<div class="card-actions">{actions}{notebook_link}</div></div>
 </article>'''
 
 

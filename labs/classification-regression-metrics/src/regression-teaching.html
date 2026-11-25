@@ -1,0 +1,73 @@
+<section class="regression-teaching" id="regression-teaching" aria-labelledby="regression-teaching-title">
+  <div class="rg-teaching-opening">
+    <div>
+      <h2 id="regression-teaching-title">How far off was our arrival estimate?</h2>
+      <p>Asha’s courier leaves at noon. The app estimates 25 minutes to arrival. The order actually takes 20. After delivery, Asha has both numbers and can measure the miss.</p>
+      <p class="rg-teaching-context">We’ll follow five completed deliveries from a single residual to a comparison against a reference prediction. Every duration is measured from dispatch.</p>
+    </div>
+    <!-- REGRESSION_STORY_IMAGE -->
+  </div>
+  <div class="rg-teaching-workbench">
+    <nav class="rg-teaching-steps" aria-label="Regression lesson steps">
+      <button class="button" type="button" data-rg-step="residual" aria-pressed="true">Trace one order</button>
+      <button class="button" type="button" data-rg-step="python" aria-pressed="false">Run Python</button>
+      <button class="button" type="button" data-rg-step="error" aria-pressed="false">Compare error size</button>
+      <button class="button" type="button" data-rg-step="reference" aria-pressed="false">Read R²</button>
+      <button class="button" type="button" data-rg-step="choice" aria-pressed="false">Choose a metric</button>
+    </nav>
+    <div class="rg-teaching-pane" id="rg-residual-pane" data-rg-pane="residual">
+      <h3>Follow the forecast to the actual arrival</h3>
+      <p>The prediction comes first. Once the order arrives, compute <strong>residual = actual − predicted</strong>. The sign tells you the direction of the miss.</p>
+      <label for="rg-order">Delivery order</label>
+      <select id="rg-order"></select>
+      <div id="rg-timeline"></div>
+      <div id="rg-order-reading" class="rg-teaching-callout" aria-live="polite"></div>
+    </div>
+    <div class="rg-teaching-pane" id="rg-python-pane" data-rg-pane="python" hidden>
+      <h3>Calculate the first miss in Python</h3>
+      <p>Pair each observed duration with its estimate. The first subtraction gives E01’s signed miss. The mean of the absolute values gives the overall miss in minutes.</p>
+      <pre class="rg-python-example"><code id="rg-python-code"></code></pre>
+      <p class="rg-teaching-callout">In the Colab notebook, run <strong>A short Python run</strong>. Change E01’s estimate from 25 to 20 and see MAE fall from 5 to 4 minutes.</p>
+    </div>
+    <div class="rg-teaching-pane" id="rg-error-pane" data-rg-pane="error" hidden>
+      <h3>Same average miss, different consequences</h3>
+      <p>All five arrivals stay fixed. Compare five misses of 5 minutes with one miss of 25 minutes. Absolute errors add up to the same total. Squared errors react more strongly to the large miss.</p>
+      <div class="button-row rg-error-modes" role="group" aria-label="Residual display">
+        <button class="button small" type="button" data-rg-error="absolute" aria-pressed="true">Absolute error</button>
+        <button class="button small" type="button" data-rg-error="squared" aria-pressed="false">Squared error</button>
+      </div>
+      <div id="rg-error-bars" aria-live="polite"></div>
+      <details class="rg-teaching-detail">
+        <summary>Can positive and negative misses cancel?</summary>
+        <p>With the same arrivals, imagine the app predicts five minutes early for the first order and five minutes late for the second. The other predictions are exact.</p>
+        <div id="rg-cancelled"></div>
+      </details>
+    </div>
+    <div class="rg-teaching-pane" id="rg-reference-pane" data-rg-pane="reference" hidden>
+      <h3>Ask how much squared error the model saves</h3>
+      <p>Compare <strong>SSE</strong>, the model’s sum of squared residuals, with <strong>SST</strong>, the sum of squared distances from the mean of the actual arrivals. Both totals use the same observations.</p>
+      <label for="rg-reference">Prediction set</label>
+      <select id="rg-reference"></select>
+      <div id="rg-reference-bars" aria-live="polite"></div>
+      <details class="rg-teaching-detail">
+        <summary>What if every delivery takes the same amount of time?</summary>
+        <p>Then every actual value equals its mean, so SST is zero and the usual R² ratio has no numerical value. MAE and RMSE can still describe the misses.</p>
+      </details>
+    </div>
+    <div class="rg-teaching-pane" id="rg-choice-pane" data-rg-pane="choice" hidden>
+      <h3>Pick the metric that answers your question</h3>
+      <dl class="rg-choice-list">
+        <div><dt>What size miss should I expect?</dt><dd><strong>MAE</strong> averages the absolute miss in minutes. Each missed minute adds the same amount.</dd></div>
+        <div><dt>Do big misses matter more?</dt><dd><strong>MSE</strong> averages squared misses in minutes². <strong>RMSE</strong> takes its square root and reports the result in minutes.</dd></div>
+        <div><dt>How much better is this than the mean reference?</dt><dd><strong>R²</strong> gives the relative reduction in squared error. Zero matches the reference and a negative value means worse. It is unitless.</dd></div>
+        <div><dt>Are our estimates systematically high or low?</dt><dd><strong>Mean residual</strong> shows average direction. Pair it with an error-size metric because positive and negative residuals can cancel.</dd></div>
+      </dl>
+      <p class="rg-teaching-callout">The evaluation-target mean is the mathematical reference for R². To compare against a deployable constant predictor, fit that predictor on training data and evaluate it on held-out deliveries.</p>
+    </div>
+  </div>
+  <div class="rg-teaching-actions button-row">
+    <button class="button primary" id="rg-jump-to-explorer" type="button">Explore the full residual plot</button>
+    <a class="button" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/classification-regression-metrics/notebooks/regression-metrics-teaching.ipynb" target="_blank" rel="noopener noreferrer">Open the regression notebook in Colab</a>
+  </div>
+  <script id="regression-teaching-fixture" type="application/json"><!-- REGRESSION_TEACHING_DATA --></script>
+</section>

@@ -7,6 +7,10 @@
     "Regression",
     "Model evaluation"
   ],
+  "lesson_links": {
+    "classification": "Classification Metrics",
+    "regression": "Regression Metrics"
+  },
   "builder": "scripts/build_lab.py",
   "preview": "assets/classification-regression-metrics.jpg"
 }
