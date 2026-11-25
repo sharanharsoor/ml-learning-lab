@@ -107,6 +107,7 @@
         <ol id="bag-drawn-rows" class="bag-drawn" aria-label="Draws in order"></ol>
         <p id="bag-draw-current" class="bag-readout" aria-live="polite"></p>
         <div id="bag-sample-counts" class="bag-sample-counts"></div>
+        <p class="bag-quiz-cue">Quiz 2</p>
       </div>
       <ol class="bag-steps">
         <li><strong>Draw a whole row.</strong> P2 carries its weight (2.0), scan score (5.0), and recorded route (Auto) together. The measurements are features. The route is the label the tree learns to predict.</li>
@@ -152,6 +153,7 @@ tree.predict(parcel)</code></pre>
         <div class="panel-heading"><div><h2>Follow the parcel through each tree</h2><p>Start with Tree 1. Compare the parcel’s scan score of 5.7 with the first cutoff. Then switch to Tree 2 and make the same comparison.</p></div><div class="segmented bag-tree-picker" id="bag-tree-picker" aria-label="Select a tree"></div></div>
         <div class="bag-tree-meta" id="bag-tree-meta"></div>
         <div id="bag-tree-plot" class="tree-diagram"></div>
+        <p class="bag-quiz-cue">Quiz 3</p>
         <div class="bag-actions"><button type="button" class="button primary" id="bag-vote-next">Reveal next vote</button><button type="button" class="button secondary" id="bag-vote-reset">Reset votes</button></div>
         <div id="bag-votes" aria-live="polite"></div>
       </div>
@@ -185,6 +187,7 @@ tree.predict(parcel)</code></pre>
         <label>Features considered <select id="bag-feature-mode"><option value="all">Both features</option><option value="one">One feature at each node</option></select></label></div>
         <div class="bag-actions"><button id="bag-feature-next" class="button primary" type="button">Reveal next feature draw</button></div>
         <div class="bag-pair" id="bag-features" aria-live="polite"></div>
+        <p class="bag-quiz-cue">Quiz 4</p>
         <div class="bag-worked"><p><strong>Try it.</strong> Start with <strong>Both features</strong> and read the best question at the root. Click <strong>Reveal next feature draw</strong>. Which question can the root choose when only Weight is offered? Which feature is offered to the Yes child?</p></div>
         <details class="teaching-note"><summary>Check the first feature draw</summary><p>With both features available, the root picks <strong>Scan score ≤ 5.25</strong> for a Gini decrease of <strong>0.3111</strong>. The first one-feature draw offers only Weight at the root, where <strong>Weight ≤ 3</strong> gives a decrease of <strong>0.2963</strong>. It offers Scan score at the fixed Yes child, where <strong>Scan score ≤ 3.75</strong> gives a decrease of <strong>0.0533</strong>.</p></details>
         <p class="small">These are seeded candidate-list comparisons at two fixed nodes from the original tree. A forest fits its own downstream nodes after each selected split.</p>
