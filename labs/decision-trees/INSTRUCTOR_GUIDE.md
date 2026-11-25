@@ -16,6 +16,8 @@ Open [Draw the splits](https://sharanharsoor.github.io/ml-learning-lab/decision-
 
 Select the No region on either the plot or the tree. Choose Horizontal and apply Scan score 5. Point out where the line ends at the first cut. It divides only the No region. Compare the three leaf predictions with the shaded regions, then undo a cut to try a different question. The worked example builds these same two cuts.
 
+Turn on **Show logistic regression boundary** with both tree cuts visible. The blue line is where logistic regression, fitted to the same weight and scan-score data, predicts a 50% chance of Review. It matches 20 of the 21 training labels, and the worked tree matches all 21. Ask learners to find the Review parcel at weight 6 and scan score 6.6 on the Auto side of the line. That parcel lies inside a triangle formed by three Auto parcels, so a single straight line cannot separate it from all three.
+
 Ask how the tree could compare the possible cuts without our help. Use that question to introduce entropy.
 
 ## Turn surprise into a split score

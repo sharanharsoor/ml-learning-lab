@@ -242,4 +242,50 @@ const boundaryPlot = context.TreeLabBoundaryPlot.render(twice, 'rootr');
 assert.match(boundaryPlot, /x1="290" y1="162" x2="516" y2="162" data-boundary-split="rootr"/);
 assert.equal((boundaryPlot.match(/data-boundary-region=/g) || []).length, 3);
 assert.match(context.TreeLabDiagram.render(twice), /Z ≤ 5\?/);
-console.log('PASS: split scores, stopping, evaluation, deep entropy, feature credit, regression, and drawn decision regions.');
+
+const { logistic } = boundary;
+const { intercept, weight: weightCoefficient, scan: scanCoefficient } = logistic;
+assert.ok([intercept, weightCoefficient, scanCoefficient].every(Number.isFinite));
+assert.ok(weightCoefficient > 0 && scanCoefficient > 0, 'Both features increase Review odds in this fixture');
+const logisticScore = (x, z) => intercept + weightCoefficient * x + scanCoefficient * z;
+assert.equal(logistic.matches, uncut.rows.filter(({ x, z, label }) => Number(logisticScore(x, z) >= 0) === label).length);
+assert.equal(logistic.matches, 20, 'The fitted line misses one of the 21 training parcels');
+
+const { render: renderBoundaryPlot } = context.TreeLabBoundaryPlot;
+assert.doesNotMatch(boundaryPlot, /data-boundary-logistic/);
+const comparedPlot = renderBoundaryPlot(twice, 'rootr', null, logistic);
+assert.match(comparedPlot, /aria-label="[^"]*50%[^"]*Review/);
+assert.equal((comparedPlot.match(/data-boundary-region=/g) || []).length, 3);
+assert.equal((comparedPlot.match(/data-boundary-split=/g) || []).length, 2);
+assert.match(renderBoundaryPlot(once, 'rootr', second, logistic), /data-boundary-draft/);
+
+function logisticLine(plot) {
+  const lines = plot.match(/<line\b[^>]*\bdata-boundary-logistic\b[^>]*>/g) || [];
+  assert.equal(lines.length, 1, 'The overlay draws a single straight line');
+  return ['x1', 'y1', 'x2', 'y2'].map(attribute => {
+    const value = lines[0].match(new RegExp(' ' + attribute + '="([^"]+)"'));
+    assert.ok(value, 'The overlay has an ' + attribute + ' coordinate');
+    return Number(value[1]);
+  });
+}
+
+const [x1, y1, x2, y2] = logisticLine(comparedPlot);
+assert.notDeepEqual([x1, y1], [x2, y2]);
+for (const [x, y] of [[x1, y1], [x2, y2]]) {
+  assert.ok(x >= 64 && x <= 516 && y >= 16 && y <= 308, 'The line stays inside the plot');
+  assert.ok(x === 64 || x === 516 || y === 16 || y === 308, 'The line ends at a plot edge');
+  const score = logisticScore((x - 64) * 10 / 452, (308 - y) * 10 / 292);
+  const roundingTolerance = 0.0005 * (weightCoefficient * 10 / 452 + scanCoefficient * 10 / 292) + 1e-12;
+  assert.ok(Math.abs(score) <= roundingTolerance, 'The line lies at 50% predicted Review probability');
+}
+const [verticalX1, verticalY1, verticalX2, verticalY2] = logisticLine(
+  renderBoundaryPlot(uncut, 'root', null, { intercept: -5, weight: 1, scan: 0 }),
+);
+assert.deepEqual([verticalX1, verticalX2], [290, 290]);
+assert.deepEqual([verticalY1, verticalY2].sort((a, b) => a - b), [16, 308], 'A vertical line spans the plot height');
+const [horizontalX1, horizontalY1, horizontalX2, horizontalY2] = logisticLine(
+  renderBoundaryPlot(uncut, 'root', null, { intercept: -5, weight: 0, scan: 1 }),
+);
+assert.deepEqual([horizontalX1, horizontalX2].sort((a, b) => a - b), [64, 516], 'A horizontal line spans the plot width');
+assert.deepEqual([horizontalY1, horizontalY2], [162, 162]);
+console.log('PASS: split scores, stopping, evaluation, deep entropy, feature credit, regression, and decision boundaries.');

@@ -1285,6 +1285,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
   --boundary-auto-region: #d5e9df;
   --boundary-review-region: #f4e0d5;
   --boundary-selection: #5d438e;
+  --boundary-logistic: #17488d;
   container: boundary-lab / inline-size;
 }
 
@@ -1319,6 +1320,38 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
 
 .boundary-instructions, .boundary-next {
   color: var(--muted);
+}
+
+.boundary-logistic-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 2.65rem;
+  margin-top: .35rem;
+  color: var(--boundary-logistic);
+  font-size: .92rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.boundary-logistic-toggle input {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--boundary-logistic);
+  cursor: pointer;
+}
+
+.boundary-logistic-key {
+  flex: none;
+  width: 1.45rem;
+  height: 3px;
+  background: linear-gradient(to right, currentColor 48%, transparent 48% 65%, currentColor 65% 77%, transparent 77% 87%, currentColor 87%);
+}
+
+.boundary-logistic-note {
+  color: var(--boundary-logistic);
 }
 
 .boundary-status {
@@ -1432,7 +1465,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
 }
 
 .boundary-chart__grid, .boundary-chart__frame, .boundary-chart__selection,
-.boundary-chart__split, .boundary-chart__draft {
+.boundary-chart__split, .boundary-chart__draft, .boundary-chart__logistic {
   fill: none;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
@@ -1467,6 +1500,12 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
   stroke: var(--boundary-selection);
   stroke-width: 2.75;
   stroke-dasharray: 6 5;
+}
+
+.boundary-chart__logistic {
+  stroke: var(--boundary-logistic);
+  stroke-width: 3;
+  stroke-dasharray: 11 5 2 5;
 }
 
 .boundary-chart__point {
@@ -1679,6 +1718,11 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
           <button type="submit" class="button primary" id="boundary-apply">Apply cut</button>
         </form>
         <p class="small boundary-instructions" id="boundary-instructions">Click or drag on the plot to place the dashed cut, or choose a cutoff above. Apply the cut, then select one child on the plot or tree to make the next cut there.</p>
+        <label class="boundary-logistic-toggle">
+          <input type="checkbox" id="boundary-logistic" aria-controls="boundary-plot boundary-logistic-note">
+          <span class="boundary-logistic-key" aria-hidden="true"></span>
+          <span>Show logistic regression boundary</span>
+        </label>
 
         <div class="boundary-layout">
           <figure class="boundary-figure">
@@ -1691,6 +1735,7 @@ button.deep-graph-card:hover { background: var(--light); border-color: var(--tea
             </figcaption>
             <div id="boundary-plot"></div>
             <p class="small"><i class="boundary-region-key" aria-hidden="true"></i> Shading shows what the leaf predicts. Each point keeps its recorded label.</p>
+            <p class="small boundary-logistic-note" id="boundary-logistic-note" hidden></p>
           </figure>
           <div class="boundary-tree-panel">
             <h3>Matching tree</h3>
@@ -2582,6 +2627,47 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   const bounds = { xMin: 0, xMax: 10, zMin: 0, zMax: 10 };
   const demo = { first: { feature: 'x', threshold: 5 }, second: { path: 'rootr', feature: 'z', threshold: 5 } };
 
+  function fitLogistic(rows, bounds) {
+    const xScale = (bounds.xMax - bounds.xMin) / 2;
+    const zScale = (bounds.zMax - bounds.zMin) / 2;
+    const xCenter = bounds.xMin + xScale;
+    const zCenter = bounds.zMin + zScale;
+    const data = rows.map(({ x, z, label }) => ({ x: (x - xCenter) / xScale, z: (z - zCenter) / zScale, label }));
+    // Minimize mean binary log loss with a small L2 penalty on the scaled slopes.
+    // The intercept is unpenalized. The log-loss curvature is at most 3/4 for inputs in [-1, 1].
+    const penalty = 0.002;
+    const step = 2;
+    let intercept = 0;
+    let weight = 0;
+    let scan = 0;
+    for (let iteration = 0; iteration < 2000; iteration++) {
+      let interceptGradient = 0;
+      let weightGradient = 0;
+      let scanGradient = 0;
+      for (const { x, z, label } of data) {
+        const score = intercept + weight * x + scan * z;
+        const residual = 1 / (1 + Math.exp(-score)) - label;
+        interceptGradient += residual;
+        weightGradient += residual * x;
+        scanGradient += residual * z;
+      }
+      interceptGradient /= data.length;
+      weightGradient = weightGradient / data.length + penalty * weight;
+      scanGradient = scanGradient / data.length + penalty * scan;
+      if (Math.max(Math.abs(interceptGradient), Math.abs(weightGradient), Math.abs(scanGradient)) < 1e-9) break;
+      intercept -= step * interceptGradient;
+      weight -= step * weightGradient;
+      scan -= step * scanGradient;
+    }
+
+    // Convert back to the plot's original axes before drawing the score-zero line.
+    weight /= xScale;
+    scan /= zScale;
+    intercept -= weight * xCenter + scan * zCenter;
+    const matches = rows.filter(({ x, z, label }) => Number(intercept + weight * x + scan * z >= 0) === label).length;
+    return { intercept, weight, scan, matches };
+  }
+
   function leaf(path, bounds, rows, summary = stats(rows, 'entropy')) {
     return { path, bounds, rows, stats: summary, split: null, left: null, right: null, gain: 0 };
   }
@@ -2634,7 +2720,8 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     return replace(tree);
   }
 
-  globalThis.TreeLabBoundaryModel = { rows, bounds, demo, create, getNode, leaves, availableCuts, applyCut };
+  const logistic = fitLogistic(rows, bounds);
+  globalThis.TreeLabBoundaryModel = { rows, bounds, demo, logistic, create, getNode, leaves, availableCuts, applyCut };
 })();
 
 (() => {
@@ -2690,6 +2777,31 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     const classes = 'boundary-chart__split' + (node.path === selectedPath ? ' boundary-chart__split--selected' : '');
     return splitLine(node, node.split, bounds, classes, ' data-boundary-split="' + escape(node.path) + '"') +
       splits(node.left, bounds, selectedPath) + splits(node.right, bounds, selectedPath);
+  }
+
+  function logisticBoundary({ intercept, weight, scan }, bounds) {
+    const { xMin, xMax, zMin, zMax } = bounds;
+    const corners = [[xMin, zMin], [xMax, zMin], [xMax, zMax], [xMin, zMax]];
+    const scores = corners.map(([x, z]) => intercept + weight * x + scan * z);
+    const intersections = [];
+
+    // Find where the score reaches zero along the four edges of the plot.
+    corners.forEach(([x, z], index) => {
+      const next = (index + 1) % corners.length;
+      const score = scores[index];
+      const nextScore = scores[next];
+      if (score === 0) intersections.push([x, z]);
+      else if (score * nextScore < 0) {
+        const [nextX, nextZ] = corners[next];
+        const fraction = score / (score - nextScore);
+        intersections.push([x + (nextX - x) * fraction, z + (nextZ - z) * fraction]);
+      }
+    });
+
+    if (intersections.length !== 2) return '';
+    const [[x1, z1], [x2, z2]] = intersections;
+    return line(pointX(x1, bounds), pointY(z1, bounds), pointX(x2, bounds), pointY(z2, bounds),
+      'boundary-chart__logistic', ' data-boundary-logistic');
   }
 
   function regionRects(leaves, bounds) {
@@ -2751,7 +2863,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     return { grid, labels };
   }
 
-  function render(tree, selectedPath, draft = null) {
+  function render(tree, selectedPath, draft = null, logistic = null) {
     const { bounds, rows } = tree;
     const selected = TreeLabBoundaryModel.getNode(tree, selectedPath);
     const leaves = tree.split ? TreeLabBoundaryModel.leaves(tree) : [];
@@ -2760,16 +2872,18 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     const preview = selected && !selected.split && draft
       ? splitLine(selected, draft, bounds, 'boundary-chart__draft', ' data-boundary-draft')
       : '';
+    const overlay = logistic ? logisticBoundary(logistic, bounds) : '';
     const description = 'Weight by scan score for ' + rows.length + ' labeled parcels. ' +
       (leaves.length ? leaves.length + ' prediction regions. ' : 'No cut applied. ') +
-      'Circles are Auto. Diamonds are Review.';
+      'Circles are Auto. Diamonds are Review.' +
+      (overlay ? ' The logistic regression line marks a 50% predicted probability of Review.' : '');
     return '<svg class="boundary-chart" viewBox="0 0 ' + viewWidth + ' ' + viewHeight +
       '" data-boundary-chart role="img" aria-label="' + description +
       '" data-x-min="' + bounds.xMin + '" data-x-max="' + bounds.xMax +
       '" data-z-min="' + bounds.zMin + '" data-z-max="' + bounds.zMax + '">' +
       rect(chartRect, 'boundary-chart__surface') + regionRects(leaves, bounds) + grid +
       rect(chartRect, 'boundary-chart__frame') + selection(selected, bounds) +
-      splits(tree, bounds, selectedPath) + preview + regionLabels(leaves, bounds) + marks(rows, bounds) + labels +
+      splits(tree, bounds, selectedPath) + preview + overlay + regionLabels(leaves, bounds) + marks(rows, bounds) + labels +
       '<text class="boundary-chart__axis-title" text-anchor="middle" x="' + (box.left + width / 2) +
       '" y="357">Weight X</text>' +
       '<text class="boundary-chart__axis-title" text-anchor="middle" transform="translate(18 ' +
@@ -2798,7 +2912,7 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 (() => {
   'use strict';
 
-  const { create, getNode, leaves, availableCuts, applyCut, demo } = TreeLabBoundaryModel;
+  const { create, getNode, leaves, availableCuts, applyCut, demo, logistic } = TreeLabBoundaryModel;
   const { render: drawPlot, pointAt } = TreeLabBoundaryPlot;
   const get = name => document.getElementById('boundary-' + name);
   const form = get('settings');
@@ -2811,6 +2925,8 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   const undo = get('undo');
   const reset = get('reset');
   const example = get('demo');
+  const logisticToggle = get('logistic');
+  const logisticNote = get('logistic-note');
   const maxCuts = 2;
   const history = [];
   let tree = create();
@@ -2830,7 +2946,9 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
   }
 
   function paintPlot() {
-    plot.innerHTML = drawPlot(tree, selectedPath, draft);
+    const showLogistic = logisticToggle.checked;
+    plot.innerHTML = drawPlot(tree, selectedPath, draft, showLogistic ? logistic : null);
+    logisticNote.hidden = !showLogistic;
   }
 
   function render() {
@@ -2907,6 +3025,10 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     render();
   });
   cutoff.addEventListener('change', () => setDraft(cutoff.value));
+  logisticNote.textContent = 'The blue line marks a 50% predicted probability of Review. ' +
+    'The model predicts Review toward the upper right and matches ' + logistic.matches + ' of ' +
+    tree.stats.n + ' training labels.';
+  logisticToggle.addEventListener('change', paintPlot);
   form.addEventListener('submit', event => {
     event.preventDefault();
     if (!draft || history.length >= maxCuts) return;

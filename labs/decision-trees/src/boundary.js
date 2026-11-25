@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { create, getNode, leaves, availableCuts, applyCut, demo } = TreeLabBoundaryModel;
+  const { create, getNode, leaves, availableCuts, applyCut, demo, logistic } = TreeLabBoundaryModel;
   const { render: drawPlot, pointAt } = TreeLabBoundaryPlot;
   const get = name => document.getElementById('boundary-' + name);
   const form = get('settings');
@@ -14,6 +14,8 @@
   const undo = get('undo');
   const reset = get('reset');
   const example = get('demo');
+  const logisticToggle = get('logistic');
+  const logisticNote = get('logistic-note');
   const maxCuts = 2;
   const history = [];
   let tree = create();
@@ -33,7 +35,9 @@
   }
 
   function paintPlot() {
-    plot.innerHTML = drawPlot(tree, selectedPath, draft);
+    const showLogistic = logisticToggle.checked;
+    plot.innerHTML = drawPlot(tree, selectedPath, draft, showLogistic ? logistic : null);
+    logisticNote.hidden = !showLogistic;
   }
 
   function render() {
@@ -110,6 +114,10 @@
     render();
   });
   cutoff.addEventListener('change', () => setDraft(cutoff.value));
+  logisticNote.textContent = 'The blue line marks a 50% predicted probability of Review. ' +
+    'The model predicts Review toward the upper right and matches ' + logistic.matches + ' of ' +
+    tree.stats.n + ' training labels.';
+  logisticToggle.addEventListener('change', paintPlot);
   form.addEventListener('submit', event => {
     event.preventDefault();
     if (!draft || history.length >= maxCuts) return;

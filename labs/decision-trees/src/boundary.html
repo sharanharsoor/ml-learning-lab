@@ -14,6 +14,11 @@
           <button type="submit" class="button primary" id="boundary-apply">Apply cut</button>
         </form>
         <p class="small boundary-instructions" id="boundary-instructions">Click or drag on the plot to place the dashed cut, or choose a cutoff above. Apply the cut, then select one child on the plot or tree to make the next cut there.</p>
+        <label class="boundary-logistic-toggle">
+          <input type="checkbox" id="boundary-logistic" aria-controls="boundary-plot boundary-logistic-note">
+          <span class="boundary-logistic-key" aria-hidden="true"></span>
+          <span>Show logistic regression boundary</span>
+        </label>
 
         <div class="boundary-layout">
           <figure class="boundary-figure">
@@ -26,6 +31,7 @@
             </figcaption>
             <div id="boundary-plot"></div>
             <p class="small"><i class="boundary-region-key" aria-hidden="true"></i> Shading shows what the leaf predicts. Each point keeps its recorded label.</p>
+            <p class="small boundary-logistic-note" id="boundary-logistic-note" hidden></p>
           </figure>
           <div class="boundary-tree-panel">
             <h3>Matching tree</h3>

@@ -53,6 +53,31 @@
       splits(node.left, bounds, selectedPath) + splits(node.right, bounds, selectedPath);
   }
 
+  function logisticBoundary({ intercept, weight, scan }, bounds) {
+    const { xMin, xMax, zMin, zMax } = bounds;
+    const corners = [[xMin, zMin], [xMax, zMin], [xMax, zMax], [xMin, zMax]];
+    const scores = corners.map(([x, z]) => intercept + weight * x + scan * z);
+    const intersections = [];
+
+    // Find where the score reaches zero along the four edges of the plot.
+    corners.forEach(([x, z], index) => {
+      const next = (index + 1) % corners.length;
+      const score = scores[index];
+      const nextScore = scores[next];
+      if (score === 0) intersections.push([x, z]);
+      else if (score * nextScore < 0) {
+        const [nextX, nextZ] = corners[next];
+        const fraction = score / (score - nextScore);
+        intersections.push([x + (nextX - x) * fraction, z + (nextZ - z) * fraction]);
+      }
+    });
+
+    if (intersections.length !== 2) return '';
+    const [[x1, z1], [x2, z2]] = intersections;
+    return line(pointX(x1, bounds), pointY(z1, bounds), pointX(x2, bounds), pointY(z2, bounds),
+      'boundary-chart__logistic', ' data-boundary-logistic');
+  }
+
   function regionRects(leaves, bounds) {
     return leaves.map(node => rect(plotRect(node.bounds, bounds),
       'boundary-chart__region boundary-chart__region--' + className(node.stats.prediction),
@@ -112,7 +137,7 @@
     return { grid, labels };
   }
 
-  function render(tree, selectedPath, draft = null) {
+  function render(tree, selectedPath, draft = null, logistic = null) {
     const { bounds, rows } = tree;
     const selected = TreeLabBoundaryModel.getNode(tree, selectedPath);
     const leaves = tree.split ? TreeLabBoundaryModel.leaves(tree) : [];
@@ -121,16 +146,18 @@
     const preview = selected && !selected.split && draft
       ? splitLine(selected, draft, bounds, 'boundary-chart__draft', ' data-boundary-draft')
       : '';
+    const overlay = logistic ? logisticBoundary(logistic, bounds) : '';
     const description = 'Weight by scan score for ' + rows.length + ' labeled parcels. ' +
       (leaves.length ? leaves.length + ' prediction regions. ' : 'No cut applied. ') +
-      'Circles are Auto. Diamonds are Review.';
+      'Circles are Auto. Diamonds are Review.' +
+      (overlay ? ' The logistic regression line marks a 50% predicted probability of Review.' : '');
     return '<svg class="boundary-chart" viewBox="0 0 ' + viewWidth + ' ' + viewHeight +
       '" data-boundary-chart role="img" aria-label="' + description +
       '" data-x-min="' + bounds.xMin + '" data-x-max="' + bounds.xMax +
       '" data-z-min="' + bounds.zMin + '" data-z-max="' + bounds.zMax + '">' +
       rect(chartRect, 'boundary-chart__surface') + regionRects(leaves, bounds) + grid +
       rect(chartRect, 'boundary-chart__frame') + selection(selected, bounds) +
-      splits(tree, bounds, selectedPath) + preview + regionLabels(leaves, bounds) + marks(rows, bounds) + labels +
+      splits(tree, bounds, selectedPath) + preview + overlay + regionLabels(leaves, bounds) + marks(rows, bounds) + labels +
       '<text class="boundary-chart__axis-title" text-anchor="middle" x="' + (box.left + width / 2) +
       '" y="357">Weight X</text>' +
       '<text class="boundary-chart__axis-title" text-anchor="middle" transform="translate(18 ' +

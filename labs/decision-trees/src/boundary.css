@@ -2,6 +2,7 @@
   --boundary-auto-region: #d5e9df;
   --boundary-review-region: #f4e0d5;
   --boundary-selection: #5d438e;
+  --boundary-logistic: #17488d;
   container: boundary-lab / inline-size;
 }
 
@@ -36,6 +37,38 @@
 
 .boundary-instructions, .boundary-next {
   color: var(--muted);
+}
+
+.boundary-logistic-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 2.65rem;
+  margin-top: .35rem;
+  color: var(--boundary-logistic);
+  font-size: .92rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.boundary-logistic-toggle input {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--boundary-logistic);
+  cursor: pointer;
+}
+
+.boundary-logistic-key {
+  flex: none;
+  width: 1.45rem;
+  height: 3px;
+  background: linear-gradient(to right, currentColor 48%, transparent 48% 65%, currentColor 65% 77%, transparent 77% 87%, currentColor 87%);
+}
+
+.boundary-logistic-note {
+  color: var(--boundary-logistic);
 }
 
 .boundary-status {
@@ -149,7 +182,7 @@
 }
 
 .boundary-chart__grid, .boundary-chart__frame, .boundary-chart__selection,
-.boundary-chart__split, .boundary-chart__draft {
+.boundary-chart__split, .boundary-chart__draft, .boundary-chart__logistic {
   fill: none;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
@@ -184,6 +217,12 @@
   stroke: var(--boundary-selection);
   stroke-width: 2.75;
   stroke-dasharray: 6 5;
+}
+
+.boundary-chart__logistic {
+  stroke: var(--boundary-logistic);
+  stroke-width: 3;
+  stroke-dasharray: 11 5 2 5;
 }
 
 .boundary-chart__point {
