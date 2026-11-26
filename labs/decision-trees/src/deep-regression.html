@@ -5,8 +5,8 @@
 
       <div class="panel deep-regression-explorer">
         <div class="panel-heading deep-regression-header">
-          <div><h3>Trace a new parcel</h3><p>Change its inputs, then follow the purple path to its leaf.</p></div>
-          <label class="regression-control">Maximum split depth
+          <div><h3>Trace a new parcel</h3><p>Give the fitted tree a new parcel’s inputs. Follow the purple path to get its predicted time.</p></div>
+          <label class="regression-control">Maximum tree depth
             <select id="deep-regression-depth"><option value="4">4</option><option value="5" selected>5</option></select>
           </label>
         </div>
@@ -16,6 +16,7 @@
           <label>Scan score Z <input name="z" type="number" min="0" step="any" required value="4"></label>
           <button type="submit" class="button primary">Trace parcel</button>
         </form>
+        <p class="small" id="deep-regression-input-status" role="status"></p>
         <div class="regression-route-result" id="deep-regression-prediction" aria-live="polite"></div>
         <details class="teaching-note">
           <summary>Read the decisions on this parcel’s path</summary>
@@ -38,6 +39,6 @@
           </table></div>
         </details>
       </div>
-      <p>With the starting parcel, depth 4 stops at the <strong>13.8-minute</strong> leaf. At depth 5, the extra scan-score question sends it to a leaf predicting <strong>15 minutes</strong>. Change the scan score to 2 to reach the other leaf.</p>
+      <p>With the starting parcel, depth 4 stops at the <strong>13.8-minute</strong> leaf. At depth 5, the extra scan-score question sends it to a leaf predicting <strong>15 minutes</strong>. Set the scan score to 2, then choose <strong>Trace parcel</strong> to reach the leaf that predicts <strong>13 minutes</strong>.</p>
       <p class="transition">The Python chapter reproduces the arithmetic for the earlier, smaller parcel example.</p>
     </section>

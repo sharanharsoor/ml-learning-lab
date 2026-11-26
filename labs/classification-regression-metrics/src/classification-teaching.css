@@ -7,6 +7,7 @@
 .class-teach-timeline { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; padding: 0; margin: 1rem 0; }
 .class-teach-timeline li { background: var(--teal-light); padding: .65rem .85rem; border-radius: .42rem; }
 .class-teach-timeline span { display: block; color: var(--muted); }
+.class-teach-context { max-width: 50rem; color: var(--muted); }
 .class-teach-route { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .65rem; }
 .class-teach-panel { border: 1px solid var(--line); background: var(--white); border-radius: var(--radius); padding: clamp(.85rem, 2.5vw, 1.65rem); }
 .class-teach-panel p { max-width: 51rem; }
@@ -24,6 +25,7 @@
 .class-teach-outcome small { display: block; overflow-wrap: anywhere; }
 .class-teach-outcome-active { border-radius: .4rem .4rem 0 0; background: var(--teal-light); box-shadow: inset 0 0 0 2px var(--teal); }
 .class-teach-compare, .class-teach-rate-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.class-teach-rate-cards { margin-top: 1rem; }
 .class-teach-compare h4, .class-teach-rate-cards h4 { font-size: 1rem; margin: 0 0 .35rem; }
 .class-teach-changes { display: grid; gap: .35rem; list-style: none; padding: 0; margin: 0; }
 .class-teach-changes li { display: flex; align-items: baseline; flex-wrap: wrap; gap: .3rem .55rem; border-radius: .35rem; padding: .45rem .55rem; background: var(--teal-light); }

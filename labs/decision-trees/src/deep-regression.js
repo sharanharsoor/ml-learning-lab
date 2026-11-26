@@ -25,6 +25,7 @@
     const inspector = get('deep-regression-inspector');
     const prediction = get('deep-regression-prediction');
     const routeList = get('deep-regression-route');
+    const inputStatus = get('deep-regression-input-status');
 
     let parcel = readParcel();
     let selectedPath = 'rootlrrl';
@@ -36,15 +37,23 @@
 
     function renderSplit({ result, depth }) {
       const { parent, leftStats, rightStats, weighted, gain } = result;
-      const child = (label, group) => '<div class="child ' + label.toLowerCase() + '"><h4>' + label + ' child</h4>' +
-        '<p><strong>Mean ' + number(group.mean) + ' min</strong> · ' + group.n + ' parcels</p>' +
-        '<p class="arithmetic">' + number(group.mean * group.n) + '/' + group.n + ' = ' +
-        number(group.mean) + ' min</p><p>MSE <strong>' + number(group.score) + ' min²</strong></p></div>';
+      function child(label, rows, group) {
+        const times = rows.map(row => row.minutes);
+        const mean = number(group.mean);
+        const squaredErrors = times.map(time => '(' + time + ' − ' + mean + ')²');
+        return '<div class="child ' + label.toLowerCase() + '"><h4>' + label + ' child</h4>' +
+          '<p><strong>Mean ' + mean + ' min</strong> · ' + group.n + ' parcels</p>' +
+          '<p class="small"><strong>Observed times</strong> ' + times.join(', ') + ' min</p>' +
+          '<p class="arithmetic">(' + times.join(' + ') + ') / ' + group.n + ' ≈ ' + mean +
+          ' min</p><details class="teaching-note"><summary>MSE ' + number(group.score) + ' min²</summary>' +
+          '<p class="arithmetic">[' + squaredErrors.join(' + ') + '] / ' + group.n + ' ≈ ' +
+          number(group.score) + ' min²</p></details></div>';
+      }
       const term = group => '(' + group.n + '/' + parent.n + ') × ' + number(group.score);
       inspector.innerHTML = '<h3>Depth ' + depth + ' · ' + question(result.split) + '</h3>' +
         '<p class="small">Parent: ' + parent.n + ' parcels, mean ' + number(parent.mean) +
         ' min, MSE ' + number(parent.score) + ' min².</p>' +
-        '<div class="regression-child-summary">' + child('Yes', leftStats) + child('No', rightStats) + '</div>' +
+        '<div class="regression-child-summary">' + child('Yes', result.left, leftStats) + child('No', result.right, rightStats) + '</div>' +
         '<figure id="deep-regression-weighted" class="weighted-visual"></figure>' +
         '<div class="calc-lines"><p><strong>Weighted child MSE</strong> <span class="arithmetic">' +
         term(leftStats) + ' + ' + term(rightStats) + ' ≈ ' + number(weighted) +
@@ -79,9 +88,15 @@
       '<tr><th scope="row">' + row.x + '</th><td>' + row.y + '</td><td>' + row.z + '</td><td>' +
       row.minutes + '</td></tr>').join('');
     depthInput.addEventListener('change', render);
+    form.addEventListener('input', () => {
+      const draft = readParcel();
+      inputStatus.textContent = Object.keys(parcel).some(feature => draft[feature] !== parcel[feature])
+        ? 'Inputs edited. Use Trace parcel to apply them to the path and prediction.' : '';
+    });
     form.addEventListener('submit', event => {
       event.preventDefault();
       parcel = readParcel();
+      inputStatus.textContent = '';
       render();
     });
     graph.addEventListener('click', event => {

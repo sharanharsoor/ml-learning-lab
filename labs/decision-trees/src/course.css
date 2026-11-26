@@ -25,6 +25,22 @@
 .course-story > div { padding: .75rem 1rem; border-radius: .65rem; background: var(--light); }
 .course-story > div:last-child { background: #f9e8df; }
 .course-story p { margin-top: .3rem; }
+.course-data-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .65rem;
+  padding: 0;
+  margin-block: .85rem;
+  list-style: none;
+}
+.course-data-flow li { padding: .7rem .85rem; border: 1px solid var(--line); border-radius: .55rem; background: var(--surface); }
+.course-data-flow strong, .course-data-flow span { display: block; }
+.course-data-flow span { color: var(--muted); margin-top: .25rem; }
+.course-records { margin-block: .5rem; }
+.course-records caption { text-align: left; font-weight: 700; padding-block: .35rem; }
+.prediction-prompt .course-records { grid-column: 1 / -1; }
+.preview-new-record { background: var(--light); }
+#evaluation-model, #importance-model { margin-bottom: .8rem; }
 .course-opener { margin: 1.1rem 0; }
 .course-opener img {
   display: block;

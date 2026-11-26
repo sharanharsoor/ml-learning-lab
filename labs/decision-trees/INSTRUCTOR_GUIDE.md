@@ -6,11 +6,11 @@ Open the [Colab notebook](https://colab.research.google.com/github/sharanharsoor
 
 ## Begin with a decision
 
-A desk sorts each arriving parcel into **Auto (0)** or **Review (1)**. At prediction time the desk knows its weight **X** and packaging code **Y**, either A or B. The recorded disposition is the classification target. The recorded processing time in minutes becomes a separate regression target later. All rows are synthetic.
+A desk sorts each arriving parcel into **Auto (0)** or **Review (1)**. At prediction time the desk knows its weight **X** and packaging code **Y**, either A or B. Staff records supply the training labels. The fitted model receives the new parcel’s two inputs and predicts its route. The recorded processing time in minutes becomes a separate regression target later. All rows are synthetic.
 
 Ask learners to choose a first question using the eight training parcels. Offer “Is X at most 3.5?” and “Is Y equal to A?” Ask which question better separates the two outcomes. The first question isolates three Auto parcels. The other group contains four Review parcels and one Auto parcel. Packaging A isolates only two Auto parcels at the root.
 
-Open the worked parcel route after the prediction prompt. Start with the root, follow the No branch for weight 7, then the Yes branch for packaging A. Point out the difference between a decision node, which asks another question, and a leaf, which returns a class.
+Before the prediction prompt, compare the past rows and the new input row in the same table. P7 has weight 7 and packaging A and actually went to Auto. The new parcel has those same inputs and an unknown route. After making a prediction, open the worked route. Start with the root, follow the No branch for weight 7, then the Yes branch for packaging A. Point out the difference between a decision node, which asks another question, and a leaf, which returns a class.
 
 ## Draw the splits
 
@@ -72,7 +72,7 @@ Switch the target to processing time. Each leaf predicts the mean of the minutes
 
 The root predicts **5 minutes** with MSE **7 minutes²**. At the same root cut, the two child predictions are **2** and **6.8 minutes**. The child errors are **0** and **2.56 minutes²**, so the weighted error is $(3/8)(0)+(5/8)(2.56)=\mathbf{1.6}$ minutes². The reduction is **5.4 minutes²**. Keep the weight question visible while changing the target so learners can see that the partition stays the same and the score and predictions change.
 
-Apply the same stopping controls to regression. A deeper tree can keep reducing training MSE by producing averages for smaller groups. Compare validation MSE or RMSE across depths before choosing one. The six held-out parcels have routing labels only, so they cannot measure processing-time error.
+Use the depth control in the deeper regression explorer. A deeper tree can keep reducing training MSE by producing averages for smaller groups. Compare validation MSE or RMSE across depths before choosing one. The six held-out parcels have routing labels only, so they cannot measure processing-time error.
 
 Open [regression in a deeper tree](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#deep-regression) and inspect the selected scan-score split. Three parcels have a mean of 13 minutes and an MSE of $2/3$ minutes². Two have a mean of 15 minutes and an MSE of $0.25$ minutes². Weight the errors by 3/5 and 2/5 to get 0.50 minutes². The five parcels are the ones that reach this parent.
 

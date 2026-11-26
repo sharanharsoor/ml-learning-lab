@@ -225,6 +225,8 @@
   stroke-dasharray: 11 5 2 5;
 }
 
+.boundary-chart__logistic-miss { fill: none; stroke: var(--boundary-logistic); stroke-width: 2; pointer-events: none; }
+
 .boundary-chart__point {
   stroke: var(--surface);
   stroke-width: 1.3;

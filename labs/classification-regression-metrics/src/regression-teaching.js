@@ -22,13 +22,18 @@
   const format = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
   const fmt = value => format.format(value).replace('-', '−');
   const signed = value => value > 0 ? '+' + fmt(value) : fmt(value);
+  const residualEquation = (observed, estimate, residual) => `${fmt(observed)} − ${fmt(estimate)} = ${signed(residual)} min`;
   const timelineMax = Math.ceil(Math.max(...actual, ...defaultPredictions) / 10) * 10;
   const buttons = Array.from(root.querySelectorAll('[data-rg-step]'));
   const panes = Array.from(root.querySelectorAll('[data-rg-pane]'));
+  const explorerJump = select('#rg-jump-to-explorer');
+  let activeStep;
 
   function showStep(step) {
+    activeStep = step;
     buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.rgStep === step)));
     panes.forEach(pane => { pane.hidden = pane.dataset.rgPane !== step; });
+    explorerJump.textContent = step === 'reference' ? 'Use these estimates in the full plot' : 'Explore the full residual plot';
   }
   buttons.forEach(button => button.addEventListener('click', () => showStep(button.dataset.rgStep)));
 
@@ -52,13 +57,13 @@
         </div>
         <div class="rg-timeline-axis"><span>Dispatch · 0 min</span><span>${timelineMax} min after dispatch</span></div>
         <div class="rg-timeline-key">
-          <span><i class="rg-actual-key" aria-hidden="true"></i>Arrived after <strong>${fmt(minutes)} min</strong></span>
-          <span><i class="rg-predicted-key" aria-hidden="true"></i>Estimated <strong>${fmt(predicted)} min</strong></span>
+          <span><i class="rg-predicted-key" aria-hidden="true"></i>Forecast at dispatch <strong>${fmt(predicted)} min</strong></span>
+          <span><i class="rg-actual-key" aria-hidden="true"></i>Actual after arrival <strong>${fmt(minutes)} min</strong></span>
         </div>
       </div>`;
     const direction = residual < 0 ? 'estimated too many minutes' : residual > 0 ? 'estimated too few minutes' : 'matched the arrival';
     select('#rg-order-reading').innerHTML =
-      `<p><strong>${rows[index].case_id} residual</strong> · ${fmt(minutes)} − ${fmt(predicted)} = <strong>${signed(residual)} min</strong>. The app ${direction}.</p>`;
+      `<p><strong>${rows[index].case_id} residual</strong> · ${residualEquation(minutes, predicted, residual)}. The app ${direction}.</p>`;
   }
 
   function renderErrors(kind) {
@@ -68,22 +73,29 @@
     const unit = absolute ? 'min' : 'min²';
     const cards = values.map((errors, index) => {
       const total = errors.reduce((acc, error) => acc + error, 0);
+      const [name, predictions] = models[index];
+      const { residuals, mae, mse, rmse } = stats[index];
       const bars = errors.map((value, rowIndex) => `<div class="rg-bar-row">
-        <span>${rows[rowIndex].case_id}</span>
+        <span>${rows[rowIndex].case_id}<small class="rg-bar-operands">${residualEquation(actual[rowIndex], predictions[rowIndex], residuals[rowIndex])}</small></span>
         <span class="rg-bar-track" aria-hidden="true"><span style="width:${100 * value / largest}%"></span></span>
-        <strong>${fmt(value)}</strong>
+        <strong>${fmt(value)} ${unit}</strong>
       </div>`).join('');
       const equation = absolute
-        ? `MAE = ${fmt(total)} ÷ ${rows.length} = ${fmt(stats[index].mae)} min`
-        : `MSE = ${fmt(total)} ÷ ${rows.length} = ${fmt(stats[index].mse)} min²<br>RMSE = √${fmt(stats[index].mse)} ≈ ${fmt(stats[index].rmse)} min`;
+        ? `MAE = ${fmt(total)} ÷ ${rows.length} = ${fmt(mae)} min`
+        : `MSE = ${fmt(total)} ÷ ${rows.length} = ${fmt(mse)} min²<br>RMSE = √${fmt(mse)} ${Number.isInteger(rmse) ? '=' : '≈'} ${fmt(rmse)} min`;
       return `<article class="rg-error-card">
-        <h4>${models[index][0]}</h4>
+        <h4>${name}</h4>
+        <p class="rg-chart-scale">Each row shows actual − estimate in minutes.</p>
         <div class="rg-error-bars" aria-label="${absolute ? 'Absolute' : 'Squared'} errors in ${unit}">${bars}</div>
         <p>${equation}</p>
       </article>`;
     });
+    const reading = absolute
+      ? 'The five small misses and the one large miss add up to the same number of minutes.'
+      : `The ${fmt(Math.max(...stats[1].absoluteErrors))}-minute miss contributes ${fmt(largest)} min² by itself. The five small misses contribute ${fmt(stats[0].sse)} min² together.`;
     select('#rg-error-bars').innerHTML = `<div class="rg-error-grid">${cards.join('')}</div>
-      <p class="rg-chart-scale">Shared scale from 0 to ${fmt(largest)} ${unit} per order.</p>`;
+      <p class="rg-chart-scale">Shared scale from 0 to ${fmt(largest)} ${unit} per order.</p>
+      <p class="rg-teaching-callout">${reading}</p>`;
   }
 
   const errorButtons = Array.from(root.querySelectorAll('[data-rg-error]'));
@@ -96,8 +108,11 @@
   const offsets = [-5, 5];
   const oppositeMisses = actual.map((minutes, index) => minutes + (offsets[index] ?? 0));
   const cancellation = core.regression(oppositeMisses);
-  const cancellationTerms = cancellation.residuals.map(signed).join(', ');
-  select('#rg-cancelled').innerHTML = `<p>Residuals ${cancellationTerms} min. Mean residual = ${fmt(cancellation.meanResidual)} min, while <strong>MAE = ${fmt(cancellation.mae)} min</strong>. On average the direction balances out, while two orders still have errors.</p>`;
+  const cancellationTerms = cancellation.residuals.slice(0, offsets.length).map((residual, index) =>
+    `<li><strong>${rows[index].case_id}</strong> · ${residualEquation(actual[index], oppositeMisses[index], residual)}</li>`).join('');
+  const absoluteTerms = cancellation.absoluteErrors.slice(0, offsets.length).map(fmt).join(' + ');
+  select('#rg-cancelled').innerHTML = `<ul>${cancellationTerms}</ul>
+    <p>The other three residuals are zero. Mean residual = ${fmt(cancellation.meanResidual)} min. <strong>MAE = (${absoluteTerms}) ÷ ${rows.length} = ${fmt(cancellation.mae)} min</strong>. The signed errors cancel and their sizes add.</p>`;
 
   const reference = select('#rg-reference');
   reference.replaceChildren(...models.map(([name], index) => new Option(name, String(index))));
@@ -105,12 +120,17 @@
 
   function renderReference() {
     const index = Number(reference.value);
-    const { mean, sse, sst, r2 } = stats[index];
+    const { mean, sse, sst, r2, squaredErrors, baselineErrors } = stats[index];
+    const estimate = models[index][1][0];
     const meaning = r2 === 1 ? 'Every prediction is exact.' :
       r2 > 0 ? 'The model has smaller squared error than the reference.' :
       r2 === 0 ? 'The model and the mean reference have the same squared error.' :
       'The model has larger squared error than the reference.';
     select('#rg-reference-bars').innerHTML = `
+      <div class="rg-teaching-callout">
+        <p><strong>Find the reference.</strong> The five actual durations average (${actual.map(fmt).join(' + ')}) ÷ ${rows.length} = <strong>${fmt(mean)} min</strong>.</p>
+        <p><strong>Read both contributions for ${rows[0].case_id}.</strong> The selected estimate gives (${fmt(actual[0])} − ${fmt(estimate)})² = ${fmt(squaredErrors[0])} min². The mean reference gives (${fmt(actual[0])} − ${fmt(mean)})² = ${fmt(baselineErrors[0])} min².</p>
+      </div>
       <div class="rg-reference-chart">
         <div class="rg-bar-row">
           <span>Model SSE</span><span class="rg-bar-track" aria-hidden="true"><span style="width:${100 * sse / referenceScale}%"></span></span>
@@ -123,14 +143,15 @@
       </div>
       <p class="rg-chart-scale">Shared scale from 0 to ${fmt(referenceScale)} min² across prediction sets.</p>
       <div class="rg-teaching-callout">
-        <p>Always predicting the observed mean of <strong>${fmt(mean)} min</strong> gives the reference error.</p>
+        <p><strong>SSE</strong> = ${squaredErrors.map(fmt).join(' + ')} = ${fmt(sse)} min²<br><strong>SST</strong> = ${baselineErrors.map(fmt).join(' + ')} = ${fmt(sst)} min²</p>
         <p><strong>R² = 1 − ${fmt(sse)} ÷ ${fmt(sst)} = ${fmt(r2)}</strong>. ${meaning}</p>
       </div>`;
   }
 
   order.addEventListener('change', renderTimeline);
   reference.addEventListener('change', renderReference);
-  select('#rg-jump-to-explorer').addEventListener('click', () => {
+  explorerJump.addEventListener('click', () => {
+    if (activeStep === 'reference') window.MetricsLab.setPredictions(models[Number(reference.value)][1]);
     const explorer = document.getElementById('regression-chart');
     explorer.setAttribute('tabindex', '-1');
     explorer.focus({ preventScroll: true });

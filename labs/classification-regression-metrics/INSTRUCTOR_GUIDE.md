@@ -135,7 +135,7 @@ Change the cutoff while the grid is open. Decisions and the ROC point move; the 
 
 Say: “The customer already knows the 12:40 deadline, but asks: will my meal arrive at 12:10 or closer to 12:35? Asha adds a prediction of delivery minutes from dispatch. Now she needs to measure the size of its misses.”
 
-Click **R²** to open Arrival-time regression. Use actual durations `[20,30,40,50,60]` and **Good: actual + 5**, predictions `[25,35,45,55,65]`.
+Click **R²** to open Arrival-time regression. Use actual durations `[20,30,40,50,60]` and **Small misses · 5 min high**, predictions `[25,35,45,55,65]`.
 
 ### Average miss in minutes
 
@@ -159,7 +159,7 @@ Squaring gives large misses more weight. The root restores the original unit. Ne
 
 ### Compared with what?
 
-Return to **Good: actual + 5**. The observed mean is 40 minutes.
+Return to **Small misses · 5 min high**. The observed mean is 40 minutes.
 
 - **SSE, Sum of Squared Errors, =Σ(y−ŷ)²=125 minutes².**
 - **SST, Total Sum of Squares, =Σ(y−ȳ)²=1000 minutes².**

@@ -10,8 +10,11 @@
   const fmt = value => String(Number(value.toFixed(4)));
   const percent = value => Number((value * 100).toFixed(1)) + '%';
   const mean = values => values.reduce((sum, value) => sum + value, 0) / values.length;
-  const question = split => split.feature.toUpperCase() + ' ≤ ' + fmt(split.threshold);
+  const question = split => featureName[split.feature] + ' ≤ ' + fmt(split.threshold);
   const sampleRows = sample => sample.draws.map(id => rowMap.get(id));
+  const parcelTableRows = records => records.map(({ id, x, z, label }) =>
+    `<tr><th scope="row">${id}</th><td>${x.toFixed(1)} kg</td><td>${z.toFixed(1)} / 10</td>
+      <td><span class="bag-badge ${tone(label)}">${route(label)}</span></td></tr>`).join('');
   const treeMarkup = (tree, tracedPaths) => TreeLabDiagram.render(tree,
     { criterion: 'gini', tracedPaths, interactive: false, showScore: false });
 
@@ -107,12 +110,16 @@
       line(x(0), z(t), x(10), z(t), 'bag-grid') +
       '<text x="' + x(t) + '" y="243" text-anchor="middle">' + t + '</text>' +
       '<text x="33" y="' + (z(t) + 4) + '" text-anchor="end">' + t + '</text>').join('');
+    const drawCounts = new Map();
+    for (const id of sample.draws) drawCounts.set(id, (drawCounts.get(id) ?? 0) + 1);
     const marks = rows.map(row => {
       const px = x(row.x), py = z(row.z);
       const mark = row.label === 0 ? '<circle cx="' + px + '" cy="' + py + '" r="4.8"' :
         '<rect x="' + (px - 3.8) + '" y="' + (py - 3.8) + '" width="7.6" height="7.6" transform="rotate(45 ' + px + ' ' + py + ')"';
       const tag = row.label === 0 ? 'circle' : 'rect';
-      return mark + ' class="bag-point ' + tone(row.label) + '"><title>' + row.id + ' · ' + route(row.label) + '</title></' + tag + '>';
+      const count = drawCounts.get(row.id) ?? 0;
+      return mark + ' class="bag-point ' + tone(row.label) + (count ? '' : ' is-omitted') + '"><title>' +
+        row.id + ' · ' + route(row.label) + ' · ' + count + ' in this tray</title></' + tag + '>';
     }).join('');
     const px = x(parcel.x), py = z(parcel.z);
     const focus = '<circle class="bag-new-mark" cx="' + px + '" cy="' + py +
@@ -120,7 +127,7 @@
     const root = sample.tree.split;
     const firstCut = root.feature === 'x' ? line(x(root.threshold), z(10), x(root.threshold), z(0), 'bag-cut') :
       line(x(0), z(root.threshold), x(10), z(root.threshold), 'bag-cut');
-    return '<svg class="bag-scatter" viewBox="0 0 360 268" role="img" aria-label="Training parcels by weight and scan score. ' +
+    return '<svg class="bag-scatter" viewBox="0 0 360 268" role="img" aria-label="Historical parcels by weight and scan score. ' +
       (reveal ? 'This tree predicts ' + route(sample.prediction) + ' for the new parcel.' : 'The first split is ' + question(root) + '.') +
       '">' + grid + (reveal ? regions(sample.tree, [0, 10, 0, 10]) : firstCut) + marks + focus +
       '<text x="191" y="262" text-anchor="middle" class="bag-axis">Weight X</text>' +
@@ -132,16 +139,15 @@
     const barcode = get('intake-barcode');
     const weight = get('intake-weight');
     const result = get('intake-result');
-    const declared = Number(figure.dataset.declaredWeight);
-
     function paint() {
-      const excess = Number(weight.value) - declared;
+      const declared = Number(weight.value);
+      const excess = parcel.x - declared;
       const issues = [];
       if (barcode.value === 'unreadable') issues.push('the barcode is unreadable after a retry');
-      if (excess > 1) issues.push(`the parcel weighs ${excess.toFixed(1)} kg more than the label says`);
+      if (parcel.x > declared + 1) issues.push(`the parcel weighs ${fmt(excess)} kg more than the label says`);
       figure.dataset.route = issues.length ? 'review' : 'auto';
-      result.textContent = issues.length ? `Send to Review because ${issues.join(' and ')}.` :
-        'Send to Auto. The barcode is readable and the weight is within the limit.';
+      result.textContent = issues.length ? `These example checks give Review because ${issues.join(' and ')}.` :
+        `These example checks give Auto. The barcode is readable and the parcel is ${fmt(excess)} kg over the label, within the limit.`;
     }
 
     barcode.addEventListener('change', paint);
@@ -166,17 +172,16 @@
     get('meet-trees').addEventListener('click', () => showStage(true));
     get('back-desk').addEventListener('click', () => showStage(false));
     const measurements = 'Weight ' + parcel.x + ' kg · Scan score ' + parcel.z + '/10';
+    get('intake-measurements').textContent = measurements;
     get('desk-parcel').textContent = measurements;
-    get('desk-examples').innerHTML = ['P5', 'P3'].map(id => {
-      const { x, z, label } = rowMap.get(id);
-      return `<tr><th scope="row">${id}</th><td>${x.toFixed(1)} kg</td><td>${z.toFixed(1)} / 10</td>
-        <td><span class="bag-badge ${tone(label)}">${route(label)}</span></td></tr>`;
-    }).join('');
+    get('desk-examples').innerHTML = parcelTableRows(['P5', 'P3'].map(id => rowMap.get(id)));
     get('parcel').textContent = 'New parcel · ' + measurements;
     function paint(shown) {
       get('hook-plots').innerHTML = samples.slice(0, 2).map((sample, i) => '<figure class="bag-plot-card"><figcaption><strong>Tree ' +
         (i + 1) + '</strong>' + (shown ? '<span class="bag-badge ' + tone(sample.prediction) + '">' +
-        route(sample.prediction) + '</span>' : '') + '</figcaption>' + scatter(sample, shown) + '</figure>').join('');
+        route(sample.prediction) + '</span>' : '') + '</figcaption>' + scatter(sample, shown) +
+        '<p class="bag-plot-question"><strong>First question</strong> ' + question(sample.tree.split) + '?<br>' +
+        sample.draws.length + ' draws · ' + new Set(sample.draws).size + ' distinct training parcels</p></figure>').join('');
       reveal.setAttribute('aria-pressed', String(shown));
       reveal.textContent = shown ? 'Hide the two calls' : 'Show the two calls';
       get('ensemble-takeaway').hidden = !shown;
@@ -195,6 +200,7 @@
     const play = get('play');
     const fill = get('fill');
     const reset = get('reset');
+    get('source-records').innerHTML = parcelTableRows(rows);
     let count = 0;
     let timer = null;
     const current = () => samples[Number(selector.value)].draws;
@@ -211,8 +217,10 @@
         row.id + '<small>×' + (counts.get(row.id) ?? 0) + '</small></span>').join('');
       get('drawn-rows').innerHTML = ids.map((id, i) => '<li class="' + (i < count ? tone(rowMap.get(id).label) : 'empty') +
         (i + 1 === count ? ' latest' : '') + '">' + (i < count ? id : '·') + '</li>').join('');
-      get('draw-current').textContent = latest ? 'Draw ' + count + ' picked ' + latest +
-        (counts.get(latest) > 1 ? ' again.' : ' for the first time.') : 'The sample tray is empty.';
+      const picked = rowMap.get(latest);
+      get('draw-current').textContent = picked ? 'Draw ' + count + ' picked ' + latest +
+        (counts.get(latest) > 1 ? ' again.' : '.') + ' Weight ' + picked.x.toFixed(1) + ' kg · Scan score ' +
+        picked.z.toFixed(1) + '/10 · Recorded ' + route(picked.label) + '.' : 'The sample tray is empty.';
       get('sample-counts').innerHTML = '<span><strong>' + count + '/' + ids.length + '</strong> draws</span><span><strong>' +
         counts.size + '</strong> unique parcels</span><span><strong>' + omitted.length + '</strong> ' +
         (count === ids.length ? 'omitted · ' + (omitted.map(row => row.id).join(', ') || 'none') : 'not drawn yet') + '</span>';
@@ -300,24 +308,33 @@
 
   function setupFeatures() {
     const mode = get('feature-mode');
-    const sample = samples[1];
-    const parent = sampleRows(sample);
-    const left = TreeLab.evaluate(parent, sample.tree.split, 'gini').left;
-    const presets = [['x', 'z'], ['z', 'x'], ['x', 'x'], ['z', 'z']];
+    const parent = sampleRows(samples[1]);
+    const presets = [['x', 'z', 'z'], ['z', 'x', 'z'], ['x', 'x', 'x'], ['z', 'z', 'x']];
     let draw = 0;
-    function paint() {
-      get('features').innerHTML = [parent, left].map((group, index) => {
-        const eligible = mode.value === 'all' ? ['x', 'z'] : [presets[draw][index]];
-        const best = TreeLab.rank(group, 'gini').find(result => eligible.includes(result.split.feature));
-        return '<article><h3>' + (index ? 'Yes child' : 'Root') + ' · ' + group.length + ' rows</h3><p><strong>Candidate features</strong> ' +
-          eligible.map(feature => featureName[feature]).join(', ') + '</p><p>' +
-          (best && best.gain > 0 ? 'Best question <strong>' + question(best.split) + '</strong> · Gini decrease ' + fmt(best.gain) :
-            'No positive-gain question among these candidates.') + '</p></article>';
-      }).join('');
+    const available = index => mode.value === 'all' ? ['x', 'z'] : [presets[draw][index]];
+    const bestFor = (group, features) => TreeLab.rank(group, 'gini').find(({ split, gain }) =>
+      gain > 0 && features.includes(split.feature));
+
+    function card(title, group, features, split) {
+      const { auto, review } = TreeLab.stats(group, 'gini');
+      const info = auto && review ? '<p><strong>Candidate features</strong> ' + features.map(feature => featureName[feature]).join(', ') +
+        '</p><p>' + (split ? 'Best question <strong>' + question(split.split) + '</strong> · Gini decrease ' + fmt(split.gain) :
+          'No positive-gain question among these candidates.') + '</p>' :
+        `<p>The draws agree on ${auto ? 'Auto' : 'Review'}, so this branch stops at a leaf.</p>`;
+      return `<article><h3>${title} · ${group.length} draws</h3><p>${auto} Auto · ${review} Review</p>${info}
+        <p class="small"><strong>Draws at this node</strong> ${group.map(row => row.id).join(', ')}</p></article>`;
     }
-    mode.addEventListener('change', paint);
+    function paint() {
+      const root = bestFor(parent, available(0));
+      const children = root ? [root.left, root.right].map((group, index) => {
+        const features = available(index + 1);
+        return card(index ? 'No child' : 'Yes child', group, features, bestFor(group, features));
+      }).join('') : '';
+      get('features').innerHTML = card('Root', parent, available(0), root) + children;
+    }
+    mode.addEventListener('change', () => { draw = 0; paint(); });
     get('feature-next').addEventListener('click', () => {
-      if (mode.value === 'all') mode.value = 'one';
+      if (mode.value === 'all') { mode.value = 'one'; draw = 0; }
       else draw = (draw + 1) % presets.length;
       paint();
     });
@@ -335,7 +352,7 @@
           route(TreeLab.predict(tree, parcel)) + '</strong></p><p>Training draws correct ' + correct + '/' + training.length + '</p></article>';
       });
       get('depth-summary').innerHTML = '<div class="bag-triptych">' + results.join('') + '</div>';
-      get('depth-tree').innerHTML = treeMarkup(trees[0], TreeLab.trace(trees[0], parcel).paths);
+      get('depth-tree').innerHTML = treeMarkup(trees[2], TreeLab.trace(trees[2], parcel).paths);
     }
     depth.addEventListener('change', paint);
     paint();

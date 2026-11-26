@@ -270,6 +270,10 @@
 .bag-point { stroke: white; stroke-width: 1; }
 .bag-point.auto { fill: var(--teal); }
 .bag-point.review { fill: var(--rust); }
+.bag-point.is-omitted { fill: var(--surface); stroke-width: 1.5; }
+.bag-point.auto.is-omitted { stroke: var(--teal); }
+.bag-point.review.is-omitted { stroke: var(--rust); }
+.bag-plot-question { padding: .45rem .75rem .65rem; color: var(--muted); font-size: .9rem; }
 .bag-cut { stroke: var(--ink); stroke-width: 1.4; }
 .bag-new-mark { fill: var(--surface); stroke: var(--forest-focus); stroke-width: 1.8; }
 .bag-cross { stroke: var(--forest-focus); stroke-width: 1.7; }
@@ -369,6 +373,7 @@
 .bag-vote strong { color: var(--ink); }
 #bag-votes > p { margin-top: .55rem; }
 #bag-depth-tree { margin-top: .8rem; }
+#bag-features > article:first-child { grid-column: 1 / -1; }
 .bag-average { background: var(--light); }
 .bag-knob p + p { margin-top: .4rem; }
 :is(#bag-knob-buttons, #bag-tuning-explorer, #bag-search-explorer) .button[aria-pressed="true"] {

@@ -60,25 +60,25 @@
             <div class="review"><strong>Review</strong><span>Staff inspect the parcel by hand</span></div>
           </figcaption>
         </figure>
-        <figure class="bag-intake-flow" aria-labelledby="bag-intake-title" data-route="auto" data-declared-weight="4" id="bag-intake-flow">
+        <figure class="bag-intake-flow" aria-labelledby="bag-intake-title" data-route="auto" id="bag-intake-flow">
           <figcaption>
             <h2 id="bag-intake-title">Follow the parcel through intake</h2>
-            <p>Try the two checks on a sample parcel with a 4.0 kg shipping label.</p>
+            <p>Keep the new parcel’s measured weight and scan score fixed. Try possible barcode results and shipping-label weights to see how the desk would route it. Its actual barcode result and label weight are unknown in the model example.</p>
           </figcaption>
-          <div class="bag-intake-arrival">New parcel arrives</div>
+          <div class="bag-intake-arrival bag-intake-model-input"><strong>New parcel arrives</strong><span id="bag-intake-measurements">Measured weight and scan score</span></div>
           <div class="bag-intake-arrow" aria-hidden="true"></div>
           <div class="bag-intake-checks" role="group" aria-label="Intake checks">
             <div>
               <h3>Scan the barcode</h3>
               <p>Retry once if it fails. The barcode check passes if either scan reads it.</p>
-              <label for="bag-intake-barcode">Barcode result</label>
+              <label for="bag-intake-barcode">Example barcode result</label>
               <select id="bag-intake-barcode"><option value="first">Reads on first scan</option><option value="retry">Reads on retry</option><option value="unreadable">Still unreadable after retry</option></select>
             </div>
             <div>
               <h3>Weigh the parcel</h3>
-              <p>Compare measured weight with the label. The check fails if the parcel is more than 1 kg over.</p>
-              <label for="bag-intake-weight">Measured weight</label>
-              <select id="bag-intake-weight"><option value="4.6">4.6 kg</option><option value="5">5.0 kg</option><option value="5.2">5.2 kg</option></select>
+              <p>Compare the same measured weight with the label. The check fails if the parcel is more than 1 kg over.</p>
+              <label for="bag-intake-weight">Example weight on the label</label>
+              <select id="bag-intake-weight"><option value="5">5.00 kg</option><option value="4.65">4.65 kg</option><option value="4.45">4.45 kg</option></select>
             </div>
           </div>
           <div class="bag-intake-arrow" aria-hidden="true"></div>
@@ -93,13 +93,13 @@
               <h3>Review</h3><p>A person checks the parcel. If they resolve the issue, it can go to dispatch. Otherwise, staff hold it for follow-up.</p>
             </article>
           </div>
-          <p class="bag-intake-result" id="bag-intake-result" role="status">Auto. The barcode is readable and the weight is within the limit.</p>
+          <p class="bag-intake-result" id="bag-intake-result" role="status">With these example check results, the route is Auto.</p>
         </figure>
         <div class="bag-intake-bridge">
           <h2>Where do the two trees fit in?</h2>
-          <p>Past parcels supply the training examples. Each row records the weight, scan warning score, and the intake route the courier took. A parcel sent for a manual check is recorded as <strong>Review</strong>, even if staff later clear it for dispatch.</p>
+          <p>Past parcels supply the training examples. <strong>Inputs</strong> are the measured weight and the scanner’s warning score out of 10. The <strong>label</strong> is the recorded intake route. If staff later clear a parcel, its initial route still counts as Review.</p>
           <div class="bag-intake-arrival bag-intake-model-input">
-            <strong>New parcel for the model demo</strong>
+            <strong>Same parcel for the model demo</strong>
             <span id="bag-desk-parcel">Weight and scan score</span>
           </div>
           <div class="bag-intake-routes bag-intake-predictions" aria-label="Both trees receive the same measurements">
@@ -107,14 +107,13 @@
             <article><h3>Tree 2</h3></article>
           </div>
           <div class="bag-desk-actions">
-            <p>Both trees get the <strong>same measurements</strong>. Each predicts the intake route, <strong>Auto</strong> or <strong>Review</strong>, on its own.</p>
+            <p>Both trees get the two measured inputs above. Each predicts the intake route on its own. The example barcode result and label weight in the flowchart leave these model inputs unchanged.</p>
             <button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button>
           </div>
         </div>
         <details class="teaching-note bag-desk-rules">
           <summary>What counts as unusual?</summary>
-          <p>For a label that says 4.0 kg, a 5.0 kg parcel passes the weight check. At 5.2 kg it goes to Review, even if the barcode scans.</p>
-          <p>Here are two parcels from the training table. The scan score measures the strength of the scanner’s warning on a scale from 0 to 10. The recorded route is what the staff decided at the time.</p>
+          <p>Here are two parcels from the training table. The warning score records the strength of a scanner warning on a scale from 0 to 10. The barcode check above records whether either scan actually read the barcode. The two fields tell us different things.</p>
           <div class="table-wrap">
             <table>
               <caption class="sr-only">Two past parcels and their recorded routes</caption>
@@ -123,7 +122,7 @@
             </table>
           </div>
           <p>P3 had the stronger scan warning and still went to Auto. If we sent every parcel above one scan-score cutoff to Review, any cutoff that sends P5 to Review would also send P3 there. A tree can use measured weight as well as scan score to learn a better rule.</p>
-          <p class="small">Staff also see the barcode retry result and shipping-label weight. Those values are absent from the training rows, so the recorded routes show what happened. The exact check that sent P5 to Review is unknown.</p>
+          <p class="small">These rows provide the recorded routes. The exact check that sent P5 to Review is unknown because the table leaves out the barcode result and shipping-label weight.</p>
         </details>
       </div>
 
@@ -132,14 +131,15 @@
         <h2 id="bag-model-title" class="bag-stage-title" tabindex="-1">Same parcel. Two trees.</h2>
         <p class="lede">Both trees predict the intake route for the same parcel. They use its weight and scan warning score. Each tree learned from a different selection of the courier’s past records, so the questions they ask can lead to different predictions.</p>
         <div class="panel bag-hook">
-          <div class="panel-heading"><p id="bag-parcel"></p><div class="bag-legend"><span class="bag-mark auto">● Auto</span><span class="bag-mark review">◆ Review</span><span>⊕ New parcel</span></div></div>
+          <div class="panel-heading"><p id="bag-parcel"></p><div class="bag-legend"><span class="bag-mark auto">● Recorded Auto</span><span class="bag-mark review">◆ Recorded Review</span><span>⊕ New parcel</span></div></div>
+          <p class="small">Both plots show the same 12 past parcels. A filled mark means the tree drew that parcel for training. An outlined mark means its tray missed that parcel. Several copies of one record share a single position on the plot.</p>
           <div class="bag-pair" id="bag-hook-plots"></div>
           <p id="bag-hook-result" class="bag-hook-result" aria-live="polite">Find the new parcel. Which side of each cut does it fall on?</p>
           <div class="bag-actions">
             <button id="bag-hook-reveal" class="button primary" type="button" aria-controls="bag-hook-plots bag-ensemble-takeaway" aria-pressed="false">Show the two calls</button>
             <button id="bag-back-desk" class="button secondary" type="button" aria-controls="bag-desk-stage">Back to parcel desk</button>
           </div>
-          <details class="teaching-note"><summary>How to read the plots</summary><p>Each circle or diamond is a parcel from the past records. Its position shows weight and scan score, and its color shows the route the courier took.</p><p>The line shows the first cutoff each tree learned. Find the new parcel marked with a plus and see which side it lands on. Reveal the calls to see which route the tree predicts in each shaded region.</p></details>
+          <details class="teaching-note"><summary>How to read the plots</summary><p>Read measured weight in kg along the horizontal axis and scan warning score out of 10 up the vertical axis. Find the plus for the new parcel at 5.65 kg and score 5.7.</p><p>Compare the plus with the first cutoff in each plot. Shading after the reveal shows the route the tree would predict for a parcel in that region. The circles and diamonds retain their historical route labels.</p></details>
         </div>
         <div id="bag-ensemble-takeaway" hidden>
           <p class="bag-worked"><strong>Follow the cut.</strong> The parcel’s scan score is 5.7. That’s below Tree 1’s cutoff of 5.8, so it reaches Auto. It’s above Tree 2’s cutoff of 5.25, so it reaches Review.</p>
@@ -167,13 +167,19 @@
         <figcaption>Picture one ticket per parcel record. Pick one at random, copy it into Tree 1’s tray, and put the original back before the next draw. That last step is what <strong>with replacement</strong> means.</figcaption>
       </figure>
       <div class="bag-pair">
-        <article><h3>Bootstrap · Fill one tray per tree</h3><p>Make 12 draws from the original pile. Since every ticket goes back, you might copy P2 twice and miss another parcel entirely. That new tray of 12 draws is one <strong>bootstrap sample</strong>. Start again from the same original pile for the next tree.</p></article>
+        <article><h3>Bootstrap · Fill one tray per tree</h3><p>Make 12 draws from the original pile. Since every ticket goes back, you might copy one parcel twice and miss another entirely. That new tray of 12 draws is one <strong>bootstrap sample</strong>. Start again from the same original pile for the next tree.</p></article>
         <article><h3>Aggregate · Combine the trees’ answers</h3><p>Train each tree on its own tray. A different mix of records can change the questions a tree learns. Then give every tree the same new parcel. If two trees say Review and one says Auto, a majority vote gives Review. Combining the answers is <strong>aggregation</strong>.</p></article>
       </div>
       <p class="bag-say"><strong>Bagging</strong> is short for <strong>bootstrap aggregating</strong>. Make a training sample for each model, then combine their predictions so the final route depends on several models.</p>
       <div class="panel">
         <div class="panel-heading"><div><h2>Draw from the parcel desk</h2><p>Choose Tree 1 and click <strong>Draw next parcel</strong> twice. Watch the ID and its count.</p></div><label>Sample <select id="bag-sample"><option value="0">Tree 1</option><option value="1">Tree 2</option><option value="2">Tree 3</option></select></label></div>
         <div id="bag-source-rows" class="bag-source" aria-label="Original rows and their draw counts"></div>
+        <details class="teaching-note"><summary>See the 12 original parcel records</summary>
+          <div class="table-wrap"><table><caption class="sr-only">Historical parcels used to fill each training tray</caption>
+            <thead><tr><th scope="col">Parcel</th><th scope="col">Measured weight</th><th scope="col">Scan score</th><th scope="col">Recorded route</th></tr></thead>
+            <tbody id="bag-source-records"></tbody>
+          </table></div>
+        </details>
         <div class="bag-actions">
           <button class="button primary" type="button" id="bag-draw">Draw next parcel</button>
           <button class="button secondary" type="button" id="bag-play">Play draws</button>
@@ -186,7 +192,7 @@
         <p class="bag-quiz-cue">Quiz 2</p>
       </div>
       <ol class="bag-steps">
-        <li><strong>Draw a whole row.</strong> P2 carries its weight (2.0), scan score (5.0), and recorded route (Auto) together. The measurements are features. The route is the label the tree learns to predict.</li>
+        <li><strong>Draw a whole row.</strong> The latest draw shows the measurements and label together. In Tree 1 the first draw is P2, a 2.0 kg parcel with scan score 5.0 and recorded route Auto.</li>
         <li><strong>Put it back.</strong> The first two draws for Tree 1 both select P2. Each copy carries the same measurements and the same Auto label.</li>
         <li><strong>Compare the trays.</strong> Use <strong>Show all draws</strong> to count Tree 1’s repeated and omitted IDs. Then select Tree 2 and do the same. The original table stays the same while the mix in each tray changes.</li>
       </ol>
@@ -199,6 +205,7 @@
     <section class="chapter" id="forest" aria-labelledby="forest-title">
       <p class="eyebrow">Random Forest intuition</p><h2 id="forest-title">Train three trees and combine their answers</h2>
       <p class="lede">Each tray holds a different mix of the courier’s past parcels. Give one tray to each tree and let it learn which questions separate Auto from Review. When the new parcel arrives, give all three trees its same measurements and see whether they agree.</p>
+      <p>These three trees demonstrate bagging with both features available at each split. The next chapter adds the feature sampling used by Random Forest.</p>
       <figure class="bag-scene">
         <img src="{{FOREST_IMAGE}}" width="1344" height="756" loading="lazy" alt="Three courier operators at separate stations look over the same kind of parcel, illustrating three separate routing decisions.">
         <figcaption>Think of three people at the desk, each making a call about the same parcel. Here the trees play that role.</figcaption>
@@ -211,6 +218,7 @@
       </ol>
       <div class="panel">
         <div class="panel-heading"><div><h2>Run the core code</h2><p>Change the sampling line, fit one tree, and predict the same parcel. Then run the cell that fits all three trees.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/bagging-intuition.ipynb" target="_blank" rel="noopener">Open intuition notebook</a></div>
+        <p><code>X</code> holds the 12 historical parcels’ weight and scan score. <code>y</code> holds their recorded routes, encoded as 0 for Auto and 1 for Review. <code>parcel</code> holds the two measurements of the one new parcel.</p>
         <pre class="bag-code"><code>rng = np.random.default_rng(bootstrap_seed)
 draw = rng.choice(len(X), size=len(X), replace=True)
 tree = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=tree_seed)
@@ -227,6 +235,7 @@ tree.predict(parcel)</code></pre>
       </div>
       <div class="panel">
         <div class="panel-heading"><div><h2>Follow the parcel through each tree</h2><p>Start with Tree 1. Compare the parcel’s scan score of 5.7 with the first cutoff. Then switch to Tree 2 and make the same comparison.</p></div><div class="segmented bag-tree-picker" id="bag-tree-picker" aria-label="Select a tree"></div></div>
+        <p class="small"><strong>New parcel</strong> · X is weight (5.65 kg). Z is scan warning score (5.7 out of 10). These inputs stay fixed as you switch trees.</p>
         <div class="bag-tree-meta" id="bag-tree-meta"></div>
         <div id="bag-tree-plot" class="tree-diagram"></div>
         <p class="bag-quiz-cue">Quiz 3</p>
@@ -269,14 +278,13 @@ tree.predict(parcel)</code></pre>
         <li><strong>Which question separates the labels best?</strong> The tree tests questions on the parcels that reached this node. It chooses the allowed question that reduces the mix of Auto and Review labels the most.</li>
       </ol>
       <div class="panel">
-        <div class="panel-heading"><div><h2>A different candidate list at each node</h2><p>Use the rows in Tree 2’s sample. The root is its first question. The Yes child holds the parcels that answered Yes to the original root question.</p></div>
+        <div class="panel-heading"><div><h2>A different candidate list at each node</h2><p>Start with the 12 draws from Tree 2’s tray. The root chooses a question from its candidates. That question sends every draw to the Yes or No child below. Each child that still needs a split gets its own candidate list.</p></div>
         <label>Features considered <select id="bag-feature-mode"><option value="all">Both features</option><option value="one">One feature at each node</option></select></label></div>
         <div class="bag-actions"><button id="bag-feature-next" class="button primary" type="button">Reveal next feature draw</button></div>
         <div class="bag-pair" id="bag-features" aria-live="polite"></div>
         <p class="bag-quiz-cue">Quiz 4</p>
-        <div class="bag-worked"><p><strong>Try it.</strong> Start with <strong>Both features</strong> and read the best question at the root. Click <strong>Reveal next feature draw</strong>. Which question can the root choose when only Weight is offered? Which feature is offered to the Yes child?</p></div>
-        <details class="teaching-note"><summary>Check the first feature draw</summary><p>With both features available, the root picks <strong>Scan score ≤ 5.25</strong> for a Gini decrease of <strong>0.3111</strong>. The first one-feature draw offers only Weight at the root, where <strong>Weight ≤ 3</strong> gives a decrease of <strong>0.2963</strong>. It offers Scan score at the fixed Yes child, where <strong>Scan score ≤ 3.75</strong> gives a decrease of <strong>0.0533</strong>.</p></details>
-        <p class="small">We keep the rows in these two cards fixed while we change the candidate list. When a forest grows a tree, a different first question can also change which parcels reach the Yes child.</p>
+        <div class="bag-worked"><p><strong>Try it.</strong> Start with <strong>Both features</strong>. Read the root question and the number of draws in each child. Click <strong>Reveal next feature draw</strong>. Which parcels move when the root switches to Weight? Where does Scan score get a turn?</p></div>
+        <details class="teaching-note"><summary>Check the first feature draw</summary><p>With both features available, <strong>Scan score ≤ 5.25</strong> gives a Gini decrease of 0.3111 and sends 5 draws to Yes and 7 to No. The first one-feature draw offers only Weight at the root. <strong>Weight ≤ 3</strong> gives a decrease of 0.2963 and sends 3 draws to Yes and 9 to No. The three Yes draws are all Auto, so that branch stops. The mixed No child considers <strong>Scan score ≤ 3.75</strong>, with a local Gini decrease of 0.1975.</p></details>
       </div>
       <div class="bag-say"><strong>Draw parcels for each tree. Draw feature columns for each split.</strong> If weight is the only option at one root, that tree has a chance to learn a rule another tree would have skipped. Different rules can help the forest catch mistakes that several similar trees would share.</div>
       <details class="teaching-note"><summary>Does choosing fewer features always help?</summary><p>A shorter list gives the tree a chance to use a different measurement. It can also leave out a strong feature that would have separated Auto and Review better. Try several list sizes and check which one predicts better on validation data.</p></details>
@@ -294,7 +302,7 @@ tree.predict(parcel)</code></pre>
       <div class="panel">
         <div class="panel-heading"><div><h2>Change the maximum depth</h2><p>Maximum depth sets how many questions a parcel can answer on its way to the tree’s decision. All three trees refit on their original samples so you can see what changing the limit does.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · root only</option><option value="1">1 · one split</option><option value="2" selected>2 · two levels</option><option value="4">4 · deeper tree</option></select></label></div>
         <div id="bag-depth-summary" class="bag-pair" aria-live="polite"></div>
-        <p class="small">The diagram shows Tree 1. Each card shows its own tree’s answer for the new parcel and how many of its training draws it got right. A parcel drawn twice counts twice in that training total.</p>
+        <p class="small">The diagram shows <strong>Tree 3</strong>, which the example below compares at depths 1 and 2. Each card shows its tree’s answer for the new parcel and how many training draws it got right. A parcel drawn twice counts twice in that training total.</p>
         <div id="bag-depth-tree" class="tree-diagram"></div>
         <div class="bag-worked"><p><strong>Try it.</strong> Change depth from <strong>1</strong> to <strong>2</strong> and watch Tree 3. Its second question helps it get <strong>11 of 12</strong> training draws right, up from <strong>10 of 12</strong>. It also changes its answer for our new parcel from <strong>Auto</strong> to <strong>Review</strong>. To judge whether the extra question helps with new parcels, test it on a separate group the tree hasn’t seen.</p></div>
       </div>
@@ -363,7 +371,15 @@ test_predictions = forest.predict(X_test)</code></pre>
         <p class="small"><code>parameter_space</code> gives the choices or distributions. The search seed replays the configuration draws. The forest seed controls randomness within a fit.</p>
         <div class="bag-worked"><p><strong>Read the two scores.</strong> Use <strong>81.26%</strong> to see how the winning setting did on average during its four cross-validation checks. Then use <strong>78.88%</strong> to see how the refitted forest did on the 350 parcels reserved for the final test. Both use balanced accuracy.</p></div>
         <details class="teaching-note"><summary>Read the worked notebook results</summary><p>With 1,050 training rows and 350 held-out rows, the selected candidate averaged 81.26% balanced accuracy across four validation folds. The held-out balanced accuracies were 72.65% for the single tree, 76.89% for the baseline forest, and 78.88% for the tuned forest. The tuned forest’s OOB accuracy was 81.24% across 1,050 covered training rows. That last value uses ordinary accuracy on the OOB predictions. Results are from the seeded run with scikit-learn 1.6.1.</p></details>
-        <details class="teaching-note"><summary>Read the per-class report</summary><p>The tuned forest flagged 151 parcels for Review. Of those, 110 really needed Review. That gives <strong>precision = 110 ÷ 151 ≈ 72.8%</strong>. There were 142 actual Review parcels, so <strong>recall = 110 ÷ 142 ≈ 77.5%</strong>. <strong>F1</strong> is the harmonic mean of those two rates, <strong>220 ÷ 293 ≈ 75.1%</strong>. The report’s <strong>support</strong> is the 142 actual Review parcels. Read the Auto row the same way with Auto as the class of interest.</p></details>
+        <details class="teaching-note"><summary>Read the per-class report</summary>
+          <p>Here are the counts for the tuned forest on its 350 held-out parcels. Each row groups the recorded routes. Each prediction column groups the forest’s answers.</p>
+          <div class="table-wrap"><table><caption class="sr-only">Confusion matrix for the tuned forest on 350 held-out parcels</caption>
+            <thead><tr><th scope="col">Recorded route</th><th scope="col">Predicted Auto</th><th scope="col">Predicted Review</th><th scope="col">Total</th></tr></thead>
+            <tbody><tr><th scope="row">Auto</th><td>167</td><td>41</td><td>208</td></tr><tr><th scope="row">Review</th><td>32</td><td>110</td><td>142</td></tr></tbody>
+            <tfoot><tr><th scope="row">Total</th><td>199</td><td>151</td><td>350</td></tr></tfoot>
+          </table></div>
+          <p>Review <strong>precision</strong> uses the prediction column, 110 ÷ 151 ≈ 72.8%. Review <strong>recall</strong> uses the recorded row, 110 ÷ 142 ≈ 77.5%. <strong>F1</strong> combines them as 2 × 110 ÷ (2 × 110 + 41 + 32) ≈ 75.1%. <strong>Support</strong> is the 142 recorded Review parcels.</p>
+        </details>
       </div>
       <p class="transition">The forest also has a way to check parcels that never entered a particular tree’s training tray. Let’s see which trees can give us that check.</p>
     </section>

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { create, getNode, leaves, availableCuts, applyCut, demo, logistic } = TreeLabBoundaryModel;
+  const { create, getNode, leaves, availableCuts, applyCut, demo, logistic, rows } = TreeLabBoundaryModel;
   const { render: drawPlot, pointAt } = TreeLabBoundaryPlot;
   const get = name => document.getElementById('boundary-' + name);
   const form = get('settings');
@@ -114,9 +114,16 @@
     render();
   });
   cutoff.addEventListener('change', () => setDraft(cutoff.value));
+  const route = label => label === 1 ? 'Review' : 'Auto';
+  document.getElementById('boundary-records').innerHTML = rows.map(row => '<tr><th scope="row">' + row.id +
+    '</th><td>' + row.x + '</td><td>' + row.z + '</td><td>' + route(row.label) + '</td></tr>').join('');
+  const misses = rows.filter(row => Number(logistic.intercept + logistic.weight * row.x + logistic.scan * row.z >= 0) !== row.label);
+  const exampleMiss = misses[0];
   logisticNote.textContent = 'The blue line marks a 50% predicted probability of Review. ' +
     'The model predicts Review toward the upper right and matches ' + logistic.matches + ' of ' +
-    tree.stats.n + ' training labels.';
+    tree.stats.n + ' training labels.' + (exampleMiss ? ' Look for the outlined point at weight ' + exampleMiss.x +
+      ' and scan score ' + exampleMiss.z + '. The recorded route is ' + route(exampleMiss.label) +
+      ', and the line puts it on the ' + route(1 - exampleMiss.label) + ' side.' : '');
   logisticToggle.addEventListener('change', paintPlot);
   form.addEventListener('submit', event => {
     event.preventDefault();

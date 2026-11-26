@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { IMPORTANCE_TRAIN, fit, importance } = TreeLab;
+  const { IMPORTANCE_TRAIN, evaluate, fit, importance } = TreeLab;
   const scope = document.getElementById('deep-importance');
   const limit = scope.querySelector('#importance-depth');
   const graph = scope.querySelector('#importance-diagram');
@@ -18,16 +18,17 @@
 
   function splitRecords(tree) {
     const records = [];
-    function visit(node, path, depth) {
+    function visit(node, rows, path, depth) {
       if (!node.split) return;
+      const { left, right } = evaluate(rows, node.split, 'entropy');
       records.push({
-        node, path, depth, feature: node.split.feature,
+        node, path, depth, left, right, feature: node.split.feature,
         credit: node.stats.n / tree.stats.n * node.gain,
       });
-      visit(node.left, path + 'l', depth + 1);
-      visit(node.right, path + 'r', depth + 1);
+      visit(node.left, left, path + 'l', depth + 1);
+      visit(node.right, right, path + 'r', depth + 1);
     }
-    visit(tree, 'root', 0);
+    visit(tree, IMPORTANCE_TRAIN, 'root', 0);
     return records;
   }
 
@@ -48,10 +49,13 @@
     const right = node.right.stats;
     const reach = n / rootCount;
     const term = child => '(' + child.n + '/' + n + ') × ' + number(child.score);
+    const weights = rows => rows.map(row => row.x).join(', ');
     const factor = (label, value, detail) => '<div class="importance-factor"><span>' + label +
       '</span><strong>' + value + '</strong><small>' + detail + '</small></div>';
     selectedSplit.innerHTML = '<h3>Depth ' + depth + ' · ' + question(node.split) + '</h3>' +
       '<p class="small">Local gain uses the ' + n + ' rows at this node. Subtract its children’s weighted entropy from its own entropy.</p>' +
+      '<p class="small"><strong>Weights X of the rows reaching each child</strong><br>Yes · ' + weights(record.left) +
+      '<br>No · ' + weights(record.right) + '</p>' +
       '<p class="arithmetic">' + number(node.stats.score) + ' − [' + term(left) + ' + ' + term(right) + '] ≈ ' +
       number(node.gain) + ' bits</p>' +
       '<div class="importance-flow" data-feature="' + feature + '">' +

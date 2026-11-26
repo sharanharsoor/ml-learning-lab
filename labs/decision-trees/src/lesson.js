@@ -15,9 +15,13 @@
   const correctCount = (tree, rows) => rows.filter(row => predict(tree, row) === row.label).length;
   const counts = group => group.auto + ' Auto · ' + group.review + ' Review';
   const rowCount = n => n + (n === 1 ? ' row' : ' rows');
-  const chip = row => '<span class="chip"><i class="key ' + (row.label ? 'review' : 'auto') +
-    '" aria-hidden="true"></i><span>' + row.id + '<span class="sr-only"> ' + route(row.label) + '</span></span></span>';
-  const chips = rows => '<div class="parcel-chips">' + rows.map(chip).join('') + '</div>';
+  const chips = (rows, feature) => '<div class="parcel-chips">' + rows.map(row => {
+    const inputs = feature ? feature.toUpperCase() + ' ' + row[feature] : 'X ' + row.x + ' · Y ' + row.y;
+    return '<span class="chip"><i class="key ' + (row.label ? 'review' : 'auto') +
+      '" aria-hidden="true"></i><span>' + row.id + ' · ' + inputs + '<span class="sr-only"> ' +
+      route(row.label) + '</span></span></span>';
+  }).join('') + '</div>';
+  const previewParcel = { x: 7, y: 'A' };
 
   const criterionInput = get('criterion');
   const searchInput = get('search-mode');
@@ -97,9 +101,10 @@
       const x = position(row.x);
       const y = row.y === 'A' ? 37 : 88;
       const title = '<title>' + row.id + ', weight ' + row.x + ', packaging ' + row.y + ', ' + route(row.label) + '</title>';
-      return row.label
+      const point = row.label
         ? '<rect class="review" x="' + (x - 7) + '" y="' + (y - 7) + '" width="14" height="14" rx="2">' + title + '</rect>'
         : '<circle class="auto" cx="' + x + '" cy="' + y + '" r="7">' + title + '</circle>';
+      return point + '<text text-anchor="middle" x="' + x + '" y="' + (y - 13) + '">' + row.id + '</text>';
     }).join('');
     write('training-plot', '<svg class="training-chart" viewBox="0 0 695 140" role="img" aria-label="Training parcels by weight and packaging. Packaging A has Auto parcels at weights 1 and 7. Packaging B has Auto at 2 and 3 and Review at 4, 5, 6 and 8.">' +
       '<text x="6" y="44">A</text><text x="6" y="95">B</text>' +
@@ -107,11 +112,16 @@
       TRAIN.map(row => '<text text-anchor="middle" x="' + position(row.x) + '" y="126">' + row.x + '</text>').join('') + '</svg>');
     write('training-rows', TRAIN.map(row => '<tr><th scope="row">' + row.id + '</th><td>' +
       row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) + '</td><td>' + row.minutes + '</td></tr>').join(''));
+    const nearby = TRAIN.filter(row => Math.abs(row.x - previewParcel.x) <= 1);
+    write('preview-records', nearby.map(row => '<tr><th scope="row">' + row.id + '</th><td>' +
+      row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) + '</td></tr>').join('') +
+      '<tr class="preview-new-record"><th scope="row">New parcel</th><td>' + previewParcel.x +
+      '</td><td>' + previewParcel.y + '</td><td>Unknown</td></tr>');
     all('[data-guess]').forEach(button => button.addEventListener('click', () => {
       all('[data-guess]').forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
       get('guess-result').textContent = button.dataset.guess === '0'
-        ? 'The fitted tree also says Auto. Follow the two questions to see where packaging matters.'
-        : 'Weight alone would send this parcel to Review. The matching training parcel went to Auto, so a second question may help.';
+        ? 'The fitted two-question tree also predicts Auto. Follow its path to see where packaging matters.'
+        : 'The first weight question puts this parcel in a mostly Review branch. The second question checks packaging and the fitted tree predicts Auto.';
       get('parcel-walkthrough').open = true;
     }));
   }
@@ -135,12 +145,11 @@
 
   function renderParcelPreview() {
     const tree = fit(TRAIN, 'entropy', 2);
-    const parcel = { x: 7, y: 'A' };
-    const traced = trace(tree, parcel);
+    const traced = trace(tree, previewParcel);
     write('preview-tree', TreeLabDiagram.render(tree, {
       criterion: 'entropy', selectedPath: null, tracedPaths: traced.paths, interactive: false,
     }));
-    write('preview-route', routeDetails(traced, parcel, false));
+    write('preview-route', routeDetails(traced, previewParcel, false));
   }
 
   function renderEntropy() {
@@ -216,7 +225,7 @@
     renderSplitPlot(result);
     renderWeightedVisual(result, criterion);
     const child = (label, rows, group) => '<div class="child ' + label.toLowerCase() + '"><h3>' + label +
-      ' · ' + rowCount(group.n) + '</h3>' + chips(rows) + '<p>' + counts(group) + '</p>' +
+      ' · ' + rowCount(group.n) + '</h3>' + chips(rows, result.split.feature) + '<p>' + counts(group) + '</p>' +
       '<p class="arithmetic">' + groupFormula(group, criterion) + ' ≈ ' + number(group.score) + '</p></div>';
     write('split-children', child('Yes', result.left, result.leftStats) + child('No', result.right, result.rightStats));
     write('split-calculation', '<div class="calc-lines"><p><strong>Parent ' + name(criterion) +
@@ -272,7 +281,7 @@
     const max = regression ? Math.max(result.parent.score, result.leftStats.score, result.rightStats.score) || 1 :
       criterion === 'entropy' ? 1 : 0.5;
     const unit = regression ? ' min²' : '';
-    const scale = regression ? ' Full height is ' + number(max, precision) + unit + ' for this split.' : '';
+    const scale = regression ? number(max, precision) + unit + ' for this split' : criterion === 'entropy' ? '1 bit' : '0.5 Gini';
     const total = result.parent.n;
     const bands = [['Yes', result.leftStats], ['No', result.rightStats]];
     const diagram = bands.map(([label, group]) => {
@@ -287,8 +296,8 @@
       number(group.n / total * group.score, precision) + unit +
       '</span></span></div>').join('');
     write(target, '<figcaption><strong>See the weighted average</strong><span class="small">Width is the child’s share of rows. Height is its ' +
-      (regression ? impurity : impurity.toLowerCase()) + '. Each shaded area represents that child’s contribution.' +
-      scale + '</span></figcaption>' +
+      (regression ? impurity : impurity.toLowerCase()) + '. Full height represents ' + scale +
+      '. Each shaded area represents that child’s contribution.</span></figcaption>' +
       '<div class="weighted-areas" aria-hidden="true">' + diagram + '</div>' +
       '<div class="weighted-legend">' + contributions + '</div>');
   }
@@ -398,16 +407,22 @@
       '</span><strong>' + percent(value) + '</strong></div>').join(''));
     const filtered = selected.matrix ? view.filter(item => item.cell === selected.matrix) : view;
     get('show-all').hidden = !selected.matrix;
+    write('evaluation-model', '<strong>Current tree</strong> · ' + name(criterionInput.value) +
+      ' · Maximum depth ' + depthInput.value + ' · Minimum leaf size ' + minLeafInput.value +
+      ' · <a href="#tree">Change the tree settings</a>');
     get('heldout-title').textContent = selected.matrix ? matrixLabels[selected.matrix] + ' parcels' : 'All held-out parcels';
     write('heldout-rows', filtered.length ? filtered.map(({ row, prediction }) => '<tr><th scope="row">' + row.id +
-      ' <span class="small">· ' + row.x + ', ' + row.y + '</span><br><a href="#tree" data-trace="' + row.id +
-      '" aria-label="Trace held-out parcel ' + row.id + ' through the tree">Trace</a></th><td>' + route(row.label) +
-      '</td><td>' + route(prediction) + '</td></tr>').join('') : '<tr><td colspan="3">No parcels in this cell.</td></tr>');
+      '<br><a href="#tree" data-trace="' + row.id + '" aria-label="Trace held-out parcel ' + row.id +
+      ' through the tree">Trace</a></th><td>' + row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) +
+      '</td><td>' + route(prediction) + '</td></tr>').join('') : '<tr><td colspan="5">No parcels in this cell.</td></tr>');
     get('heldout-note').textContent = 'Showing ' + filtered.length + ' of ' + view.length + ' held-out parcels.';
   }
 
   function renderImportance() {
     const credit = importance(currentTree);
+    write('importance-model', '<strong>Current tree</strong> · ' + name(criterionInput.value) +
+      ' · Maximum depth ' + depthInput.value + ' · Minimum leaf size ' + minLeafInput.value +
+      ' · <a href="#tree">Inspect its nodes</a>');
     write('importance-bars', [['x', 'Weight X'], ['y', 'Packaging Y']].map(([feature, label]) => {
       const share = credit.total ? credit[feature] / credit.total : 0;
       return '<div class="importance-row"><span>' + label + '</span><div class="importance-meter" aria-hidden="true">' +
@@ -440,7 +455,7 @@
     const x = weight => 52 + (weight - 1) * 68;
     const y = minutes => 224 - minutes * 20;
     const cutoff = x(threshold);
-    const { left, right, leftStats, rightStats } = result;
+    const { left, right, leftStats, rightStats, parent } = result;
     const step = 'M ' + x(1) + ' ' + y(leftStats.mean) + ' H ' + cutoff +
       ' M ' + cutoff + ' ' + y(rightStats.mean) + ' H ' + x(8);
     const marks = TRAIN.map(row => {
@@ -460,16 +475,20 @@
       '<text text-anchor="middle" x="290" y="268">Weight X</text></svg>');
     function leaf(label, rows, group) {
       const mean = number(group.mean);
+      const times = rows.map(row => row.minutes);
       const terms = rows.map(row => '(' + row.minutes + ' − ' + mean + ')²');
       return '<div class="child ' + label.toLowerCase() + '"><h3>' + label +
         ' · Predict ' + mean + ' min</h3><p><strong>Times</strong> ' + rows.map(row => row.minutes).join(', ') +
-        '</p><p class="arithmetic">[' + terms.join(' + ') + '] / ' + group.n +
+        '</p><p class="arithmetic"><strong>Mean</strong> (' + times.join(' + ') + ') / ' + group.n + ' ≈ ' + mean +
+        ' min</p><p class="arithmetic"><strong>MSE</strong> [' + terms.join(' + ') + '] / ' + group.n +
         ' ≈ ' + number(group.score) + ' min²</p></div>';
     }
     write('regression-calculation', '<div class="split-children">' + leaf('Yes', left, leftStats) +
       leaf('No', right, rightStats) + '</div><div class="calc-lines">' +
-      '<p><strong>Parent MSE</strong> <span class="arithmetic">[(2 − 5)² + (2 − 5)² + (2 − 5)² + (6 − 5)² + (8 − 5)² + (8 − 5)² + (4 − 5)² + (8 − 5)²] / 8 = 7</span></p>' +
-      calculation(result, 'mse') + '<p class="small">Orange points show actual times. Teal lines show the two predictions. Vertical gaps are residuals.</p></div>');
+      '<p><strong>Parent MSE</strong> <span class="arithmetic">[' +
+      TRAIN.map(row => '(' + row.minutes + ' − ' + number(parent.mean) + ')²').join(' + ') + '] / ' + parent.n +
+      ' ≈ ' + number(parent.score) + ' min²</span></p>' + calculation(result, 'mse') +
+      '<p class="small">Vertical gaps are residuals. Calculations use the exact means before rounding.</p></div>');
     write('regression-tree', TreeLabDiagram.render({
       stats: result.parent,
       split: result.split,
@@ -488,7 +507,7 @@
   traceInput.innerHTML = [[HOLDOUT, 'Held out'], [TRAIN, 'Training']].map(([rows, label]) =>
     '<optgroup label="' + label + '">' + rows.map(row => '<option value="' + row.id + '">' +
       row.id + ' · X ' + row.x + ', Y ' + row.y + '</option>').join('') + '</optgroup>').join('');
-  traceInput.value = 'H5';
+  traceInput.value = 'P7';
   rebuildTree();
   regressionInput.innerHTML = candidates(TRAIN).filter(split => split.feature === 'x').map(split =>
     '<option value="' + split.threshold + '">' + question(split) + '</option>').join('');

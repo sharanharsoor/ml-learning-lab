@@ -12,7 +12,7 @@
 
   <div class="panel">
     <h3>What changes if one training label changes?</h3>
-    <p>Freeze the three bootstrap trays and the new parcel. Then flip P3’s recorded route from Auto to Review and refit. Check which trees actually saw P3.</p>
+    <p>Freeze the three bootstrap trays and the new parcel (5.65 kg, scan score 5.7). In the historical table, P3 is a 2.5 kg parcel with scan score 7.8 and recorded route Auto. Flip only that label and check which trees actually saw P3.</p>
     <div class="bag-actions"><button class="button secondary" id="bag-flip-p3" type="button" aria-pressed="false">Flip P3’s recorded route</button></div>
     <div id="bag-perturbation" aria-live="polite"></div>
     <p class="small">Trays that omitted P3 are unchanged. A tray that included P3 can learn a different rule or leaf probability. In a bigger forest, a row may appear in many trays.</p>
@@ -42,7 +42,7 @@
       </div>
     </details>
   </div>
-  <p>Across all five batches, both sets of predictions average 0.50. The bagged predictions sit closer to that average. A steady prediction can still be wrong. If the parcel’s recorded route is Auto and a model always predicts an 80% chance of Review, a 50% cutoff gives the wrong route every time. To measure accuracy, compare predicted routes with recorded routes on held-out parcels.</p>
+  <p>After revealing all five batches, compare the means and spread. Both sets average 0.50 in this illustration, while the bagged predictions sit closer to that average. A steady prediction can still be wrong. If the parcel’s recorded route is Auto and a model always predicts an 80% chance of Review, a 50% cutoff gives the wrong route every time. To measure accuracy, compare predictions with recorded routes on held-out parcels.</p>
 
   <div class="panel">
     <div class="panel-heading">
@@ -103,8 +103,7 @@
 <section class="chapter bag-later" id="oob" aria-labelledby="oob-title">
   <p class="eyebrow">Out-of-bag scoring</p>
   <h2 id="oob-title">Which trees can evaluate this parcel?</h2>
-  <p class="lede">Look for the ticket for parcel O1 in three training trays. Trees 1 and 2 drew it zero times, so they learned their splits using other parcels. We can ask those two trees to predict O1’s route, then compare their joint answer with the route the courier recorded.</p>
-  <p>We say that O1 is <strong>out of bag (OOB)</strong> for Trees 1 and 2. The “bag” is one tree’s bootstrap sample. O1 appears in Tree 3’s tray, so Tree 3 is left out of this check. Another parcel may have a different group of trees available.</p>
+  <p class="lede">Switch to five historical parcels, O1 through O5, so you can inspect every draw. Each tree uses weight to predict the recorded route. Pick a parcel and look for the trees that missed it during training.</p>
 
   <figure class="bag-scene">
     <img src="{{OOB_IMAGE}}" width="1344" height="756" loading="lazy" alt="A parcel ticket sits beside the trays while an operator sorts other tickets into them.">
@@ -122,12 +121,12 @@
       <table class="bagl-oob-table">
         <caption class="sr-only">Times each parcel was drawn into each tree's bootstrap sample</caption>
         <thead>
-          <tr><th scope="col">Parcel</th><th scope="col">Weight</th><th scope="col">True label</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Tree 3</th></tr>
+          <tr><th scope="col">Parcel</th><th scope="col">Weight (kg)</th><th scope="col">Recorded route</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Tree 3</th></tr>
         </thead>
         <tbody id="bagl-oob-grid"></tbody>
       </table>
     </div>
-    <p class="small bagl-oob-help">Read across a row to see how often each tree drew that parcel. A 2× means the tree trained on two copies. A zero means that tree can take part in the OOB check.</p>
+    <p class="small bagl-oob-help">Read across a row to see how often each tree drew that parcel. A 2× means the tree trained on two copies. A zero means the parcel is <strong>out of bag (OOB)</strong> for that tree and can be used to check its prediction.</p>
     <ol class="bag-steps">
       <li><strong>Find the zeros.</strong> Try O1. Only Trees 1 and 2 left it out of their training trays.</li>
       <li><strong>Read the leaves.</strong> Follow that parcel's weight through each eligible tree. Average the fractions of Review draws in those leaves.</li>

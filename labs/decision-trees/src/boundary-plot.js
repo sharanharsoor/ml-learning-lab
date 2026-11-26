@@ -104,19 +104,22 @@
     }, 'boundary-chart__selection');
   }
 
-  function marks(rows, bounds) {
+  function marks(rows, bounds, logistic = null) {
     return rows.map(row => {
       const x = pointX(row.x, bounds);
       const y = pointY(row.z, bounds);
       const title = '<title>' + escape(row.id) + ', weight ' + row.x + ', scan score ' + row.z + ', ' +
         route(row.label) + '</title>';
+      const mismatch = logistic && Number(logistic.intercept + logistic.weight * row.x + logistic.scan * row.z >= 0) !== row.label;
+      const outline = mismatch ? '<circle class="boundary-chart__logistic-miss" cx="' + round(x) +
+        '" cy="' + round(y) + '" r="11" aria-hidden="true"></circle>' : '';
       if (row.label === 0) {
         return '<circle class="boundary-chart__point boundary-chart__point--auto" cx="' + round(x) +
-          '" cy="' + round(y) + '" r="5.6">' + title + '</circle>';
+          '" cy="' + round(y) + '" r="5.6">' + title + '</circle>' + outline;
       }
       const diamond = [[x, y - 7], [x + 7, y], [x, y + 7], [x - 7, y]];
       return '<polygon class="boundary-chart__point boundary-chart__point--review" points="' +
-        diamond.map(([pointX, pointY]) => round(pointX) + ',' + round(pointY)).join(' ') + '">' + title + '</polygon>';
+        diamond.map(([pointX, pointY]) => round(pointX) + ',' + round(pointY)).join(' ') + '">' + title + '</polygon>' + outline;
     }).join('');
   }
 
@@ -157,7 +160,7 @@
       '" data-z-min="' + bounds.zMin + '" data-z-max="' + bounds.zMax + '">' +
       rect(chartRect, 'boundary-chart__surface') + regionRects(leaves, bounds) + grid +
       rect(chartRect, 'boundary-chart__frame') + selection(selected, bounds) +
-      splits(tree, bounds, selectedPath) + preview + overlay + regionLabels(leaves, bounds) + marks(rows, bounds) + labels +
+      splits(tree, bounds, selectedPath) + preview + overlay + regionLabels(leaves, bounds) + marks(rows, bounds, logistic) + labels +
       '<text class="boundary-chart__axis-title" text-anchor="middle" x="' + (box.left + width / 2) +
       '" y="357">Weight X</text>' +
       '<text class="boundary-chart__axis-title" text-anchor="middle" transform="translate(18 ' +

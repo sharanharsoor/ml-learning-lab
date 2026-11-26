@@ -155,7 +155,7 @@
     byId('bagl-oob-score').innerHTML = `
       <div class="table-wrap"><table>
         <caption class="sr-only">Out-of-bag predictions across the five training parcels</caption>
-        <thead><tr><th scope="col">Parcel</th><th scope="col">OOB trees</th><th scope="col">Review probability</th><th scope="col">Prediction</th><th scope="col">True label</th></tr></thead>
+        <thead><tr><th scope="col">Parcel</th><th scope="col">OOB trees</th><th scope="col">Review probability</th><th scope="col">Prediction</th><th scope="col">Recorded route</th></tr></thead>
         <tbody>${scores.map(({ row, leaves, probability, prediction }) => `
           <tr><th scope="row">${row.id}</th><td>${leaves.length}</td>
           <td>${probability === null ? 'Unavailable' : percent(probability, 1)}</td>
@@ -186,7 +186,7 @@
         `).join('')}</div>
         <p class="formula">Average Review probability = (${sum}) / ${leaves.length} ≈ ${percent(probability, 1)}</p>
         <p class="small">For this demo, a mean above 50% predicts Review. A tie predicts Auto.</p>
-        <p>OOB prediction <strong>${labelName(prediction)}</strong>. True label <strong>${labelName(row.review)}</strong>.</p>`;
+        <p>OOB prediction <strong>${labelName(prediction)}</strong>. Recorded route <strong>${labelName(row.review)}</strong>.</p>`;
     }
 
     grid.addEventListener('click', (event) => {

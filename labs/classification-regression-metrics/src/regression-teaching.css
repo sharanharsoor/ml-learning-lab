@@ -152,9 +152,10 @@
   margin: 10px 0 0;
   font-weight: 600;
 }
+.rg-error-card .rg-chart-scale { margin: 0 0 8px; font-weight: 400; }
 .rg-bar-row {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) 3.1rem;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
   gap: 8px;
   align-items: center;
   margin: 4px 0;
@@ -164,6 +165,7 @@
 .rg-bar-row strong {
   text-align: end;
 }
+.rg-bar-operands { display: block; font-size: .9em; color: var(--muted); }
 .rg-bar-track {
   display: block;
   height: 10px;

@@ -73,7 +73,6 @@
       worker = undefined;
     }
     releaseWorkerUrl();
-    active.reference.hidden = false;
     active.reference.open = true;
     finish(message);
   }
@@ -104,9 +103,7 @@
     if (active) return;
     active = demo;
     for (const panel of demos) panel.run.disabled = true;
-    const { status, output, reference, script, useScikitLearn } = demo;
-    reference.hidden = true;
-    reference.open = false;
+    const { status, output, script, useScikitLearn } = demo;
     output.hidden = true;
     status.textContent = worker ? "Preparing the example…" : "Loading Python for this browser…";
     try {

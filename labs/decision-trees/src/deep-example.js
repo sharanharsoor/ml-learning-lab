@@ -27,7 +27,7 @@
     function render() {
       const { split, depth } = results.get(path);
       const { parent, leftStats, rightStats } = split;
-      const sides = [['Yes child', leftStats], ['No child', rightStats]];
+      const sides = [['Yes child', leftStats, split.left], ['No child', rightStats, split.right]];
       graph.innerHTML = TreeLabDeepDiagram.render(tree, path);
 
       presets.forEach(button => {
@@ -37,7 +37,8 @@
         button.setAttribute('aria-pressed', String(depth === presetDepth));
       });
 
-      const rows = sides.map(([label, stats]) => '<tr><th scope="row">' + label + '</th><td>' + counts(stats) +
+      const rows = sides.map(([label, stats, parcels]) => '<tr><th scope="row">' + label + '</th><td>' + counts(stats) +
+        '<br><span class="small">' + parcels.map(row => row.id + ' (X ' + row.x + ')').join(', ') + '</span>' +
         '</td><td>' + number(stats.score) + '</td><td>' + stats.n + '/' + parent.n + '</td></tr>').join('');
       const context = depth === 0
         ? '<p>The selected parent is the root. All ' + parent.n + ' parcels reach it.</p>'
@@ -47,7 +48,7 @@
       math.innerHTML = '<h3>Depth ' + depth + ' · ' + question(split.split) + '</h3>' + context +
         '<p><strong>Current parent</strong> ' + counts(parent) + ' · Entropy ' + number(parent.score) + ' bits</p>' +
         '<div class="table-wrap"><table><caption class="sr-only">Children used in this split calculation</caption>' +
-        '<thead><tr><th scope="col">Node</th><th scope="col">Labels</th><th scope="col">Entropy</th><th scope="col">Weight</th></tr></thead>' +
+        '<thead><tr><th scope="col">Node</th><th scope="col">Recorded labels and rows</th><th scope="col">Entropy</th><th scope="col">Share of parent</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table></div>' +
         '<figure id="deep-weighted-visual" class="weighted-visual"></figure>' +
         '<div class="calc-lines"><p><strong>Weighted child entropy</strong> <span class="arithmetic">(' +
@@ -82,7 +83,7 @@
     }));
 
     get('deep-training-rows').innerHTML = DEEP_TRAIN.map(row =>
-      '<tr><th scope="row">' + row.x + '</th><td>' + (row.label ? 'Review' : 'Auto') + '</td></tr>').join('');
+      '<tr><th scope="row">' + row.id + '</th><td>' + row.x + '</td><td>' + (row.label ? 'Review' : 'Auto') + '</td></tr>').join('');
     limit.addEventListener('change', fitTree);
     fitTree();
   }

@@ -82,7 +82,11 @@
         <div><h3>Auto</h3><p>The parcel can continue through the automated line.</p></div>
         <div><h3>Review</h3><p>A worker checks the parcel before it continues.</p></div>
       </div>
-      <p>The inputs are what the team knows before routing. The label is the route each past parcel actually took. We fit a rule from those records and check it on parcels it has never seen.</p>
+      <ol class="course-data-flow" aria-label="From past records to a new prediction">
+        <li><strong>Past parcels</strong><span>Each record pairs the inputs, weight X and packaging Y, with the route staff recorded.</span></li>
+        <li><strong>Fit the tree</strong><span>Use the recorded routes to learn which questions separate Auto from Review.</span></li>
+        <li><strong>Predict a new route</strong><span>Give the fitted tree only the new parcel’s weight and packaging. The route is its prediction.</span></li>
+      </ol>
       <nav class="course-route" aria-label="Teaching agenda">
         <h2>From one cut to a fitted tree</h2>
         <ol>
@@ -95,7 +99,7 @@
       </nav>
       <div class="parcel-board">
         <div class="panel-heading">
-          <div><h2>Eight training parcels</h2><p>Position shows weight <var>X</var>. Each row is a packaging code <var>Y</var>.</p></div>
+          <div><h2>Eight training parcels</h2><p>Position across the plot shows weight <var>X</var>. The A and B lanes show packaging <var>Y</var>. The shape shows the recorded route.</p></div>
           <div class="legend" aria-label="Parcel labels"><span><i class="key auto" aria-hidden="true"></i>Auto</span><span><i class="key review" aria-hidden="true"></i>Review</span></div>
         </div>
         <div id="training-plot"></div>
@@ -109,7 +113,12 @@
         </details>
       </div>
       <div class="prediction-prompt">
-        <div><h2>Try a first rule</h2><p>A new parcel weighs 7 units and uses packaging A. Where would you route it?</p></div>
+        <div><h2>Try a first rule</h2><p>A new parcel weighs 7 units and uses packaging A. Look at three past parcels near that weight, then make a prediction.</p></div>
+        <div class="table-wrap course-records"><table>
+          <caption>Past routes and the new parcel’s inputs</caption>
+          <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th></tr></thead>
+          <tbody id="preview-records"></tbody>
+        </table></div>
         <div class="segmented" aria-label="Choose a route">
           <button type="button" data-guess="0" aria-pressed="false">Auto</button>
           <button type="button" data-guess="1" aria-pressed="false">Review</button>
@@ -121,7 +130,7 @@
         <div class="tree-diagram" id="preview-tree"></div>
         <div class="route-steps" id="preview-route"></div>
       </details>
-      <p class="transition">Each question divides the parcels that reach it. On a plot with two numerical inputs, you can draw those cuts yourself.</p>
+      <p class="transition">Each question divides the parcels that reach it. Next, draw cuts on a separate batch where both inputs are numbers.</p>
       <a class="button primary" href="#draw-splits">Draw a cut</a>
     </section>
 
@@ -130,7 +139,7 @@
     <section class="chapter" id="entropy" aria-labelledby="entropy-title">
       <p class="eyebrow">Score one node</p>
       <h2 id="entropy-title">From surprise to entropy</h2>
-      <p class="lede">Picture drawing one random parcel from a node. How surprising would its label be?</p>
+      <p class="lede">Return to the eight training parcels from the opening desk. The root starts with four Auto and four Review. Picture drawing one row at random. How surprising would its label be?</p>
       <div class="explanation-grid">
         <div>
           <h3>Start with inverse probability</h3>
@@ -142,7 +151,7 @@
         </div>
       </div>
       <div class="panel entropy-panel">
-        <div class="panel-heading"><div><h3>Change the mix of labels</h3><p>The starting mix matches all eight training parcels.</p></div><button id="reset-entropy" class="button secondary" type="button">Reset to 50%</button></div>
+        <div class="panel-heading"><div><h3>Change the mix of labels</h3><p>The slider starts at the training root’s 50% Review. Moving it explores other label mixes.</p></div><button id="reset-entropy" class="button secondary" type="button">Reset to 50%</button></div>
         <div class="entropy-layout">
           <div class="entropy-data">
             <label class="control-label" for="review-probability">Review share <output id="review-percent" for="review-probability">50%</output></label>
@@ -192,6 +201,7 @@
           </table></div>
         </details>
         <button type="button" class="button secondary" id="best-candidate">Select the best candidate</button>
+        <p class="small">The candidate and numeric search controls change this comparison. In <a href="#tree">Grow the tree</a>, the selected impurity measure carries forward and the fitted tree searches exact midpoints at each node.</p>
       </div>
       <div class="explanation-grid compact">
         <div>
@@ -212,6 +222,11 @@
       <details class="panel multiway-demo">
         <summary>Compare two or three branches on the same parcels</summary>
         <p>In a new batch, packaging can be A, B, or C, and the desk can also <strong>Hold</strong> a parcel for a later decision. Each child gets its own label mix and its weight comes from the same 12-row parent.</p>
+        <div class="table-wrap course-records"><table>
+          <caption>Recorded routes in the 12-row batch</caption>
+          <thead><tr><th scope="col">Packaging</th><th scope="col">Auto</th><th scope="col">Review</th><th scope="col">Hold</th></tr></thead>
+          <tbody id="multiway-records"></tbody>
+        </table></div>
         <div class="multiway-controls">
           <label>Question <select id="multiway-structure">
             <option value="A">Packaging A or other?</option>
@@ -229,13 +244,13 @@
         <div id="multiway-math" class="course-worked" aria-live="polite"></div>
         <p class="small">The three outcomes are target labels. The branch count comes from the question the algorithm allows. Scikit-learn uses binary splits. A multiway split can separate more groups in one step and needs its own stopping checks.</p>
       </details>
-      <p class="transition">A mixed child can become a new parent, with its own counts and candidate search. See how <a href="#deep-tree">the weighted average works deeper in a tree</a>.</p>
+      <p class="transition">A mixed child can become a new parent, with its own counts and candidate search. <a href="#tree">Grow the original eight-row tree</a> to see which question it asks next.</p>
     </section>
 
     <section class="chapter" id="tree" aria-labelledby="tree-title">
       <p class="eyebrow">Repeat the search locally</p>
       <h2 id="tree-title">Grow the classification tree</h2>
-      <p class="lede">The <strong>root</strong> starts with every training row. A <strong>decision node</strong> asks a question, its labeled <strong>branches</strong> carry the answers, and a <strong>leaf</strong> returns the prediction. Select a node to see why it split or stopped.</p>
+      <p class="lede">Fit a tree on the original eight parcels. The <strong>root</strong> starts with all eight. A <strong>decision node</strong> asks a question, its labeled <strong>branches</strong> carry the answers, and a <strong>leaf</strong> returns the prediction. Select a node to see why it split or stopped.</p>
       <div class="panel">
         <div class="control-grid tree-controls">
           <label>Maximum depth <select id="tree-depth"><option value="0">0 · Root only</option><option value="1">1 · One question</option><option value="2" selected>2 · Up to two questions</option><option value="3">3 · Up to three questions</option></select></label>
@@ -246,6 +261,7 @@
         <div id="tree-diagram" class="tree-diagram"></div>
         <div class="trace-result">
           <h3>Follow the highlighted path</h3>
+          <p class="small">P7 starts with the same inputs as the opening parcel. The dropdown also lets you trace a separate evaluation record.</p>
           <div class="route-steps" id="traced-route" aria-live="polite"></div>
         </div>
         <div class="tree-inspector" id="node-details" aria-live="polite"></div>
@@ -259,8 +275,9 @@
     <section class="chapter" id="evaluate" aria-labelledby="evaluate-title">
       <p class="eyebrow">Check unseen examples</p>
       <h2 id="evaluate-title">Read the confusion matrix</h2>
-      <p class="lede">Keep <strong>Review</strong> as the positive class. Try depth 1 and depth 2 in the <a href="#tree">tree controls</a> to compare predictions on six held-out parcels. Select a matrix cell to inspect those parcels.</p>
+      <p class="lede">Keep the tree fitted on the original eight training parcels. Give it only the inputs from six separate evaluation parcels. Then compare each prediction with the recorded route. <strong>Review</strong> is the positive class.</p>
       <div class="panel">
+        <p class="small" id="evaluation-model"></p>
         <div class="evaluation-grid">
           <div>
             <h3 id="matrix-label">Actual rows, predicted columns</h3>
@@ -277,14 +294,15 @@
             <div class="panel-heading heldout-heading"><h3 id="heldout-title">All held-out parcels</h3><button type="button" class="button secondary" id="show-all" hidden>Show all</button></div>
             <div class="table-wrap"><table>
               <caption class="sr-only">Held-out predictions for the current tree</caption>
-              <thead><tr><th scope="col">Parcel</th><th scope="col">Actual</th><th scope="col">Predicted</th></tr></thead>
+              <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th><th scope="col">Prediction</th></tr></thead>
               <tbody id="heldout-rows"></tbody>
             </table></div>
             <p class="small" id="heldout-note" aria-live="polite"></p>
           </div>
         </div>
       </div>
-      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Select an error cell, then use a parcel’s <strong>Trace</strong> link to see the decision that led there. For more practice with precision and recall, <a href="../classification-regression-metrics/">open the metrics lab</a>.</p>
+      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Select an error cell, then use a parcel’s <strong>Trace</strong> link to see the decision that led there. Some evaluation parcels share measurements with training parcels. They represent separate records in this toy example.</p>
+      <p>For more practice with precision and recall, <a href="../classification-regression-metrics/#classification">open the classification metrics lesson</a>. Its example defines its own positive class.</p>
       <p class="transition">Try one question and then two. A tree can get better on its training rows and worse on new rows.</p>
     </section>
 
@@ -322,12 +340,13 @@
     <section class="chapter" id="importance" aria-labelledby="importance-title">
       <p class="eyebrow">Attribute the reduction</p>
       <h2 id="importance-title">Give each feature credit</h2>
-      <p class="lede">A feature earns credit every time the fitted tree uses it. Multiply the local gain by the share of <strong>all training rows</strong> that reached the node, then add the credits by feature.</p>
+      <p class="lede">Use the routing tree fitted on the original eight training parcels. A feature earns credit each time that tree uses it. Multiply local gain by the share of <strong>all training rows</strong> that reached the node, then add the credits by feature.</p>
       <div class="explanation-grid">
         <div><h3>Why multiply by the root share?</h3><p>Pick one training row at random. It reaches a node of size <var>n</var> with probability <span class="formula">n/N</span>, where <var>N</var> is the root size. The split improves the label mix by its local gain for the rows that reach it. Averaged over all rows, its contribution is <span class="formula">(n/N) × local gain</span>.</p></div>
         <div><h3>What do all those credits add up to?</h3><p>Each split replaces the parent’s impurity contribution with its children’s contributions. When you add the reductions, internal nodes cancel. What remains is the <strong>root impurity minus the weighted impurity of the final leaves</strong>.</p></div>
       </div>
       <div class="panel">
+        <p class="small" id="importance-model"></p>
         <div id="importance-bars"></div>
         <div class="table-wrap"><table>
           <caption class="sr-only">Each chosen split’s contribution to feature importance</caption>
@@ -351,14 +370,14 @@
     <section class="chapter" id="regression" aria-labelledby="regression-title">
       <p class="eyebrow">Use the same inputs, change the target</p>
       <h2 id="regression-title">Predict processing time</h2>
-      <p class="lede">Give each leaf one number. For squared error, the best constant prediction is the mean of the training times in that leaf. Its MSE is the average squared distance from that mean.</p>
+      <p class="lede">Return to the original eight training parcels and use their recorded processing times as the target. For squared error, each leaf predicts the mean of its training times. Its MSE is the average squared distance from that mean.</p>
       <div class="explanation-grid compact">
         <div><h3>Classification</h3><p class="formula">Gini = 1 − Σ p(class)²</p><p>Score label mix. The leaf predicts its majority class.</p></div>
         <div><h3>Squared-error regression</h3><p class="formula">MSE = (1/n) Σ (time − mean)²</p><p>Score spread around a mean. The leaf predicts that mean.</p></div>
       </div>
       <div class="panel regression-panel">
         <div class="panel-heading">
-          <div><h3>Compare time predictions</h3><p>At this root, all eight training parcels average 5 minutes.</p></div>
+          <div><h3>Compare time predictions</h3><p>At this root, all eight training parcels average 5 minutes. The orange dots show their observed times. Each teal segment shows the mean prediction for that side of the cut.</p></div>
           <label class="regression-control">Weight cutoff <select id="regression-cutoff"></select></label>
         </div>
         <div id="regression-plot"></div>
@@ -382,7 +401,7 @@
     <section class="chapter" id="python" aria-labelledby="python-title">
       <p class="eyebrow">Reproduce the numbers</p>
       <h2 id="python-title">Verify in Python</h2>
-      <p>The first script checks the arithmetic for the questions we chose. The scikit-learn example fits both trees from the training rows, then checks the learned models.</p>
+      <p>Both browser examples return to the original eight training parcels. The first script checks the fixed 3.5 and packaging A cuts, the two-question routing rule, and the two regression leaf means. The scikit-learn example fits those models from the rows. Explorer settings stay independent of these reference examples.</p>
       <div class="course-code-link"><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb">Open the teaching notebook in Colab</a></div>
       <p>Run the notebook from the top before teaching. Jump to the split calculation for a short live run, then use the tree trace, depth comparison, and numerical prediction sections when you return.</p>
       {{PYTHON_PANEL}}

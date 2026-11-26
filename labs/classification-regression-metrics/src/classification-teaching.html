@@ -2,25 +2,27 @@
  <header class="class-teach-opening">
   <div>
    <h2 id="class-teach-title">When should we say “On track”?</h2>
-   <p>Asha’s delivery desk promised an order by <strong>12:40</strong>. At <strong>12:00</strong>, when the courier leaves, the app needs to decide what status to show. The model supplies an on-time score. A cutoff turns that score into one of two messages.</p>
+   <p>Asha’s delivery desk promises to deliver by <strong>12:40</strong>. At <strong>12:00</strong>, the courier leaves and the app sends an <strong>On track</strong> or <strong>Likely late</strong> message. Accepted orders continue to delivery after either message. When the order arrives, Asha can see whether that forecast was right.</p>
   </div>
   <!-- CLASSIFICATION_STORY_IMAGE -->
  </header>
  <ol class="class-teach-timeline" aria-label="Timeline of a delivery forecast">
-  <li><strong>Order accepted</strong><span>Fix the promised deadline.</span></li>
-  <li><strong>Courier dispatches</strong><span>Score the order and show a status.</span></li>
-  <li><strong>Order arrives</strong><span>Record whether it met the deadline.</span></li>
+  <li><strong>Order accepted</strong><span>Set the 12:40 deadline.</span></li>
+  <li><strong>Courier dispatches</strong><span>Use available inputs, such as address and traffic, to score the order. Apply a cutoff to pick the message.</span></li>
+  <li><strong>Order arrives</strong><span>At or before 12:40 is on time. After 12:40 is late. That observed outcome supplies the label.</span></li>
  </ol>
+ <p class="class-teach-context">The examples start with scores already supplied for 20 past orders. A higher score ranks an order as more likely to arrive on time. To read 0.45 as a 45% chance, we would first check whether about 45% of orders with that score actually arrived on time.</p>
  <nav class="class-teach-route" aria-label="Classification teaching sequence">
   <button class="button" type="button" data-class-lesson-stage="one" aria-controls="class-teach-one" aria-pressed="true">Follow one order</button>
-  <button class="button" type="button" data-class-lesson-stage="policies" aria-controls="class-teach-policies" aria-pressed="false">Compare two cutoffs</button>
-  <button class="button" type="button" data-class-lesson-stage="rates" aria-controls="class-teach-rates" aria-pressed="false">Read rates and rankings</button>
   <button class="button" type="button" data-class-lesson-stage="python" aria-controls="class-teach-python" aria-pressed="false">Run the code</button>
+  <button class="button" type="button" data-class-lesson-stage="rates" aria-controls="class-teach-rates" aria-pressed="false">Read matrix and rates</button>
+  <button class="button" type="button" data-class-lesson-stage="policies" aria-controls="class-teach-policies" aria-pressed="false">Compare two cutoffs</button>
+  <button class="button" type="button" data-class-lesson-stage="ranking" aria-controls="class-teach-ranking" aria-pressed="false">Read ROC and AUC</button>
  </nav>
  <section class="class-teach-panel" id="class-teach-one" aria-labelledby="class-teach-one-title">
   <div class="class-teach-heading">
-   <div><h3 id="class-teach-one-title">Follow an order into the matrix</h3><p>At cutoff 0.25, scores of 0.25 or higher produce <strong>On track</strong>. A lower score produces <strong>Likely late</strong>. Positive (P) means on time. Negative (N) means late.</p></div>
-   <label for="class-teach-order">Order <select id="class-teach-order"></select></label>
+   <div><h3 id="class-teach-one-title">Follow an order into the matrix</h3><p>Choose one of the 20 past orders and replay what the app knew at dispatch and what happened at arrival. At cutoff 0.25, a score of 0.25 or higher produces <strong>On track</strong>. A lower score produces <strong>Likely late</strong>. P (positive) means on time. N (negative) means late.</p></div>
+   <label for="class-teach-order">Past order ID <select id="class-teach-order"></select></label>
   </div>
   <div id="class-teach-replay" aria-live="polite"></div>
   <div class="button-row class-teach-actions">
@@ -28,33 +30,44 @@
    <button class="button" type="button" id="class-teach-reset" hidden>Restart order</button>
   </div>
  </section>
+ <section class="class-teach-panel" id="class-teach-python" aria-labelledby="class-teach-python-title" hidden>
+  <h3 id="class-teach-python-title">Build the decision rule in Python</h3>
+  <p>The first two lists contain the scores and recorded outcomes for D14 and D19. The item in the same position in both lists belongs to the same order. Use 1 for on time and 0 for late.</p>
+  <pre class="class-teach-code"><code id="class-teach-code-example"></code></pre>
+  <p id="class-teach-code-output"></p>
+  <p>In Colab, apply the same rule to all 20 orders and change the cutoff to 0.10. Read what changes for D19, whose score is exactly 0.10.</p>
+  <div class="button-row"><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/classification-regression-metrics/notebooks/classification-metrics-teaching.ipynb" target="_blank" rel="noopener noreferrer">Open Classification Metrics in Colab</a></div>
+ </section>
+ <section class="class-teach-panel" id="class-teach-rates" aria-labelledby="class-teach-rates-title" hidden>
+  <h3 id="class-teach-rates-title">From 20 forecasts to four counts</h3>
+  <p>Use the same original cutoff of 0.25 for every past order. Each order adds one count where its <strong>actual row</strong> meets its <strong>forecast column</strong>. P means on time and N means late. The same two orders from the replay are shown beside the totals.</p>
+  <div class="class-teach-compare" id="class-teach-rate-evidence"></div>
+  <div class="class-teach-rate-cards">
+   <article><h4>Precision</h4><p>Of the orders we called On track, how many arrived on time? Count the left column. It contains 15 correct forecasts and D14, the false positive.</p><p class="class-teach-equation">15 ÷ (15 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="precision">Highlight predicted positives</button></article>
+   <article><h4>Recall</h4><p>Of the orders that actually arrived on time, how many did we call On track? Count the top row. It contains the same 15 correct forecasts and D19, the false negative.</p><p class="class-teach-equation">15 ÷ (15 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="recall">Highlight actual positives</button></article>
+   <article><h4>Accuracy</h4><p>How many forecasts were correct overall? Add the two correct cells and divide by all 20 orders.</p><p class="class-teach-equation">(15 + 3) ÷ 20 = 90%</p></article>
+   <article><h4>F1</h4><p>F1 is the harmonic mean of precision and recall. You can calculate it from the counts as twice the true positives divided by twice the true positives plus both kinds of mistake.</p><p class="class-teach-equation">30 ÷ (30 + 1 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="f1">Read the F1 calculation</button></article>
+  </div>
+ </section>
  <section class="class-teach-panel" id="class-teach-policies" aria-labelledby="class-teach-policies-title" hidden>
   <div class="class-teach-heading">
-   <div><h3 id="class-teach-policies-title">Change the cutoff, keep the scores</h3><p>Keep the same 20 orders and their recorded outcomes. Compare cutoff 0.25 with a second policy. Only the forecast can change for each order.</p></div>
+   <div><h3 id="class-teach-policies-title">Change the cutoff, keep the scores</h3><p>Keep the same 20 orders and their recorded outcomes. Compare cutoff 0.25 with a second policy. The forecast message is the only thing the cutoff changes. A cutoff of 0.10 includes an order scoring exactly 0.10.</p></div>
    <label for="class-teach-comparison">Second cutoff <select id="class-teach-comparison"><option value="0.10">0.10</option><option value="0.50">0.50</option><option value="0.00">0.00</option><option value="1.01">1.01</option></select></label>
   </div>
   <div id="class-teach-comparison-result" aria-live="polite"></div>
   <div class="button-row class-teach-actions"><button class="button primary" id="class-teach-use-cutoff" type="button">Use second cutoff in playground</button></div>
  </section>
- <section class="class-teach-panel" id="class-teach-rates" aria-labelledby="class-teach-rates-title" hidden>
-  <h3 id="class-teach-rates-title">Ask a question before choosing a metric</h3>
-  <p>At cutoff 0.25, 15 on-time orders were forecast On track. That same true-positive count belongs to two different groups.</p>
-  <div class="class-teach-rate-cards">
-   <article><h4>Precision</h4><p>Of the orders we called On track, how many got there on time?</p><p class="class-teach-equation">15 ÷ (15 + 1 FP) = 93.75%</p><button class="button small" type="button" data-class-focus="precision">Highlight predicted positives</button></article>
-   <article><h4>Recall</h4><p>Of the orders that actually arrived on time, how many did we call On track?</p><p class="class-teach-equation">15 ÷ (15 + 1 FN) = 93.75%</p><button class="button small" type="button" data-class-focus="recall">Highlight actual positives</button></article>
-   <article><h4>Accuracy and F1</h4><p>Accuracy counts every correct forecast. F1 combines precision and recall and gives a low rate more influence.</p><p class="class-teach-equation">Accuracy = (15 + 3) ÷ 20 = 90%</p><button class="button small" type="button" data-class-focus="f1">Read the F1 calculation</button></article>
-   <article><h4>ROC and AUC</h4><p>One cutoff gives one point. Moving the cutoff traces recall against the false-positive rate. AUC summarizes how the scores rank on-time orders above late orders.</p><p class="class-teach-equation">AUC = 59 ÷ 64 ≈ 0.922</p><button class="button small" type="button" data-class-focus="roc">Explore the ROC point</button></article>
-  </div>
-  <details class="class-teach-note"><summary>Why does the equal percentage hide an important difference?</summary><p>At 0.25, precision adds D14 to its denominator because we called it On track and it arrived late. Recall adds D19 because it arrived on time and we called it Likely late. The denominators are both 16 here and contain different orders.</p></details>
+ <section class="class-teach-panel" id="class-teach-ranking" aria-labelledby="class-teach-ranking-title" hidden>
+  <h3 id="class-teach-ranking-title">One cutoff gives one ROC point</h3>
+  <p>Use the confusion counts at 0.25. Of the 4 actual late orders, 1 was forecast On track. That gives the <strong>false-positive rate</strong> of <strong>1/4</strong>, the horizontal coordinate. Of the 16 actual on-time orders, 15 were forecast On track. That gives <strong>recall</strong>, or true-positive rate, of <strong>15/16</strong>, the vertical coordinate. Repeat this calculation at every score cutoff to trace the curve.</p>
+  <div class="button-row class-teach-actions"><button class="button small" type="button" data-class-focus="roc">Explore the ROC point</button></div>
+  <h4>Use the original scores to explain the area</h4>
+  <p>Pair each actual on-time order with each actual late order. The pair earns 1 when the on-time score is higher, ½ when the scores tie, and 0 when the late score is higher. For example, on-time D19 (0.10) earns 0 against late D14 (0.45) and earns 1 against late D20 (0.05).</p>
+  <div id="class-teach-auc-evidence"></div>
+  <p>Moving only the cutoff changes the ROC point. The recorded outcomes, scores, and comparisons stay the same, so the area under the curve (AUC) stays the same.</p>
  </section>
- <section class="class-teach-panel" id="class-teach-python" aria-labelledby="class-teach-python-title" hidden>
-  <h3 id="class-teach-python-title">Build the decision rule in Python</h3>
-  <p>Start with the same fixed scores and actual labels. This line makes one predicted label per order. Change the cutoff, then count which decisions moved.</p>
-  <pre class="class-teach-code"><code>cutoff = 0.25
-predicted = [int(score &gt;= cutoff) for score in scores]
-correct = sum(p == y for p, y in zip(predicted, actual))
-accuracy = correct / len(actual)</code></pre>
-  <p>The notebook continues from one order to full confusion counts, the denominator comparison, and the ROC/AUC check.</p>
-  <div class="button-row"><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/classification-regression-metrics/notebooks/classification-metrics-teaching.ipynb" target="_blank" rel="noopener noreferrer">Open Classification Metrics in Colab</a></div>
- </section>
+ <div class="button-row class-teach-actions" aria-label="Classification lesson navigation">
+  <button class="button small" type="button" id="class-teach-previous" disabled>Previous step</button>
+  <button class="button small primary" type="button" id="class-teach-next">Next step</button>
+ </div>
 </section>

@@ -64,6 +64,11 @@
       number(before) + ' − ' + number(after) + ' ≈ ' + number(before - after) + units + '</p>';
   }
 
+  const parent = combine(packages);
+  const row = (heading, counts) => '<tr><th scope="row">' + heading + '</th>' +
+    counts.map(count => '<td>' + count + '</td>').join('') + '</tr>';
+  document.getElementById('multiway-records').innerHTML = packages.map(group => row(group.name, group.counts)).join('') +
+    row('All parcels', parent);
   criterion.addEventListener('change', draw);
   structure.addEventListener('change', draw);
   draw();

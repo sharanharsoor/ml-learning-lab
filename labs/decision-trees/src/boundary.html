@@ -1,7 +1,7 @@
     <section class="chapter" id="draw-splits" aria-labelledby="boundary-title">
       <p class="eyebrow">Build a tree by hand</p>
       <h2 id="boundary-title">Draw the splits</h2>
-      <p class="lede">A new batch of synthetic parcels has two numerical inputs, weight and scan score. Where would you draw the first cut to separate Auto from Review?</p>
+      <p class="lede">This sandbox uses 21 different parcels so both inputs can be plotted on numerical axes. Each point shows a past parcel’s weight X and scan score Z. The circle or diamond shows the route staff recorded.</p>
 
       <div class="panel boundary-lab">
         <form class="boundary-settings" id="boundary-settings">
@@ -13,7 +13,7 @@
           <label>Cutoff <select id="boundary-threshold" aria-describedby="boundary-instructions"></select></label>
           <button type="submit" class="button primary" id="boundary-apply">Apply cut</button>
         </form>
-        <p class="small boundary-instructions" id="boundary-instructions">Click or drag on the plot to place the dashed cut, or choose a cutoff above. Apply the cut, then select one child on the plot or tree to make the next cut there.</p>
+        <p class="small boundary-instructions" id="boundary-instructions">Click or drag to preview a cut. The dashed line snaps to a midpoint between observed values in the selected region. Apply the cut to ask whether the measurement is at most that cutoff. Select a child region to make the next cut there.</p>
         <label class="boundary-logistic-toggle">
           <input type="checkbox" id="boundary-logistic" aria-controls="boundary-plot boundary-logistic-note">
           <span class="boundary-logistic-key" aria-hidden="true"></span>
@@ -50,7 +50,15 @@
             <button type="button" class="button secondary" id="boundary-demo">Show worked example</button>
           </div>
         </div>
+        <details class="teaching-note">
+          <summary>See the 21 plotted parcel records</summary>
+          <div class="table-wrap"><table>
+            <caption class="sr-only">Recorded inputs and routes for the cut-drawing sandbox</caption>
+            <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X</th><th scope="col">Scan score Z</th><th scope="col">Recorded route</th></tr></thead>
+            <tbody id="boundary-records"></tbody>
+          </table></div>
+        </details>
       </div>
-      <p class="transition">Some cuts leave the labels more mixed than others. Entropy gives us a way to score how mixed they are.</p>
+      <p class="transition">Some cuts leave the labels more mixed than others. Next, return to the original eight parcels and measure that mix with entropy.</p>
       <p class="boundary-next"><a class="button primary" href="#entropy">Start with surprise</a></p>
     </section>
