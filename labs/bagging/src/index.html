@@ -48,25 +48,72 @@
       <div id="bag-desk-stage">
         <p class="eyebrow">Bagging &amp; Random Forests</p>
         <h1 id="bag-title" tabindex="-1">Where should this parcel go?</h1>
-        <p class="bag-desk-intro">Imagine you run a courier sorting center. Routine parcels should move quickly. Some need a closer check.</p>
+        <p class="bag-desk-intro">A new parcel arrives at the intake desk. The courier scans its barcode and checks its weight before sending it to one of two routes.</p>
         <figure class="bag-desk">
           <!-- Original Bagging opener artwork, generated with built-in ImageGen. Prompt follows.
           Use case: scientific-educational. Asset type: widescreen classroom slide illustration for an introductory machine learning lesson. Show a modern parcel sorting center with two visually distinct routes, understandable at a glance from a classroom projector. A friendly warehouse operator at the intake in the middle receives a small kraft parcel. At the LEFT, a different small cardboard parcel passes straight through a low teal automated scanner/conveyor toward dispatch. At the RIGHT, a second warehouse worker checks a different cardboard parcel by hand at a simple terracotta inspection counter, holding a small handheld scanner or checking the label. Each of the three stations and people is clear at small size, fully visible, and reads from left, center, to right in one continuous space. Communicate the route difference through poses and job actions. Clean editorial vector-like raster illustration, confident simple shapes, a warm off-white backdrop, deep evergreen and clay accents, thin consistent outlines, bright even lighting, approachable adult figures, minimal background detail. Wide horizontal 16:9 composition, centered, full-width and no cut-off objects, with breathing room at sides. No text, letters, signage, arrows, chart axes, labels, branding, or watermark.
           -->
-          <img src="{{PARCEL_DESK_IMAGE}}" width="1672" height="941" alt="At a sorting center, a parcel goes through a scanner on the left, an operator receives a new parcel in the middle, and a worker checks another parcel by hand on the right.">
+          <img src="{{PARCEL_DESK_IMAGE}}" width="1672" height="941" alt="A sorting center with the intake desk in the middle, the Auto dispatch lane on the left, and the staffed Review station on the right.">
           <figcaption class="bag-desk-routes">
-            <div class="auto"><strong>Auto</strong><span>Both checks pass. The parcel goes straight to dispatch.</span></div>
-            <div><strong>New parcel</strong><span id="bag-desk-parcel">Weight and scan score</span></div>
-            <div class="review"><strong>Review</strong><span>Barcode fails a retry, or weight exceeds the label by more than 1 kg.</span></div>
+            <div class="auto"><strong>Auto</strong><span>Conveyor to dispatch</span></div>
+            <div><strong>Intake</strong><span>Receive and check the parcel</span></div>
+            <div class="review"><strong>Review</strong><span>Staff inspect the parcel by hand</span></div>
           </figcaption>
         </figure>
-        <div class="bag-desk-actions">
-          <p>Past records pair the measurements with the route the courier took.</p>
-          <button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button>
+        <figure class="bag-intake-flow" aria-labelledby="bag-intake-title" data-route="auto" data-declared-weight="4" id="bag-intake-flow">
+          <figcaption>
+            <h2 id="bag-intake-title">Follow the parcel through intake</h2>
+            <p>Try the two checks on a sample parcel with a 4.0 kg shipping label.</p>
+          </figcaption>
+          <div class="bag-intake-arrival">New parcel arrives</div>
+          <div class="bag-intake-arrow" aria-hidden="true"></div>
+          <div class="bag-intake-checks" role="group" aria-label="Intake checks">
+            <div>
+              <h3>Scan the barcode</h3>
+              <p>Retry once if it fails. The barcode check passes if either scan reads it.</p>
+              <label for="bag-intake-barcode">Barcode result</label>
+              <select id="bag-intake-barcode"><option value="first">Reads on first scan</option><option value="retry">Reads on retry</option><option value="unreadable">Still unreadable after retry</option></select>
+            </div>
+            <div>
+              <h3>Weigh the parcel</h3>
+              <p>Compare measured weight with the label. The check fails if the parcel is more than 1 kg over.</p>
+              <label for="bag-intake-weight">Measured weight</label>
+              <select id="bag-intake-weight"><option value="4.6">4.6 kg</option><option value="5">5.0 kg</option><option value="5.2">5.2 kg</option></select>
+            </div>
+          </div>
+          <div class="bag-intake-arrow" aria-hidden="true"></div>
+          <div class="bag-intake-decision">Did either check fail?</div>
+          <div class="bag-intake-routes">
+            <article class="auto">
+              <p class="bag-intake-branch">No · Both passed</p>
+              <h3>Auto</h3><p>The parcel goes straight to dispatch.</p>
+            </article>
+            <article class="review">
+              <p class="bag-intake-branch">Yes · At least one failed</p>
+              <h3>Review</h3><p>A person checks the parcel. If they resolve the issue, it can go to dispatch. Otherwise, staff hold it for follow-up.</p>
+            </article>
+          </div>
+          <p class="bag-intake-result" id="bag-intake-result" role="status">Auto. The barcode is readable and the weight is within the limit.</p>
+        </figure>
+        <div class="bag-intake-bridge">
+          <h2>Where do the two trees fit in?</h2>
+          <p>Past parcels supply the training examples. Each row records the weight, scan warning score, and the intake route the courier took. A parcel sent for a manual check is recorded as <strong>Review</strong>, even if staff later clear it for dispatch.</p>
+          <div class="bag-intake-arrival bag-intake-model-input">
+            <strong>New parcel for the model demo</strong>
+            <span id="bag-desk-parcel">Weight and scan score</span>
+          </div>
+          <div class="bag-intake-routes bag-intake-predictions" aria-label="Both trees receive the same measurements">
+            <article><h3>Tree 1</h3></article>
+            <article><h3>Tree 2</h3></article>
+          </div>
+          <div class="bag-desk-actions">
+            <p>Both trees get the <strong>same measurements</strong>. Each predicts the intake route, <strong>Auto</strong> or <strong>Review</strong>, on its own.</p>
+            <button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button>
+          </div>
         </div>
         <details class="teaching-note bag-desk-rules">
           <summary>What counts as unusual?</summary>
-          <p>In this example, a person checks the parcel if the barcode still won’t scan after a retry or it weighs over 1 kg more than the shipping label says. For example, a 5.2 kg parcel labeled 4 kg goes to Review, even if its barcode scans.</p>
+          <p>For a label that says 4.0 kg, a 5.0 kg parcel passes the weight check. At 5.2 kg it goes to Review, even if the barcode scans.</p>
           <p>Here are two parcels from the training table. The scan score measures the strength of the scanner’s warning on a scale from 0 to 10. The recorded route is what the staff decided at the time.</p>
           <div class="table-wrap">
             <table>
@@ -83,7 +130,7 @@
       <div id="bag-model-stage" hidden>
         <p class="eyebrow">Ensemble intuition</p>
         <h2 id="bag-model-title" class="bag-stage-title" tabindex="-1">Same parcel. Two trees.</h2>
-        <p class="lede">Give the parcel’s weight and scan score to two trees. Each tree learned from a different selection of the courier’s past records. Both used the same training settings, so look at how the examples they saw changed the cutoff they learned.</p>
+        <p class="lede">Both trees predict the intake route for the same parcel. They use its weight and scan warning score. Each tree learned from a different selection of the courier’s past records, so the questions they ask can lead to different predictions.</p>
         <div class="panel bag-hook">
           <div class="panel-heading"><p id="bag-parcel"></p><div class="bag-legend"><span class="bag-mark auto">● Auto</span><span class="bag-mark review">◆ Review</span><span>⊕ New parcel</span></div></div>
           <div class="bag-pair" id="bag-hook-plots"></div>

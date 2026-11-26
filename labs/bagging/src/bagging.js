@@ -127,6 +127,28 @@
       '<text transform="translate(12 120) rotate(-90)" text-anchor="middle" class="bag-axis">Scan score Z</text></svg>';
   }
 
+  function setupIntakeFlow() {
+    const figure = get('intake-flow');
+    const barcode = get('intake-barcode');
+    const weight = get('intake-weight');
+    const result = get('intake-result');
+    const declared = Number(figure.dataset.declaredWeight);
+
+    function paint() {
+      const excess = Number(weight.value) - declared;
+      const issues = [];
+      if (barcode.value === 'unreadable') issues.push('the barcode is unreadable after a retry');
+      if (excess > 1) issues.push(`the parcel weighs ${excess.toFixed(1)} kg more than the label says`);
+      figure.dataset.route = issues.length ? 'review' : 'auto';
+      result.textContent = issues.length ? `Send to Review because ${issues.join(' and ')}.` :
+        'Send to Auto. The barcode is readable and the weight is within the limit.';
+    }
+
+    barcode.addEventListener('change', paint);
+    weight.addEventListener('change', paint);
+    paint();
+  }
+
   function setupHook() {
     const reveal = get('hook-reveal');
     const desk = get('desk-stage');
@@ -411,6 +433,7 @@
   }
 
   setupNavigation();
+  setupIntakeFlow();
   setupHook();
   setupBootstrap();
   setupForest();
