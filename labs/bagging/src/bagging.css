@@ -151,6 +151,75 @@
   border-radius: .55rem;
 }
 .bag-triptych h3, .bag-pair h3, .bag-knob h3 { margin-bottom: .28rem; }
+.bag-ensemble > p { margin-block: .3rem .85rem; color: var(--muted); }
+.bag-pair > .bag-ensemble-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(.85rem, 2vw, 1.2rem);
+  background: var(--surface);
+}
+.bag-ensemble-card h4 { margin: 0 0 .3rem; font-size: 1.2rem; }
+.bag-method-flow { display: flex; flex: 1; flex-direction: column; margin: .75rem 0 0; }
+.bag-method-board {
+  --bag-method-line: #687b72;
+  display: grid;
+  flex: 1;
+  align-content: center;
+  min-height: 11rem;
+  padding: .7rem;
+  border: 1px solid var(--line);
+  border-radius: .55rem;
+  background: var(--paper);
+}
+.bag-method-node {
+  display: grid;
+  align-content: center;
+  gap: .12rem;
+  padding: .38rem .55rem;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: .4rem;
+  background: var(--surface);
+  font-size: .95rem;
+  line-height: 1.3;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.bag-method-board > .bag-method-node { justify-self: center; }
+.bag-method-input { background: #ece6f4; border-color: #cfc3df; color: var(--forest-focus); font-weight: 700; }
+.bag-method-result { background: var(--light); border-color: #bbd5ca; }
+.bag-method-forward { background: var(--warm); border-color: #e5c0af; }
+.bag-method-branches, .bag-method-sequence {
+  position: relative;
+  display: grid;
+  gap: .68rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bag-method-sequence { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.bag-method-fork { padding-block-start: 1rem; }
+.bag-method-join { padding-block-end: 1rem; }
+.bag-method-fork::before, .bag-method-join::after {
+  content: "";
+  position: absolute;
+  inset-inline: calc(25% - .17rem);
+  height: .5rem;
+  background: linear-gradient(var(--bag-method-line), var(--bag-method-line)) center / 1px 100% no-repeat;
+}
+.bag-method-fork::before { top: 0; border-bottom: 1px solid var(--bag-method-line); }
+.bag-method-join::after { bottom: 0; border-top: 1px solid var(--bag-method-line); }
+.bag-method-fork > div { position: relative; }
+.bag-method-fork > div::before, .bag-method-join > div::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  height: .5rem;
+  border-left: 1px solid var(--bag-method-line);
+}
+.bag-method-fork > div::before { bottom: 100%; }
+.bag-method-join > div::after { top: 100%; }
+.bag-method-arrow { align-self: center; justify-self: center; color: var(--bag-method-line); font-weight: 700; line-height: 1; }
+.bag-method-flow figcaption { margin-block-start: .55rem; color: var(--muted); font-size: .9rem; line-height: 1.4; }
 .bag-say {
   margin-block: 1.3rem;
   padding: .75rem 1rem;
@@ -333,7 +402,7 @@
 
 @media (max-width: 760px) {
   .bag-source, .bag-drawn { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .bag-opening-trees { grid-template-columns: minmax(0, 1fr); }
+  .bag-opening-trees, .bag-ensemble-visuals { grid-template-columns: minmax(0, 1fr); }
 }
 @media (min-width: 761px) and (max-height: 820px) {
   .bagging #ensemble { padding-top: .85rem; }

@@ -104,17 +104,81 @@
         </div>
         <div id="bag-ensemble-takeaway" hidden>
           <div id="bag-opening-paths" class="bag-worked"></div>
-          <div class="bag-say"><p>One vote each leaves us with a tie. That tells us these two trees disagree. We could train more trees and choose an aggregation rule, then evaluate that rule on other labeled emails.</p><p>An <strong>ensemble</strong> combines predictions from multiple models. Each model that contributes an answer is a <strong>base learner</strong>. Here each tree is a base learner.</p></div>
-          <div class="bag-pair">
-            <article><h3>Bagging</h3><p>Give each tree its own resample of the training emails. Fit the trees independently and ask them all to classify the same incoming email.</p></article>
-            <article><h3>Boosting</h3><p>Build trees in sequence. In gradient boosting, each new tree learns a correction to the current model, for example to improve predictions on spam it often misses.</p></article>
-            <article><h3>Stacking</h3><p>Use a second model to learn from the first models’ predictions. It could learn how to combine a tree’s prediction with a logistic regression score for the same email.</p></article>
-            <article><h3>Cascading</h3><p>Apply models in stages. A quick filter can handle clear cases. It can send uncertain emails to a model that examines more signals.</p></article>
-          </div>
+          <div class="bag-say"><p>An <strong>ensemble</strong> combines predictions from multiple models. Each model that contributes an answer is a <strong>base learner</strong>. Here each tree is a base learner.</p></div>
+          <section class="bag-ensemble" aria-labelledby="bag-ensemble-title">
+            <h3 id="bag-ensemble-title">Four ways to combine models</h3>
+            <p>Follow <strong id="bag-methods-email"></strong>, the same email we just traced. Bagging shows our two fitted trees. The other diagrams illustrate how each method would handle the email.</p>
+            <div class="bag-pair bag-ensemble-visuals">
+              <article class="bag-ensemble-card">
+                <h4>Bagging</h4>
+                <p>Train each tree separately on its own sample of past emails.</p>
+                <figure class="bag-method-flow">
+                  <div class="bag-method-board">
+                    <div class="bag-method-node bag-method-input">Same email</div>
+                    <div class="bag-method-branches bag-method-fork bag-method-join">
+                      <div class="bag-method-node"><strong>Tree 1</strong><span id="bag-method-first"></span></div>
+                      <div class="bag-method-node"><strong>Tree 2</strong><span id="bag-method-second"></span></div>
+                    </div>
+                    <div class="bag-method-node bag-method-result"><strong>Count the votes</strong><span id="bag-method-vote"></span></div>
+                  </div>
+                  <figcaption>Every tree sees the email. Each casts a vote in this example.</figcaption>
+                </figure>
+              </article>
+              <article class="bag-ensemble-card">
+                <h4>Boosting</h4>
+                <p>In gradient boosting, each new tree learns a correction to the current model.</p>
+                <figure class="bag-method-flow">
+                  <div class="bag-method-board">
+                    <div class="bag-method-node bag-method-input">Start with a spam score</div>
+                    <span class="bag-method-arrow" aria-hidden="true">↓</span>
+                    <div class="bag-method-sequence">
+                      <div class="bag-method-node">Add Tree 1’s adjustment</div>
+                      <span class="bag-method-arrow" aria-hidden="true">→</span>
+                      <div class="bag-method-node">Add Tree 2’s adjustment</div>
+                    </div>
+                    <span class="bag-method-arrow" aria-hidden="true">↓</span>
+                    <div class="bag-method-node bag-method-result">Final spam score</div>
+                  </div>
+                  <figcaption>Each adjustment can raise or lower the email’s score.</figcaption>
+                </figure>
+              </article>
+              <article class="bag-ensemble-card">
+                <h4>Stacking</h4>
+                <p>Train a separate model to combine the scores from other models.</p>
+                <figure class="bag-method-flow">
+                  <div class="bag-method-board">
+                    <div class="bag-method-node bag-method-input">Same email</div>
+                    <div class="bag-method-branches bag-method-fork bag-method-join">
+                      <div class="bag-method-node"><strong>Decision tree</strong><span>Spam score</span></div>
+                      <div class="bag-method-node"><strong>Logistic regression</strong><span>Spam score</span></div>
+                    </div>
+                    <div class="bag-method-node bag-method-result"><strong>Learned combiner</strong><span>Predicts the final class</span></div>
+                  </div>
+                  <figcaption>The combiner learns from base-model scores and the emails’ ground-truth labels.</figcaption>
+                </figure>
+              </article>
+              <article class="bag-ensemble-card">
+                <h4>Cascading</h4>
+                <p>Run a quick filter first. How sure it is determines where the email goes next.</p>
+                <figure class="bag-method-flow">
+                  <div class="bag-method-board">
+                    <div class="bag-method-node bag-method-input">Same email</div>
+                    <span class="bag-method-arrow" aria-hidden="true">↓</span>
+                    <div class="bag-method-node"><strong>Quick filter</strong></div>
+                    <div class="bag-method-branches bag-method-fork">
+                      <div class="bag-method-node bag-method-result"><strong>Confident</strong><span>Use the first answer</span></div>
+                      <div class="bag-method-node bag-method-forward"><strong>Uncertain</strong><span>Ask a second model</span></div>
+                    </div>
+                  </div>
+                  <figcaption>Only the uncertain path calls the second model.</figcaption>
+                </figure>
+              </article>
+            </div>
+          </section>
           <details class="teaching-note"><summary>Where did the cutoffs come from?</summary><div id="bag-cutoff-origin"></div><p>The tree compares possible cuts by how well they separate the recorded labels. A new draw changes which values and labels are available at each node.</p></details>
           <details class="teaching-note"><summary>How does stacking get training examples?</summary><p>Set aside some labeled emails, train the first models on the rest, then have them predict the set-aside emails. Train the second model on those predictions and recorded labels. Rotating the set-aside group gives more examples. These are called <strong>out-of-fold predictions</strong>.</p></details>
           <p class="bag-quiz-cue">Quiz 1</p>
-          <p class="transition">Both trees started from the same 12 labeled records. How did they end up with different training rows?</p>
+          <p class="transition">Let’s build Bagging. Both trees started from the same 12 labeled emails. How did they get different training samples?</p>
           <div class="bag-actions"><a href="#bootstrap" class="button primary">Draw a training sample</a></div>
         </div>
       </div>

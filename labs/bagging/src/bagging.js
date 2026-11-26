@@ -183,6 +183,12 @@
       heading.focus({ preventScroll: true });
     });
     get('model-id').textContent = email.id;
+    get('methods-email').textContent = email.id;
+    get('method-first').innerHTML = badge(samples[0].prediction);
+    get('method-second').innerHTML = badge(samples[1].prediction);
+    const openingSpamVotes = samples[0].prediction + samples[1].prediction;
+    get('method-vote').textContent = openingSpamVotes === 1 ? '1 Legitimate, 1 Spam · tie' :
+      'Both predict ' + labelName(samples[0].prediction);
     get('model-dollar').textContent = frequency(email.x);
     get('model-exclaim').textContent = frequency(email.z);
     get('email').textContent = email.id + ' · ' + measurements(email);
