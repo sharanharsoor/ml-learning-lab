@@ -439,27 +439,26 @@
 
   function setupDepth() {
     const depth = get('base-depth');
-    const fit = (sample, limit) => {
-      const training = sampleRows(sample);
+    const training = sampleRows(samples[2]);
+    const fit = limit => {
       const tree = TreeLab.fit(training, 'gini', limit);
       const correct = training.filter(row => TreeLab.predict(tree, row) === row.label).length;
-      return { tree, correct, n: training.length };
+      return { tree, correct, trace: TreeLab.trace(tree, email) };
     };
-    const shallow = fit(samples[2], 2);
-    const deeper = fit(samples[2], 4);
-    get('depth-worked').innerHTML = '<p><strong>Try it.</strong> At depth 2, Tree 3 classifies ' + shallow.correct +
-      '/' + shallow.n + ' training draws correctly and predicts <strong>' + labelName(TreeLab.predict(shallow.tree, email)) +
-      '</strong> for ' + email.id + '. At depth 4, it classifies ' + deeper.correct + '/' + deeper.n +
-      ' correctly and predicts <strong>' + labelName(TreeLab.predict(deeper.tree, email)) +
-      '</strong> for that same email. Test on more unseen emails to judge whether more depth helps.</p>';
+    const shallow = fit(2);
+    const deeper = fit(4);
+    const n = training.length;
+    get('depth-email').innerHTML = emailTableRows([email]);
+    get('depth-worked').innerHTML = `<p><strong>Try it.</strong> Switch the maximum depth from 2 to 4.
+      Tree 3 now asks a third question on ${email.id}’s path. Its training score improves from
+      ${shallow.correct}/${n} to ${deeper.correct}/${n}, but its prediction for ${email.id} changes from
+      <strong>${labelName(shallow.trace.leaf.prediction)}</strong> to <strong>${labelName(deeper.trace.leaf.prediction)}</strong>.
+      Use more unseen emails to judge which setting generalizes better.</p>`;
     function paint() {
-      const fits = samples.map(sample => fit(sample, Number(depth.value)));
-      const results = fits.map(({ tree, correct, n }, i) =>
-        '<article><h3>Tree ' + (i + 1) + '</h3><p>' + email.id + ' <strong>' +
-        labelName(TreeLab.predict(tree, email)) + '</strong></p><p>Training draws correct ' + correct + '/' + n + '</p></article>');
-      get('depth-summary').innerHTML = '<div class="bag-triptych">' + results.join('') + '</div>';
-      const tree = fits[2].tree;
-      get('depth-tree').innerHTML = treeMarkup(tree, TreeLab.trace(tree, email).paths);
+      const { tree, correct, trace } = fit(Number(depth.value));
+      get('depth-summary').innerHTML = `Tree 3 predicts <strong>${labelName(trace.leaf.prediction)}</strong>
+        for ${email.id}. It classifies <strong>${correct}/${n}</strong> training draws correctly.`;
+      get('depth-tree').innerHTML = treeMarkup(tree, trace.paths);
     }
     depth.addEventListener('change', paint);
     paint();

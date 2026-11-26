@@ -1515,9 +1515,13 @@ tree.predict(email)</code></pre>
         <article><h3>When a tree learns its tray too well</h3><p>A deep tree can learn useful combinations, but it can also fit patterns peculiar to a few training rows. If those patterns hurt performance on new emails, we call it <strong>overfitting</strong>.</p></article>
       </div>
       <div class="panel">
-        <div class="panel-heading"><div><h2>Change the maximum depth</h2><p>Maximum depth limits how many questions an email can answer. All three trees refit on their original bootstrap samples.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · root only</option><option value="1">1 · one split</option><option value="2" selected>2 · two levels</option><option value="4">4 · deeper tree</option></select></label></div>
-        <div id="bag-depth-summary" class="bag-pair" aria-live="polite"></div>
-        <p class="small">The diagram shows <strong>Tree 3</strong>. Each card counts correct predictions on its own training tray. A row drawn twice counts twice.</p>
+        <div class="panel-heading"><div><h2>Change the maximum depth of Tree 3</h2><p>Maximum depth caps the number of questions along a path. Change the cap and refit Tree 3 on the same 12 training draws.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · no questions</option><option value="1">1 · up to one question</option><option value="2" selected>2 · up to two questions</option><option value="4">4 · up to four questions</option></select></label></div>
+        <p class="small">E574 was held out of training. Follow the highlighted path using its dollar-sign and exclamation-mark frequencies.</p>
+        <div class="table-wrap"><table><caption class="sr-only">Held-out email used to trace Tree 3</caption>
+          <thead><tr><th scope="col">Email</th><th scope="col">Dollar-sign frequency</th><th scope="col">Exclamation-mark frequency</th><th scope="col">Ground truth</th></tr></thead>
+          <tbody id="bag-depth-email"></tbody>
+        </table></div>
+        <p id="bag-depth-summary" class="bag-worked" aria-live="polite"></p>
         <div id="bag-depth-tree" class="tree-diagram"></div>
         <div class="bag-worked" id="bag-depth-worked"></div>
       </div>
@@ -2552,27 +2556,26 @@ test_predictions = forest.predict(X_test)</code></pre>
 
   function setupDepth() {
     const depth = get('base-depth');
-    const fit = (sample, limit) => {
-      const training = sampleRows(sample);
+    const training = sampleRows(samples[2]);
+    const fit = limit => {
       const tree = TreeLab.fit(training, 'gini', limit);
       const correct = training.filter(row => TreeLab.predict(tree, row) === row.label).length;
-      return { tree, correct, n: training.length };
+      return { tree, correct, trace: TreeLab.trace(tree, email) };
     };
-    const shallow = fit(samples[2], 2);
-    const deeper = fit(samples[2], 4);
-    get('depth-worked').innerHTML = '<p><strong>Try it.</strong> At depth 2, Tree 3 classifies ' + shallow.correct +
-      '/' + shallow.n + ' training draws correctly and predicts <strong>' + labelName(TreeLab.predict(shallow.tree, email)) +
-      '</strong> for ' + email.id + '. At depth 4, it classifies ' + deeper.correct + '/' + deeper.n +
-      ' correctly and predicts <strong>' + labelName(TreeLab.predict(deeper.tree, email)) +
-      '</strong> for that same email. Test on more unseen emails to judge whether more depth helps.</p>';
+    const shallow = fit(2);
+    const deeper = fit(4);
+    const n = training.length;
+    get('depth-email').innerHTML = emailTableRows([email]);
+    get('depth-worked').innerHTML = `<p><strong>Try it.</strong> Switch the maximum depth from 2 to 4.
+      Tree 3 now asks a third question on ${email.id}’s path. Its training score improves from
+      ${shallow.correct}/${n} to ${deeper.correct}/${n}, but its prediction for ${email.id} changes from
+      <strong>${labelName(shallow.trace.leaf.prediction)}</strong> to <strong>${labelName(deeper.trace.leaf.prediction)}</strong>.
+      Use more unseen emails to judge which setting generalizes better.</p>`;
     function paint() {
-      const fits = samples.map(sample => fit(sample, Number(depth.value)));
-      const results = fits.map(({ tree, correct, n }, i) =>
-        '<article><h3>Tree ' + (i + 1) + '</h3><p>' + email.id + ' <strong>' +
-        labelName(TreeLab.predict(tree, email)) + '</strong></p><p>Training draws correct ' + correct + '/' + n + '</p></article>');
-      get('depth-summary').innerHTML = '<div class="bag-triptych">' + results.join('') + '</div>';
-      const tree = fits[2].tree;
-      get('depth-tree').innerHTML = treeMarkup(tree, TreeLab.trace(tree, email).paths);
+      const { tree, correct, trace } = fit(Number(depth.value));
+      get('depth-summary').innerHTML = `Tree 3 predicts <strong>${labelName(trace.leaf.prediction)}</strong>
+        for ${email.id}. It classifies <strong>${correct}/${n}</strong> training draws correctly.`;
+      get('depth-tree').innerHTML = treeMarkup(tree, trace.paths);
     }
     depth.addEventListener('change', paint);
     paint();

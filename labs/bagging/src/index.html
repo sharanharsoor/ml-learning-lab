@@ -322,9 +322,13 @@ tree.predict(email)</code></pre>
         <article><h3>When a tree learns its tray too well</h3><p>A deep tree can learn useful combinations, but it can also fit patterns peculiar to a few training rows. If those patterns hurt performance on new emails, we call it <strong>overfitting</strong>.</p></article>
       </div>
       <div class="panel">
-        <div class="panel-heading"><div><h2>Change the maximum depth</h2><p>Maximum depth limits how many questions an email can answer. All three trees refit on their original bootstrap samples.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · root only</option><option value="1">1 · one split</option><option value="2" selected>2 · two levels</option><option value="4">4 · deeper tree</option></select></label></div>
-        <div id="bag-depth-summary" class="bag-pair" aria-live="polite"></div>
-        <p class="small">The diagram shows <strong>Tree 3</strong>. Each card counts correct predictions on its own training tray. A row drawn twice counts twice.</p>
+        <div class="panel-heading"><div><h2>Change the maximum depth of Tree 3</h2><p>Maximum depth caps the number of questions along a path. Change the cap and refit Tree 3 on the same 12 training draws.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · no questions</option><option value="1">1 · up to one question</option><option value="2" selected>2 · up to two questions</option><option value="4">4 · up to four questions</option></select></label></div>
+        <p class="small">E574 was held out of training. Follow the highlighted path using its dollar-sign and exclamation-mark frequencies.</p>
+        <div class="table-wrap"><table><caption class="sr-only">Held-out email used to trace Tree 3</caption>
+          <thead><tr><th scope="col">Email</th><th scope="col">Dollar-sign frequency</th><th scope="col">Exclamation-mark frequency</th><th scope="col">Ground truth</th></tr></thead>
+          <tbody id="bag-depth-email"></tbody>
+        </table></div>
+        <p id="bag-depth-summary" class="bag-worked" aria-live="polite"></p>
         <div id="bag-depth-tree" class="tree-diagram"></div>
         <div class="bag-worked" id="bag-depth-worked"></div>
       </div>
