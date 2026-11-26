@@ -166,7 +166,7 @@
     get('desk-examples').innerHTML = emailTableRows([legit, spam], true);
     get('rule-takeaway').textContent = 'This rule flags legitimate email ' + legit.id +
       ' because it has a dollar sign. It misses spam email ' + spam.id + ' because it has none. ' +
-      'The labels let us spot both errors.';
+      'Compare each prediction with the ground truth to see both errors.';
     control.addEventListener('click', () => {
       const open = result.hidden;
       result.hidden = !open;

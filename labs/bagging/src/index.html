@@ -66,11 +66,11 @@
             <button class="button secondary" id="bag-test-rule" type="button" aria-expanded="false" aria-controls="bag-rule-result">Test the dollar-sign rule</button>
           </div>
           <div id="bag-rule-result" hidden>
-            <p class="small">Each percentage is the share of the email’s characters that match the symbol.</p>
+            <p class="small">Each percentage is the share of the email’s characters that match the symbol. <strong>Ground truth</strong> is the Spam or Legitimate label supplied by Spambase.</p>
             <div class="table-wrap">
               <table>
                 <caption class="sr-only">Spambase records and predictions from a dollar-sign-only rule</caption>
-                <thead><tr><th scope="col">Email</th><th scope="col">Dollar signs (%)</th><th scope="col">Exclamation marks (%)</th><th scope="col">Recorded label</th><th scope="col">Rule predicts</th></tr></thead>
+                <thead><tr><th scope="col">Email</th><th scope="col">Dollar signs (%)</th><th scope="col">Exclamation marks (%)</th><th scope="col">Ground truth</th><th scope="col">Rule prediction</th></tr></thead>
                 <tbody id="bag-desk-examples"></tbody>
               </table>
             </div>
