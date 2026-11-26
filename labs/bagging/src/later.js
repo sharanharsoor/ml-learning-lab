@@ -94,20 +94,29 @@
   function initializeVariance() {
     const trees = byId('bagl-trees');
     const correlation = byId('bagl-corr');
+    const displayPercent = value => Number((100 * value).toFixed(2)) + '%';
 
     function render() {
       const count = Number(trees.value);
       const rho = Number(correlation.value);
       const pairs = count * (count - 1) / 2;
-      const reducible = (1 - rho) / count;
-      const ratio = rho + reducible;
+      const specific = 1 - rho;
+      const remaining = specific / count;
+      const ratio = rho + remaining;
       byId('bagl-trees-value').textContent = count;
       byId('bagl-corr-value').textContent = rho.toFixed(2);
       byId('bagl-pair-count').textContent = `${count} ${count === 1 ? 'tree gives' : 'trees give'} ${pairs.toLocaleString('en-US')} distinct ${pairs === 1 ? 'pair' : 'pairs'} (${count} × ${count - 1} ÷ 2).`;
-      byId('bagl-shared-fill').style.width = percent(rho, 2);
-      byId('bagl-reducible-fill').style.width = percent(reducible, 2);
-      byId('bagl-variance-summary').innerHTML = `<strong>${percent(ratio, 1)} of one tree's variance</strong>
-        <span class="formula">${rho.toFixed(2)} + (1 − ${rho.toFixed(2)}) / ${count} = ${ratio.toFixed(3)}</span>`;
+      byId('bagl-one-shared').style.width = percent(rho, 4);
+      byId('bagl-one-specific').style.width = percent(specific, 4);
+      byId('bagl-shared-fill').style.width = percent(rho, 4);
+      byId('bagl-reducible-fill').style.width = percent(remaining, 4);
+      byId('bagl-average-total').textContent = displayPercent(ratio);
+      byId('bagl-shared-formula').textContent = `ρ × 100% = ${displayPercent(rho)}`;
+      byId('bagl-specific-before').textContent = `100% − ${displayPercent(rho)} = ${displayPercent(specific)}`;
+      byId('bagl-specific-formula').textContent = `${displayPercent(specific)} ÷ ${count} → ${displayPercent(remaining)}`;
+      byId('bagl-removed-formula').textContent = `100% − ${displayPercent(ratio)} → ${displayPercent(1 - ratio)}`;
+      byId('bagl-variance-summary').innerHTML = `<strong>${displayPercent(ratio)} of one tree’s variance remains</strong>
+        <span class="formula">${displayPercent(rho)} shared + ${displayPercent(remaining)} tree-specific</span>`;
     }
 
     trees.addEventListener('input', render);

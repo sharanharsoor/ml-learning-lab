@@ -149,10 +149,18 @@
   min-width: 0;
   height: 100%;
 }
-.bag-later .bagl-single-fill { width: 100%; background: var(--muted); }
-.bag-later #bagl-shared-fill { background: var(--rust); }
-.bag-later #bagl-reducible-fill { background: var(--teal); }
-.bag-later .bagl-variance-legend { margin-block: .2rem .7rem; }
+.bag-later .bagl-fill-shared { background: var(--rust); }
+.bag-later .bagl-fill-specific { background: var(--teal); }
+.bag-later .bagl-fill-removed { background: var(--line); border: 1px solid var(--muted); }
+.bag-later .bagl-variance-parts h5 { margin: 0 0 .35rem; font-size: 1rem; }
+.bag-later .bagl-variance-parts .formula { margin-bottom: .35rem; color: var(--teal); }
+.bag-later .bagl-variance-key {
+  display: inline-block;
+  width: .68rem;
+  height: .68rem;
+  border-radius: .15rem;
+}
+.bag-later #bagl-variance-summary + .bag-worked p + p { margin-top: .5rem; }
 
 .bag-later .bagl-oob-table { min-width: 36rem; }
 .bag-later .bagl-oob-table td,

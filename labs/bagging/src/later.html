@@ -132,7 +132,7 @@
       <p class="formula">Distinct pairs = B(B − 1) ÷ 2</p>
     </div>
     <h4>How many trees help when their scores move together?</h4>
-    <p>The sliders illustrate what happens when every tree has the same variance and every pair has the same correlation, from 0 to 1. Choose a correlation to see how much variance remains in the average.</p>
+    <p>Start with the variance of one tree’s score for E574 and call it <strong>100%</strong>. Both bars use that baseline. The sliders assume equal variance for all trees and a common pairwise correlation <var>ρ</var> from 0 to 1. Let <var>B</var> be the number of trees we average.</p>
     <div class="bagl-variance-controls">
       <div>
         <label class="control-label" for="bagl-trees">Number of trees <output id="bagl-trees-value" for="bagl-trees"></output></label>
@@ -145,13 +145,34 @@
     </div>
     <p class="small" id="bagl-pair-count" aria-live="polite"></p>
     <div class="bagl-variance-bars" aria-hidden="true">
-      <div><span>One tree</span><div class="bagl-track"><i class="bagl-single-fill"></i></div></div>
-      <div><span>Average of trees</span><div class="bagl-track"><i id="bagl-shared-fill"></i><i id="bagl-reducible-fill"></i></div></div>
+      <div><span>One tree <strong>100%</strong></span><div class="bagl-track"><i id="bagl-one-shared" class="bagl-fill-shared"></i><i id="bagl-one-specific" class="bagl-fill-specific"></i></div></div>
+      <div><span>Tree average <strong id="bagl-average-total"></strong></span><div class="bagl-track"><i class="bagl-fill-shared" id="bagl-shared-fill"></i><i class="bagl-fill-specific" id="bagl-reducible-fill"></i></div></div>
     </div>
-    <p class="legend bagl-variance-legend"><span><i class="key review" aria-hidden="true"></i> Shared part</span><span><i class="key" aria-hidden="true"></i> Part that shrinks</span></p>
+    <div class="bag-triptych bagl-variance-parts">
+      <article>
+        <h5><i class="bagl-variance-key bagl-fill-shared" aria-hidden="true"></i> Shared variation</h5>
+        <p id="bagl-shared-formula" class="formula"></p>
+        <p>Think of a training change that pushes every tree’s score up together. The same push carries through to the average, so this part is the same length in both bars.</p>
+      </article>
+      <article>
+        <h5><i class="bagl-variance-key bagl-fill-specific" aria-hidden="true"></i> Tree-specific variation</h5>
+        <p id="bagl-specific-before" class="formula"></p>
+        <p id="bagl-specific-formula" class="formula"></p>
+        <p>These are the separate swings around that common movement. Averaging <var>B</var> trees shrinks this part by a factor of <var>B</var>.</p>
+      </article>
+      <article>
+        <h5><i class="bagl-variance-key bagl-fill-removed" aria-hidden="true"></i> Variance removed</h5>
+        <p id="bagl-removed-formula" class="formula"></p>
+        <p>The gray space shows how much of the original variance averaging removed.</p>
+      </article>
+    </div>
     <p class="bagl-result" id="bagl-variance-summary" aria-live="polite"></p>
     <div class="bag-worked">
-      <p><strong>Start with 10 trees and correlation 0.30.</strong> Take one tree’s variance as 100%. The shared 30% stays in the average. Averaging 10 trees divides the remaining 70% by 10, leaving 7%. Together, that is 37% of one tree’s variance. Increase to 100 trees and the ratio falls to 30.7%.</p>
+      <p><strong>Why does shared variation equal <var>ρ</var> of the baseline?</strong> Picture each score as a common swing plus a separate swing for that tree. In this model the separate swings are uncorrelated with one another and with the common swing. The covariance between two scores then comes from the common swing. With equal tree variances, covariance equals <var>ρ</var> × one tree’s variance. That leaves <var>1 − ρ</var> of the baseline as tree-specific variation.</p>
+      <p><strong>Why divide the tree-specific part by <var>B</var>?</strong> Adding <var>B</var> uncorrelated swings adds their <var>B</var> variances. Averaging divides the sum by <var>B</var>, which divides its variance by <var>B²</var>. Together that gives <var>B</var> ÷ <var>B²</var> = 1 ÷ <var>B</var>.</p>
+    </div>
+    <div class="bag-worked">
+      <p><strong>What can we infer?</strong> Set correlation to 0.30 and increase the tree count from 10 to 100. The remaining variance falls from <strong>37% to 30.7%</strong>, approaching the shared 30%. At 10 trees, lowering correlation to 0.10 gives <strong>19%</strong> under the same per-tree variance assumption. More trees shrink the tree-specific part. Lower correlation lowers the floor.</p>
     </div>
     <details class="teaching-note">
       <summary>How do we calculate the correlation of a pair?</summary>
