@@ -65,46 +65,107 @@
       <div id="bagl-batches" class="bagl-spread-table"></div>
     </figure>
     <p class="bagl-result" id="bagl-batch-summary" aria-live="polite"></p>
-    <details class="teaching-note">
-      <summary>Work out the spread for the first two batches</summary>
-      <div class="bag-worked" id="bagl-spread-worked"></div>
-    </details>
-  </div>
-  <p>Once all five batches are visible, compare the variances. These are results for one email and five resamples of a small teaching pool. To measure whether we classify email better, compare the predictions with recorded labels across many held-out emails.</p>
-
-  <div class="panel">
-    <div class="panel-heading">
-      <div>
-        <h3>What if the trees move together?</h3>
-        <p class="small">Suppose one tree’s Spam estimate rises 10 percentage points from its usual value and another’s falls 10 points. The changes cancel in their average. When both rise 10 points, their average rises by 10 points too.</p>
+    <div class="bagl-stat-guide">
+      <h4>How do we measure the spread?</h4>
+      <p>Start with one column of scores. Let <var>p<sub>i</sub></var> be its Spam score in batch <var>i</var>, and let <var>n</var> be the number of visible batches. A bagged score already averages 25 trees within one batch. The mean below averages that model’s scores across batches.</p>
+      <div class="bag-triptych">
+        <article>
+          <h5>1. Find the center</h5>
+          <p class="formula">Mean = (p₁ + … + pₙ) ÷ n</p>
+          <p>Add the scores and divide by the number of batches.</p>
+        </article>
+        <article>
+          <h5>2. Measure the spread</h5>
+          <p class="formula">Variance = Σ(pᵢ − mean)² ÷ n</p>
+          <p>Subtract the mean from each score. Squaring keeps distances on either side from cancelling. Add the squared distances and divide by <var>n</var> to describe these batches.</p>
+        </article>
+        <article>
+          <h5>3. Return to the score scale</h5>
+          <p class="formula">Standard deviation = √variance</p>
+          <p>The square root gives a spread in the original units. For a probability score, a standard deviation of 0.12 is 12 percentage points.</p>
+        </article>
       </div>
     </div>
+    <div class="bagl-stat-guide">
+      <h4>Work through batches A and B</h4>
+      <div id="bagl-spread-worked" aria-live="polite"></div>
+    </div>
+  </div>
+  <p>Why compare the variances? A smaller variance means the same email’s score is less sensitive to which rows the model trained on. These five batches show stability for E574. To measure classification accuracy, compare predictions with labels across many held-out emails.</p>
+
+  <div class="panel">
+    <h3>What if the trees move together?</h3>
+    <p>Imagine retraining two trees and asking both to score E574 after each run. In these two illustrations, each tree’s mean score is 50%. Watch what happens to the average as their scores move around that center.</p>
+    <div class="bag-pair bagl-pair-demo">
+      <article>
+        <h4>Scores move together</h4>
+        <div class="table-wrap"><table>
+          <caption class="sr-only">Two trees with scores moving together</caption>
+          <thead><tr><th scope="col">Run</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Average</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">A</th><td>40% <span aria-hidden="true">↓</span></td><td>40% <span aria-hidden="true">↓</span></td><td>40%</td></tr>
+            <tr><th scope="row">B</th><td>60% <span aria-hidden="true">↑</span></td><td>60% <span aria-hidden="true">↑</span></td><td>60%</td></tr>
+          </tbody>
+        </table></div>
+        <p>Both trees are low in A and high in B. The average still changes by 20 percentage points.</p>
+      </article>
+      <article>
+        <h4>Scores move in opposite directions</h4>
+        <div class="table-wrap"><table>
+          <caption class="sr-only">Two trees with scores moving in opposite directions</caption>
+          <thead><tr><th scope="col">Run</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Average</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">A</th><td>40% <span aria-hidden="true">↓</span></td><td>60% <span aria-hidden="true">↑</span></td><td>50%</td></tr>
+            <tr><th scope="row">B</th><td>60% <span aria-hidden="true">↑</span></td><td>40% <span aria-hidden="true">↓</span></td><td>50%</td></tr>
+          </tbody>
+        </table></div>
+        <p>The low score and the high score balance each other in both runs. The average stays at 50%.</p>
+      </article>
+    </div>
+    <p><strong>Pairwise correlation</strong> measures how closely two trees’ scores move together across repeated training runs for the same email. Compare each score with its own tree’s mean. Positive correlation means those deviations tend to point the same way. Zero means there is no linear co-movement. Negative correlation means the deviations tend to point in opposite directions.</p>
+    <div class="bag-worked">
+      <p><strong>Which trees form pairs?</strong> With three trees, there are three distinct pairs.</p>
+      <ul class="bagl-tree-pairs" aria-label="Distinct pairs among three trees">
+        <li>Tree 1 + Tree 2</li><li>Tree 1 + Tree 3</li><li>Tree 2 + Tree 3</li>
+      </ul>
+      <p>With <var>B</var> trees, each has <var>B</var> − 1 partners. Divide by two because a pair such as Tree 1 with Tree 2 is the same pair as Tree 2 with Tree 1.</p>
+      <p class="formula">Distinct pairs = B(B − 1) ÷ 2</p>
+    </div>
+    <h4>How many trees help when their scores move together?</h4>
+    <p>The sliders illustrate what happens when every tree has the same variance and every pair has the same correlation, from 0 to 1. Choose a correlation to see how much variance remains in the average.</p>
     <div class="bagl-variance-controls">
       <div>
         <label class="control-label" for="bagl-trees">Number of trees <output id="bagl-trees-value" for="bagl-trees"></output></label>
         <input type="range" min="1" max="100" value="10" id="bagl-trees">
       </div>
       <div>
-        <label class="control-label" for="bagl-corr">Pairwise correlation <output id="bagl-corr-value" for="bagl-corr"></output></label>
+        <label class="control-label" for="bagl-corr">Assumed pairwise correlation <output id="bagl-corr-value" for="bagl-corr"></output></label>
         <input type="range" min="0" max="1" step=".05" value=".30" id="bagl-corr">
       </div>
     </div>
+    <p class="small" id="bagl-pair-count" aria-live="polite"></p>
     <div class="bagl-variance-bars" aria-hidden="true">
       <div><span>One tree</span><div class="bagl-track"><i class="bagl-single-fill"></i></div></div>
       <div><span>Average of trees</span><div class="bagl-track"><i id="bagl-shared-fill"></i><i id="bagl-reducible-fill"></i></div></div>
     </div>
     <p class="legend bagl-variance-legend"><span><i class="key review" aria-hidden="true"></i> Shared part</span><span><i class="key" aria-hidden="true"></i> Part that shrinks</span></p>
     <p class="bagl-result" id="bagl-variance-summary" aria-live="polite"></p>
-    <p><strong>Pairwise correlation</strong> describes how much two trees’ predictions tend to move together across training runs. On this scale, 0 means their changes have no linear relationship, and 1 means they move in perfect step. The bar treats each tree as equally variable and gives every pair the same correlation.</p>
     <div class="bag-worked">
       <p><strong>Start with 10 trees and correlation 0.30.</strong> Take one tree’s variance as 100%. The shared 30% stays in the average. Averaging 10 trees divides the remaining 70% by 10, leaving 7%. Together, that is 37% of one tree’s variance. Increase to 100 trees and the ratio falls to 30.7%.</p>
     </div>
     <details class="teaching-note">
+      <summary>How do we calculate the correlation of a pair?</summary>
+      <p>In each run, subtract each tree’s mean from its score and multiply the two deviations. Average those products across runs to get the <strong>covariance</strong>. Same-sign deviations contribute positive products. Opposite signs contribute negative products.</p>
+      <p class="formula">Correlation = covariance ÷ (SD of Tree 1 × SD of Tree 2)</p>
+      <p>Dividing by both standard deviations puts the result on a scale from −1 to +1. Both trees need some variation for a correlation to be defined.</p>
+      <p>In the moving-together example, both trees deviate by −0.10 in A and +0.10 in B. The covariance is [(−0.10)(−0.10) + (0.10)(0.10)] ÷ 2 = 0.01. Both standard deviations are 0.10, so the correlation is 0.01 ÷ (0.10 × 0.10) = 1.</p>
+    </details>
+    <details class="teaching-note">
       <summary>Derive the variance of the average</summary>
-      <p>Let <var>B</var> be the number of trees, <var>σ²</var> the variance of each prediction, and <var>ρ</var> the pairwise correlation. The variance of a sum has <var>B</var> variance terms and <var>B</var>(<var>B</var> − 1) ordered covariance terms. Each covariance is <var>ρσ²</var>. Dividing by <var>B²</var> for the average gives</p>
+      <p>Let <var>B</var> be the number of trees, <var>σ²</var> the variance of each tree’s score, and <var>ρ</var> the assumed correlation of every pair. Each tree contributes one variance term. Each distinct pair contributes its covariance twice when the square expands. Each covariance is <var>ρσ²</var> because both trees have standard deviation <var>σ</var>. Averaging multiplies the sum by 1/<var>B</var>, so it multiplies the variance by 1/<var>B²</var>.</p>
       <p class="formula">Var(average) = [Bσ² + B(B − 1)ρσ²] / B² = σ²[ρ + (1 − ρ)/B]</p>
       <p>With three trees, each prediction pairs with itself once, giving three variance terms. The distinct pairs are trees 1 and 2, 1 and 3, and 2 and 3. The sum expansion counts each pair in both orders, giving six covariance terms. That is why three trees give <span class="formula">[3σ² + 6ρσ²] / 9</span>.</p>
-      <p>Set correlation to 0 to see the uncorrelated case. Set it to 1 to see perfectly correlated predictions. Positive correlation leaves a shared part of the variance as the number of trees grows.</p>
+      <p>At correlation 0, the variance falls to <var>σ²</var> ÷ <var>B</var>. At correlation 1, it stays at <var>σ²</var>. This is why counting trees alone gives an incomplete picture. How their predictions move together also matters.</p>
     </details>
   </div>
 

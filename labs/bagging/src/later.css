@@ -91,11 +91,39 @@
 .bag-later .bagl-result > strong { color: var(--teal); }
 .bag-later .bagl-result small { flex-basis: 100%; color: var(--muted); }
 
+.bag-later .bagl-stat-guide { margin-top: 1.2rem; }
+.bag-later .bagl-stat-guide h4 { margin: 0 0 .4rem; font-size: 1.14rem; }
+.bag-later .bagl-stat-guide .bag-triptych { margin-top: .55rem; }
+.bag-later .bagl-stat-guide h5 { margin: 0 0 .3rem; font-size: 1rem; }
+.bag-later .bagl-stat-guide .formula { margin-bottom: .35rem; color: var(--teal); }
+#bagl-spread-worked article p + p { margin-top: .35rem; }
+.bag-later .bagl-pair-demo { margin-block: .8rem; }
+.bag-later .bagl-pair-demo h4 { margin: 0 0 .35rem; }
+.bag-later .bagl-pair-demo :is(th, td) { padding-inline: .4rem; }
+.bag-later .bagl-pair-demo td { white-space: nowrap; }
+.bag-later .bagl-pair-demo td:last-child { color: var(--teal); font-weight: 750; }
+.bag-later .bagl-pair-demo p { margin-top: .45rem; }
+.bag-later .bagl-tree-pairs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .5rem 0;
+  padding: 0;
+  list-style: none;
+}
+.bag-later .bagl-tree-pairs li {
+  padding: .25rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: .35rem;
+  background: var(--surface);
+}
 .bag-later .bagl-variance-controls {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  margin-top: .6rem;
 }
+#bagl-pair-count { margin-top: .35rem; }
 .bag-later .bagl-variance-bars {
   display: grid;
   gap: .5rem;

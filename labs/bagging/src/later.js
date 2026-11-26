@@ -26,6 +26,12 @@
     byId('bagl-flow-measurements').textContent = `${email.id} · Dollar signs ${frequency(email.x)} · Exclamation marks ${frequency(email.z)}`;
     byId('bagl-spread-example').textContent = `Track ${email.id} at ${frequency(email.x)} dollar signs and ${frequency(email.z)} exclamation marks. Each row shows two fitted estimates for this same email. A fixed random seed repeats the draws. Reveal another batch to compare the estimates.`;
     let visible = 1;
+    const describe = scores => {
+      const mean = average(scores);
+      const deviations = scores.map(score => score - mean);
+      const variance = average(deviations.map(value => value ** 2));
+      return { mean, deviations, variance, spread: Math.sqrt(variance) };
+    };
 
     function render() {
       const rows = batches.map(([single, bagged], index) => {
@@ -50,31 +56,32 @@
         </table>`;
 
       reveal.textContent = visible === batches.length ? 'Replay batches' : 'Reveal next batch';
-      const describe = scores => {
-        const mean = average(scores);
-        const variance = average(scores.map(score => (score - mean) ** 2));
-        return { mean, variance, spread: Math.sqrt(variance) };
-      };
       const worked = byId('bagl-spread-worked');
       if (visible === 1) {
         byId('bagl-batch-summary').textContent = 'One batch is visible. Reveal another to compare how each prediction moves.';
-        worked.textContent = 'Reveal Batch B to substitute the first two fitted estimates into the variance formula.';
+        worked.textContent = 'Reveal Batch B to see the mean, variance, and standard deviation worked out for both columns.';
         return;
       }
       const format = value => value.toFixed(4);
-      worked.innerHTML = ['Single tree', 'Bagged trees'].map((name, column) => {
+      const displayScore = value => value.toFixed(2).replace('-', '−');
+      const exampleCards = ['Single tree', 'Bagged trees'].map((name, column) => {
         const scores = batches.slice(0, 2).map(batch => batch[column]);
-        const [a, b] = scores.map(format);
-        const { mean, variance } = describe(scores);
-        const center = format(mean);
-        return `<p><strong>${name}.</strong> Mean ≈ (${a} + ${b}) ÷ 2 = ${center}. Variance ≈ [(${a} − ${center})² + (${b} − ${center})²] ÷ 2 = ${format(variance)}.</p>`;
+        const [a, b] = scores.map(displayScore);
+        const { mean, deviations, variance, spread } = describe(scores);
+        const center = displayScore(mean);
+        const [da, db] = deviations.map(displayScore);
+        return `<article><h5>${name}</h5>
+          <p><strong>Mean</strong> · (${a} + ${b}) ÷ 2 = ${center}</p>
+          <p><strong>Deviations</strong> · ${a} − ${center} = ${da} and ${b} − ${center} = ${db}</p>
+          <p><strong>Variance</strong> · [(${da})² + (${db})²] ÷ 2 = ${format(variance)}</p>
+          <p><strong>Standard deviation</strong> · √${format(variance)} = ${displayScore(spread)}</p></article>`;
       }).join('');
+      worked.innerHTML = `<div class="bag-pair">${exampleCards}</div>`;
       byId('bagl-batch-summary').innerHTML = `<strong>${visible} of ${batches.length} batches</strong>
         ${['Single tree', 'Bagged trees'].map((name, column) => {
           const { mean, variance, spread } = describe(batches.slice(0, visible).map(batch => batch[column]));
           return `<span>${name} mean ${format(mean)}, variance ${format(variance)}, standard deviation ${format(spread)}</span>`;
-        }).join('')}
-        <small>Variance is the mean squared distance from the mean across visible batches. The standard deviation is its square root.</small>`;
+        }).join('')}`;
     }
 
     reveal.addEventListener('click', () => {
@@ -91,10 +98,12 @@
     function render() {
       const count = Number(trees.value);
       const rho = Number(correlation.value);
+      const pairs = count * (count - 1) / 2;
       const reducible = (1 - rho) / count;
       const ratio = rho + reducible;
       byId('bagl-trees-value').textContent = count;
       byId('bagl-corr-value').textContent = rho.toFixed(2);
+      byId('bagl-pair-count').textContent = `${count} ${count === 1 ? 'tree gives' : 'trees give'} ${pairs.toLocaleString('en-US')} distinct ${pairs === 1 ? 'pair' : 'pairs'} (${count} × ${count - 1} ÷ 2).`;
       byId('bagl-shared-fill').style.width = percent(rho, 2);
       byId('bagl-reducible-fill').style.width = percent(reducible, 2);
       byId('bagl-variance-summary').innerHTML = `<strong>${percent(ratio, 1)} of one tree's variance</strong>
