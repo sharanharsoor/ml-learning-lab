@@ -102,7 +102,7 @@
     const item = baseline.cases.find(item => item.caseId === order.value);
     const decision = step >= 1 ? `<div class="class-teach-ticket"><span>Forecast at dispatch</span><strong>${forecast(item.confirmed)}</strong><p>${item.score.toFixed(2)} ${item.confirmed ? '≥' : '&lt;'} ${baselineCutoff.toFixed(2)}</p></div>` : '';
     const actual = step === 2 ? `<div class="class-teach-ticket"><span>Outcome after arrival</span><strong>${item.onTime ? 'On time' : 'Late'}</strong><p>${item.onTime ? 'Arrived by' : 'Arrived after'} the promised 12:40 deadline. This is the recorded class.</p></div>` : '';
-    replay.innerHTML = `<div class="class-teach-replay-cards"><div class="class-teach-ticket"><span>${item.caseId} · On-time score</span><strong>${item.score.toFixed(2)}</strong><p>Higher scores rank on-time arrival more confidently.</p></div>${decision}${actual}</div>${step === 2 ? outcomeTable(item) : ''}`;
+    replay.innerHTML = `<div class="class-teach-replay-cards"><div class="class-teach-ticket"><span>${item.caseId} · On-time score</span><strong>${item.score.toFixed(2)}</strong><p>Assigned in the teaching data. The cutoff turns this score into a forecast.</p></div>${decision}${actual}</div>${step === 2 ? outcomeTable(item) : ''}`;
     reveal.hidden = step === 2;
     reveal.textContent = step ? 'Show actual outcome' : 'Show dispatch forecast';
     reset.hidden = step === 0;

@@ -1,19 +1,19 @@
     <section class="chapter" id="deep-regression" aria-labelledby="deep-regression-title">
       <p class="eyebrow">Follow a numerical prediction</p>
       <h2 id="deep-regression-title">Regression in a deeper tree</h2>
-      <p class="lede">Use the same 20 parcels from the deeper feature-importance example, now with synthetic processing times. Click a split to see the two means and how much the split reduces MSE. Trace a new parcel to see which leaf mean becomes its prediction.</p>
+      <p class="lede">Use the same 20 parcels from the feature-importance example. This time the target is the synthetic duration from intake to clearance for dispatch. Click a split to see the two means and how much the split reduces MSE. Trace a new parcel to see which leaf mean becomes its prediction.</p>
 
       <div class="panel deep-regression-explorer">
         <div class="panel-heading deep-regression-header">
-          <div><h3>Trace a new parcel</h3><p>Give the fitted tree a new parcel’s inputs. Follow the purple path to get its predicted time.</p></div>
+          <div><h3>Trace a new parcel</h3><p>Start with an 11.5 kg parcel in a rigid box (A) with a scan warning score of 4. Change a reading and follow the purple path to see which time the model predicts.</p></div>
           <label class="regression-control">Maximum tree depth
             <select id="deep-regression-depth"><option value="4">4</option><option value="5" selected>5</option></select>
           </label>
         </div>
         <form class="parcel-trace-form" id="deep-regression-form">
-          <label>Weight X <input name="x" type="number" min="0" step="any" required value="11.5"></label>
+          <label>Weight X (kg) <input name="x" type="number" min="0" step="any" required value="11.5"></label>
           <label>Packaging Y <select name="y"><option value="A" selected>A</option><option value="B">B</option></select></label>
-          <label>Scan score Z <input name="z" type="number" min="0" step="any" required value="4"></label>
+          <label>Scan score Z (0–10) <input name="z" type="number" min="0" max="10" step="any" required value="4"></label>
           <button type="submit" class="button primary">Trace parcel</button>
         </form>
         <p class="small" id="deep-regression-input-status" role="status"></p>
@@ -34,7 +34,7 @@
           <summary>Show the 20 training rows and their processing times</summary>
           <div class="table-wrap"><table>
             <caption class="sr-only">Synthetic training parcels for the deeper regression tree</caption>
-            <thead><tr><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z</th><th scope="col">Time (min)</th></tr></thead>
+            <thead><tr><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z (0–10)</th><th scope="col">Processing time (min)</th></tr></thead>
             <tbody id="deep-regression-training"></tbody>
           </table></div>
         </details>

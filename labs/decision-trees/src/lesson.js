@@ -106,7 +106,7 @@
         : '<circle class="auto" cx="' + x + '" cy="' + y + '" r="7">' + title + '</circle>';
       return point + '<text text-anchor="middle" x="' + x + '" y="' + (y - 13) + '">' + row.id + '</text>';
     }).join('');
-    write('training-plot', '<svg class="training-chart" viewBox="0 0 695 140" role="img" aria-label="Training parcels by weight and packaging. Packaging A has Auto parcels at weights 1 and 7. Packaging B has Auto at 2 and 3 and Review at 4, 5, 6 and 8.">' +
+    write('training-plot', '<svg class="training-chart" viewBox="0 0 695 140" role="img" aria-label="Training parcels by weight in kilograms and packaging. Boxes A have Auto parcels at weights 1 and 7. Mailers B have Auto at 2 and 3 and Review at 4, 5, 6 and 8.">' +
       '<text x="6" y="44">A</text><text x="6" y="95">B</text>' +
       '<path class="grid" d="M 49 37 H 660 M 49 88 H 660"></path>' + marks +
       TRAIN.map(row => '<text text-anchor="middle" x="' + position(row.x) + '" y="126">' + row.x + '</text>').join('') + '</svg>');
@@ -272,7 +272,7 @@
       '. No: ' + right.map(row => row.id).join(', ') + '.">' + regions +
       '<path class="grid" d="M 60 61 H 610 M 60 108 H 610"></path>' +
       text('A', 30, 66) + text('B', 30, 113) + marks +
-      TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X', 335, 173) + '</svg>');
+      TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X (kg)', 335, 173) + '</svg>');
   }
 
   function renderWeightedVisual(result, criterion, target = 'weighted-visual', precision = 3) {
@@ -472,7 +472,7 @@
       '<text x="52" y="17">Minutes</text>' + grid + '<line class="cut" x1="' + cutoff + '" x2="' + cutoff +
       '" y1="25" y2="224"></line><path class="prediction" d="' + step + '"></path>' + marks +
       TRAIN.map(row => '<text text-anchor="middle" x="' + x(row.x) + '" y="245">' + row.x + '</text>').join('') +
-      '<text text-anchor="middle" x="290" y="268">Weight X</text></svg>');
+      '<text text-anchor="middle" x="290" y="268">Weight X (kg)</text></svg>');
     function leaf(label, rows, group) {
       const mean = number(group.mean);
       const times = rows.map(row => row.minutes);

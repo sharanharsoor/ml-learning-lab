@@ -6,7 +6,7 @@ Open the [Colab notebook](https://colab.research.google.com/github/sharanharsoor
 
 ## Begin with a decision
 
-A desk sorts each arriving parcel into **Auto (0)** or **Review (1)**. At prediction time the desk knows its weight **X** and packaging code **Y**, either A or B. Staff records supply the training labels. The fitted model receives the new parcel’s two inputs and predicts its route. The recorded processing time in minutes becomes a separate regression target later. All rows are synthetic.
+A desk sorts each arriving parcel into **Auto (0)** or **Review (1)**. Auto continues straight to dispatch. A worker may send a parcel to Review after spotting a loose seal. The synthetic training rows pair weight **X** in kilograms and packaging **Y** with a staff route decision. A means rigid box and B means padded mailer. The fitted model uses those two inputs to predict a new parcel’s route. Regression later predicts the duration from intake until clearance for dispatch.
 
 Ask learners to choose a first question using the eight training parcels. Offer “Is X at most 3.5?” and “Is Y equal to A?” Ask which question better separates the two outcomes. The first question isolates three Auto parcels. The other group contains four Review parcels and one Auto parcel. Packaging A isolates only two Auto parcels at the root.
 
@@ -14,9 +14,9 @@ Before the prediction prompt, compare the past rows and the new input row in the
 
 ## Draw the splits
 
-Open [Draw the splits](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#draw-splits). Ask where learners would place a first cut on the weight and scan-score plot. Choose Vertical and mark Weight 5, then apply it. The Yes region contains eight Auto parcels. The No region still has five Auto and eight Review parcels.
+Use the separate 21-parcel sandbox to draw cuts. Scan score is a scanner's 0–10 warning about its first shipping-label image, with stronger warnings for harder-to-read labels. Both features and the example routes are synthetic. Ask where learners would place a first cut. Choose Vertical and mark 5 kg, midway between observed weights 4 and 6 kg. The Yes region contains eight Auto parcels. The No region still has five Auto and eight Review parcels. [Draw the splits](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#draw-splits)
 
-Select the No region on either the plot or the tree. Choose Horizontal and apply Scan score 5. Point out where the line ends at the first cut. It divides only the No region. Compare the three leaf predictions with the shaded regions, then undo a cut to try a different question. The worked example builds these same two cuts.
+Select the No region on either the plot or the tree. Choose Horizontal and apply scan score 5, midway between observed scores 4 and 6 in that region. Point out where the line ends at the first cut. It divides only the No region. Compare the three leaf predictions with the shaded regions, then undo a cut to try a different question. The worked example builds these same two cuts.
 
 Turn on **Show logistic regression boundary** with both tree cuts visible. The blue line is where logistic regression, fitted to the same weight and scan-score data, predicts a 50% chance of Review. It matches 20 of the 21 training labels, and the worked tree matches all 21. Ask learners to find the Review parcel at weight 6 and scan score 6.6 on the Auto side of the line. That parcel lies inside a triangle formed by three Auto parcels, so a single straight line cannot separate it from all three.
 

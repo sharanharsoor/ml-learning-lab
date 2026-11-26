@@ -76,14 +76,14 @@
     <section class="chapter hero" id="parcel" aria-labelledby="parcel-title">
       <p class="eyebrow">Classification &amp; regression</p>
       <h1 id="parcel-title">Decision trees</h1>
-      <p class="lede">A parcel arrives at the sorting desk. The team knows its weight and packaging code and needs to decide whether it can go straight through. Can the past records teach us which questions to ask?</p>
+      <p class="lede">A parcel arrives at the sorting desk. A worker weighs it and records its packaging. It can go straight to dispatch or get a closer check. Can past decisions help us predict its route?</p>
       {{COURSE_IMAGE}}
       <div class="course-story">
         <div><h3>Auto</h3><p>The parcel can continue through the automated line.</p></div>
-        <div><h3>Review</h3><p>A worker checks the parcel before it continues.</p></div>
+        <div><h3>Review</h3><p>A worker checks the parcel before it continues, for example after spotting a loose seal.</p></div>
       </div>
       <ol class="course-data-flow" aria-label="From past records to a new prediction">
-        <li><strong>Past parcels</strong><span>Each record pairs the inputs, weight X and packaging Y, with the route staff recorded.</span></li>
+        <li><strong>Past parcels</strong><span>Each synthetic record gives a weight in kilograms (X), a packaging type (Y), and an example of the route staff recorded.</span></li>
         <li><strong>Fit the tree</strong><span>Use the recorded routes to learn which questions separate Auto from Review.</span></li>
         <li><strong>Predict a new route</strong><span>Give the fitted tree only the new parcel’s weight and packaging. The route is its prediction.</span></li>
       </ol>
@@ -99,24 +99,25 @@
       </nav>
       <div class="parcel-board">
         <div class="panel-heading">
-          <div><h2>Eight training parcels</h2><p>Position across the plot shows weight <var>X</var>. The A and B lanes show packaging <var>Y</var>. The shape shows the recorded route.</p></div>
+          <div><h2>Eight training parcels</h2><p>Position shows weight <var>X</var> in kg. Packaging <var>Y</var> is A for a rigid box or B for a padded mailer. The shape shows the recorded route.</p></div>
           <div class="legend" aria-label="Parcel labels"><span><i class="key auto" aria-hidden="true"></i>Auto</span><span><i class="key review" aria-hidden="true"></i>Review</span></div>
         </div>
         <div id="training-plot"></div>
         <details class="data-details">
           <summary>Show the training rows</summary>
+          <p class="small">The route records the staff decision. Processing time measures how many minutes passed from intake until the parcel was cleared to dispatch. We predict that time in the regression example.</p>
           <div class="table-wrap"><table>
             <caption class="sr-only">Synthetic training parcels</caption>
-            <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Route label</th><th scope="col">Minutes</th></tr></thead>
+            <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Route label</th><th scope="col">Processing time (min)</th></tr></thead>
             <tbody id="training-rows"></tbody>
           </table></div>
         </details>
       </div>
       <div class="prediction-prompt">
-        <div><h2>Try a first rule</h2><p>A new parcel weighs 7 units and uses packaging A. Look at three past parcels near that weight, then make a prediction.</p></div>
+        <div><h2>Try a first rule</h2><p>Suppose a new 7 kg parcel arrives in a rigid box (A). It has the same inputs as P7. Look at three past parcels near that weight, then make a prediction.</p></div>
         <div class="table-wrap course-records"><table>
           <caption>Past routes and the new parcel’s inputs</caption>
-          <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th></tr></thead>
+          <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th></tr></thead>
           <tbody id="preview-records"></tbody>
         </table></div>
         <div class="segmented" aria-label="Choose a route">
@@ -127,6 +128,7 @@
       </div>
       <details class="panel parcel-walkthrough" id="parcel-walkthrough">
         <summary>See the two questions the fitted tree asks</summary>
+        <p class="small">The fitted tree learned these two questions from the eight training rows. A worker can act on an extra observation such as a loose seal. The tree bases its prediction on weight and packaging.</p>
         <div class="tree-diagram" id="preview-tree"></div>
         <div class="route-steps" id="preview-route"></div>
       </details>
@@ -169,7 +171,7 @@
       </div>
       <div class="course-worked">
         <h3>Check the weighting at a 25% Review share</h3>
-        <p>Set the slider to 25%. Auto has probability ¾, so its surprise is about 0.415 bits. Review has probability ¼, so its surprise is 2 bits. Multiply by the two shares and add. <span class="formula">¾ × 0.415 + ¼ × 2 ≈ 0.811</span> bits.</p>
+        <p>Set the slider to 25%. Imagine a node with six Auto and two Review parcels. Auto has probability ¾, so its surprise is about 0.415 bits. Review has probability ¼, so its surprise is 2 bits. Multiply by the two shares and add. <span class="formula">¾ × 0.415 + ¼ × 2 ≈ 0.811</span> bits.</p>
         <p>The base of the logarithm sets the unit. Base 2 gives bits. The natural logarithm gives nats and rescales every entropy gain by the same positive constant.</p>
       </div>
       <p><strong>Entropy is the average surprise.</strong> If you averaged one surprise per row, a label that appears in four out of eight rows would show up four times. Grouping those rows gives <span class="formula">H = −Σ p(label) log₂ p(label)</span>. Sum over distinct labels. A label with probability zero contributes zero by the limit of <span class="formula">−p log₂ p</span>.</p>
@@ -210,7 +212,7 @@
         </div>
         <div>
           <h3>How thresholds become candidates</h3>
-          <p>Exact search tries a midpoint per gap between distinct weights. Coarse search tries only 2.5, 4.5, and 6.5 here. It sums the label counts on both sides of each edge. Packaging A versus B adds its own candidate in either mode. Try both search modes while the criterion is Entropy. Exact search finds weight 3.5 at about 0.549 bits of gain. With the coarse edges, weight 2.5 and packaging A tie at about 0.311 bits.</p>
+          <p>Exact search tries a midpoint per gap between distinct weights. For example, 3 and 4 kg give 3.5 kg. The coarse demo groups the observed weights into 1–2, 3–4, 5–6, and 7–8 kg. It tests the boundaries between those groups, at 2.5, 4.5, and 6.5 kg, by counting labels on both sides. Packaging A versus B gives a candidate in either mode. With entropy, exact search finds 3.5 kg at about 0.549 bits of gain. With the coarse edges, 2.5 kg and packaging A tie at about 0.311 bits.</p>
         </div>
       </div>
       <details class="teaching-note">
@@ -221,7 +223,7 @@
       <div class="course-code-link"><a class="button secondary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb">Open the split calculation in Colab</a></div>
       <details class="panel multiway-demo">
         <summary>Compare two or three branches on the same parcels</summary>
-        <p>In a new batch, packaging can be A, B, or C, and the desk can also <strong>Hold</strong> a parcel for a later decision. Each child gets its own label mix and its weight comes from the same 12-row parent.</p>
+        <p>This 12-parcel batch groups rigid boxes (A), padded mailers (B), and protective tubes (C). It also adds <strong>Hold</strong> as a possible route, for example while staff wait for a missing address. Branches use packaging. The label mix within each branch comes from the example routes in the table.</p>
         <div class="table-wrap course-records"><table>
           <caption>Recorded routes in the 12-row batch</caption>
           <thead><tr><th scope="col">Packaging</th><th scope="col">Auto</th><th scope="col">Review</th><th scope="col">Hold</th></tr></thead>
@@ -294,7 +296,7 @@
             <div class="panel-heading heldout-heading"><h3 id="heldout-title">All held-out parcels</h3><button type="button" class="button secondary" id="show-all" hidden>Show all</button></div>
             <div class="table-wrap"><table>
               <caption class="sr-only">Held-out predictions for the current tree</caption>
-              <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th><th scope="col">Prediction</th></tr></thead>
+              <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th><th scope="col">Prediction</th></tr></thead>
               <tbody id="heldout-rows"></tbody>
             </table></div>
             <p class="small" id="heldout-note" aria-live="polite"></p>
@@ -370,7 +372,7 @@
     <section class="chapter" id="regression" aria-labelledby="regression-title">
       <p class="eyebrow">Use the same inputs, change the target</p>
       <h2 id="regression-title">Predict processing time</h2>
-      <p class="lede">Return to the original eight training parcels and use their recorded processing times as the target. For squared error, each leaf predicts the mean of its training times. Its MSE is the average squared distance from that mean.</p>
+      <p class="lede">Return to the original eight training parcels and predict how many minutes pass from intake to clearance for dispatch. Staff measure that duration after processing. The tree gets weight and packaging before processing. Each leaf predicts the mean of its training times, and its MSE is the average squared distance from that mean.</p>
       <div class="explanation-grid compact">
         <div><h3>Classification</h3><p class="formula">Gini = 1 − Σ p(class)²</p><p>Score label mix. The leaf predicts its majority class.</p></div>
         <div><h3>Squared-error regression</h3><p class="formula">MSE = (1/n) Σ (time − mean)²</p><p>Score spread around a mean. The leaf predicts that mean.</p></div>

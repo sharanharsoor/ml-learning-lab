@@ -5,7 +5,7 @@
   <p><strong>Model variance</strong> measures how spread out those predictions are across training runs. In each batch, we’ll also train several trees and average their Review probabilities for that parcel. We can then compare how far the single-tree prediction and the average move from batch to batch.</p>
 
   <ol class="bag-steps">
-    <li><strong>Keep the parcel fixed.</strong> Its weight, scan score and true route stay the same.</li>
+    <li><strong>Keep the parcel fixed.</strong> Its weight and scan score stay the same. The experiment compares how far predictions move, so we can do it even though its recorded route is unknown.</li>
     <li><strong>Refit both models.</strong> Train one tree on the batch. To build the ensemble, draw several bootstrap samples from that same batch and train one tree per sample.</li>
     <li><strong>Compare the spread.</strong> Look at the Review probability across batches for each model.</li>
   </ol>
@@ -103,7 +103,7 @@
 <section class="chapter bag-later" id="oob" aria-labelledby="oob-title">
   <p class="eyebrow">Out-of-bag scoring</p>
   <h2 id="oob-title">Which trees can evaluate this parcel?</h2>
-  <p class="lede">Switch to five historical parcels, O1 through O5, so you can inspect every draw. Each tree uses weight to predict the recorded route. Pick a parcel and look for the trees that missed it during training.</p>
+  <p class="lede">Switch to a separate five-parcel example, O1 through O5, so you can inspect every draw. The table supplies each parcel’s measured weight and a synthetic recorded route. Each tree learns a single question about weight. Pick a parcel and look for the trees that missed it during training.</p>
 
   <figure class="bag-scene">
     <img src="{{OOB_IMAGE}}" width="1344" height="756" loading="lazy" alt="A parcel ticket sits beside the trays while an operator sorts other tickets into them.">
@@ -130,7 +130,7 @@
     <ol class="bag-steps">
       <li><strong>Find the zeros.</strong> Try O1. Only Trees 1 and 2 left it out of their training trays.</li>
       <li><strong>Read the leaves.</strong> Follow that parcel's weight through each eligible tree. Average the fractions of Review draws in those leaves.</li>
-      <li><strong>Check the route.</strong> For O1, the two Review fractions are 1/3 and 0/2. Their mean is about 16.7%, so the combined answer is Auto. That matches O1’s recorded label. Then try O2, whose ticket appears in every tray.</li>
+      <li><strong>Check the route.</strong> In this demo, an average above 50% gives Review, and 50% or below gives Auto. For O1, the two Review fractions are 1/3 and 0/2. Their mean is about 16.7%, so the answer is Auto. That matches O1’s recorded label. Then try O2, whose ticket appears in every tray.</li>
     </ol>
     <div id="bagl-oob-selected" class="bagl-selection" aria-live="polite"></div>
     <details class="teaching-note">

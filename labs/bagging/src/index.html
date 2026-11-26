@@ -63,20 +63,20 @@
         <figure class="bag-intake-flow" aria-labelledby="bag-intake-title" data-route="auto" id="bag-intake-flow">
           <figcaption>
             <h2 id="bag-intake-title">Follow the parcel through intake</h2>
-            <p>Keep the new parcel’s measured weight and scan score fixed. Try possible barcode results and shipping-label weights to see how the desk would route it. Its actual barcode result and label weight are unknown in the model example.</p>
+            <p>The desk makes its routing decision after two checks. Try example barcode results and label weights for the same parcel to see which route it takes.</p>
           </figcaption>
-          <div class="bag-intake-arrival bag-intake-model-input"><strong>New parcel arrives</strong><span id="bag-intake-measurements">Measured weight and scan score</span></div>
+          <div class="bag-intake-arrival"><strong>New parcel arrives</strong></div>
           <div class="bag-intake-arrow" aria-hidden="true"></div>
           <div class="bag-intake-checks" role="group" aria-label="Intake checks">
             <div>
               <h3>Scan the barcode</h3>
-              <p>Retry once if it fails. The barcode check passes if either scan reads it.</p>
+              <p>The reader tries to decode the parcel ID. It retries once if needed. The check passes if either attempt reads the ID.</p>
               <label for="bag-intake-barcode">Example barcode result</label>
               <select id="bag-intake-barcode"><option value="first">Reads on first scan</option><option value="retry">Reads on retry</option><option value="unreadable">Still unreadable after retry</option></select>
             </div>
             <div>
               <h3>Weigh the parcel</h3>
-              <p>Compare the same measured weight with the label. The check fails if the parcel is more than 1 kg over.</p>
+              <p>Compare the scale reading of <strong id="bag-intake-weight-reading">5.65 kg</strong> with the weight printed on the shipping label. The check fails if the parcel is more than 1 kg over.</p>
               <label for="bag-intake-weight">Example weight on the label</label>
               <select id="bag-intake-weight"><option value="5">5.00 kg</option><option value="4.65">4.65 kg</option><option value="4.45">4.45 kg</option></select>
             </div>
@@ -96,24 +96,26 @@
           <p class="bag-intake-result" id="bag-intake-result" role="status">With these example check results, the route is Auto.</p>
         </figure>
         <div class="bag-intake-bridge">
-          <h2>Where do the two trees fit in?</h2>
-          <p>Past parcels supply the training examples. <strong>Inputs</strong> are the measured weight and the scanner’s warning score out of 10. The <strong>label</strong> is the recorded intake route. If staff later clear a parcel, its initial route still counts as Review.</p>
-          <div class="bag-intake-arrival bag-intake-model-input">
-            <strong>Same parcel for the model demo</strong>
-            <span id="bag-desk-parcel">Weight and scan score</span>
+          <h2>Can the trees predict the route early?</h2>
+          <p>Imagine we want to estimate the route while the desk checks are still pending. The trees get two early readings for the same parcel.</p>
+          <div class="bag-intake-checks bag-model-readings" role="group" aria-label="Inputs for both trees">
+            <div><h3>Measured weight · <span id="bag-model-weight">5.65 kg</span></h3><p>The scale measures how much the parcel weighs. The trees can use this reading before they know the weight printed on the label.</p></div>
+            <div><h3>Scan warning score · <span id="bag-model-scan">5.7/10</span></h3><p>We supply an example reading from a camera that rates how hard the label looks to read. Blur or smudges can raise the score. The barcode reader still tries to decode the ID, even at 10/10.</p></div>
           </div>
+          <p>A tree can learn a cutoff on this score from past records. At the desk, a parcel with any score goes to Auto if both checks pass.</p>
+          <p>Each training row pairs these two readings with the route the desk recorded. That initial route is the <strong>label</strong>. A parcel sent to Review keeps that label even if staff later clear it.</p>
           <div class="bag-intake-routes bag-intake-predictions" aria-label="Both trees receive the same measurements">
             <article><h3>Tree 1</h3></article>
             <article><h3>Tree 2</h3></article>
           </div>
           <div class="bag-desk-actions">
-            <p>Both trees get the two measured inputs above. Each predicts the intake route on its own. The example barcode result and label weight in the flowchart leave these model inputs unchanged.</p>
+            <p>Both trees use the same readings and predict independently. The controls above show possible check results. The actual barcode result and label weight are unknown for this parcel in the demo.</p>
             <button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button>
           </div>
         </div>
         <details class="teaching-note bag-desk-rules">
-          <summary>What counts as unusual?</summary>
-          <p>Here are two parcels from the training table. The warning score records the strength of a scanner warning on a scale from 0 to 10. The barcode check above records whether either scan actually read the barcode. The two fields tell us different things.</p>
+          <summary>Why use both weight and scan score?</summary>
+          <p>Compare two past parcels. The score describes the label’s appearance. The barcode check records whether the reader actually decoded the parcel ID.</p>
           <div class="table-wrap">
             <table>
               <caption class="sr-only">Two past parcels and their recorded routes</caption>
@@ -121,7 +123,7 @@
               <tbody id="bag-desk-examples"></tbody>
             </table>
           </div>
-          <p>P3 had the stronger scan warning and still went to Auto. If we sent every parcel above one scan-score cutoff to Review, any cutoff that sends P5 to Review would also send P3 there. A tree can use measured weight as well as scan score to learn a better rule.</p>
+          <p>P3 had the stronger scan warning and still went to Auto. If we sent every parcel above one scan-score cutoff to Review, any cutoff that sends P5 to Review would also send P3 there. A tree can also consider weight when it learns how to separate the recorded routes.</p>
           <p class="small">These rows provide the recorded routes. The exact check that sent P5 to Review is unknown because the table leaves out the barcode result and shipping-label weight.</p>
         </details>
       </div>
@@ -129,7 +131,7 @@
       <div id="bag-model-stage" hidden>
         <p class="eyebrow">Ensemble intuition</p>
         <h2 id="bag-model-title" class="bag-stage-title" tabindex="-1">Same parcel. Two trees.</h2>
-        <p class="lede">Both trees predict the intake route for the same parcel. They use its weight and scan warning score. Each tree learned from a different selection of the courier’s past records, so the questions they ask can lead to different predictions.</p>
+        <p class="lede">Both trees predict the intake route for the same parcel from its measured weight and the camera’s warning about the label image. Each tree learned from a different selection of the courier’s past records, so the questions they ask can lead to different predictions.</p>
         <div class="panel bag-hook">
           <div class="panel-heading"><p id="bag-parcel"></p><div class="bag-legend"><span class="bag-mark auto">● Recorded Auto</span><span class="bag-mark review">◆ Recorded Review</span><span>⊕ New parcel</span></div></div>
           <p class="small">Both plots show the same 12 past parcels. A filled mark means the tree drew that parcel for training. An outlined mark means its tray missed that parcel. Several copies of one record share a single position on the plot.</p>
@@ -150,7 +152,7 @@
             <article><h3>Stacking</h3><p>Give a second model the first models’ predictions as inputs. For example, it can learn how to combine a decision tree’s answer with a logistic regression model’s answer for each parcel.</p></article>
             <article><h3>Cascading</h3><p>Send parcels through models in stages. A quick first model can route a clear case immediately. If a parcel is borderline, pass it to a second model with more measurements for a closer decision.</p></article>
           </div>
-          <details class="teaching-note"><summary>What changed between the two trees?</summary><p>When a tree compares possible cutoffs, it counts the Auto and Review rows on each side. A new sample can repeat some rows and leave others out. That changes the counts, so a different cutoff can work better for that tree.</p></details>
+          <details class="teaching-note"><summary>Where did the two cutoffs come from?</summary><p>For a numerical feature, the tree sorts the distinct values in its own training tray and tries the midpoints between neighbors. Around Tree 1’s chosen boundary, the neighboring scan scores in its tray are 5.0 and 6.6. Their midpoint is 5.8. In Tree 2’s tray the chosen boundary is between 5.0 and 5.5, giving 5.25.</p><p>Each tree scores the possible cuts by how well they separate Auto and Review. Different draws change both the available values and the label counts on each side.</p></details>
           <details class="teaching-note"><summary>How does stacking get examples for the second model?</summary><p>Set aside a group of past parcels. Train the first models on the rest, then ask them to predict that group. The second model learns from those predictions and the group’s recorded routes. Rotating which group we set aside gives us predictions for more parcels. These are called <strong>out-of-fold predictions</strong>.</p></details>
           <p class="bag-quiz-cue">Quiz 1</p>
           <p class="transition">Where did the two training samples come from?</p>
@@ -284,6 +286,7 @@ tree.predict(parcel)</code></pre>
         <div class="bag-pair" id="bag-features" aria-live="polite"></div>
         <p class="bag-quiz-cue">Quiz 4</p>
         <div class="bag-worked"><p><strong>Try it.</strong> Start with <strong>Both features</strong>. Read the root question and the number of draws in each child. Click <strong>Reveal next feature draw</strong>. Which parcels move when the root switches to Weight? Where does Scan score get a turn?</p></div>
+        <details class="teaching-note"><summary>Where does the Gini decrease of 0.3111 come from?</summary><p>Gini impurity measures how mixed the labels are. In each node, square the fraction of Auto draws and the fraction of Review draws, add them, and subtract from 1.</p><ol class="bag-steps"><li>The root has 4 Auto and 8 Review draws. Its Gini is <strong>1 − (4/12)² − (8/12)² ≈ 0.4444</strong>.</li><li>The cut at 5.25 sends 4 Auto and 1 Review to Yes, where Gini is <strong>1 − (4/5)² − (1/5)² = 0.32</strong>. All 7 draws in No are Review, so its Gini is <strong>0</strong>.</li><li>The children’s weighted Gini is <strong>(5/12 × 0.32) + (7/12 × 0) ≈ 0.1333</strong>. The decrease is <strong>0.4444 − 0.1333 ≈ 0.3111</strong>.</li></ol></details>
         <details class="teaching-note"><summary>Check the first feature draw</summary><p>With both features available, <strong>Scan score ≤ 5.25</strong> gives a Gini decrease of 0.3111 and sends 5 draws to Yes and 7 to No. The first one-feature draw offers only Weight at the root. <strong>Weight ≤ 3</strong> gives a decrease of 0.2963 and sends 3 draws to Yes and 9 to No. The three Yes draws are all Auto, so that branch stops. The mixed No child considers <strong>Scan score ≤ 3.75</strong>, with a local Gini decrease of 0.1975.</p></details>
       </div>
       <div class="bag-say"><strong>Draw parcels for each tree. Draw feature columns for each split.</strong> If weight is the only option at one root, that tree has a chance to learn a rule another tree would have skipped. Different rules can help the forest catch mistakes that several similar trees would share.</div>
@@ -317,7 +320,9 @@ tree.predict(parcel)</code></pre>
       <p class="eyebrow">Random Forest code implementation</p><h2 id="implementation-title">Fit, tune, and evaluate a forest</h2>
       <p class="lede">The courier wants a forest it can use on tomorrow’s parcels. Which settings should it pick? <strong>Tuning</strong> means comparing choices such as tree depth and feature-list size. We select those settings using one group of past parcels and save a separate group for the final check.</p>
       <div class="panel">
-        <div class="panel-heading"><div><h2>From parcel records to a fair comparison</h2><p>The implementation notebook uses 1,400 original synthetic records. It adds seal quality, handling steps, fragility, and a noise column to weight and scan score.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/random-forest-implementation.ipynb" target="_blank" rel="noopener">Open implementation notebook</a></div>
+        <div class="panel-heading"><div><h2>From parcel records to a fair comparison</h2><p>We switch from the 12 demo rows to 1,400 synthetic parcels so we have enough to fit, tune, and test a model on separate rows.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/random-forest-implementation.ipynb" target="_blank" rel="noopener">Open implementation notebook</a></div>
+        <p>The notebook simulates each parcel’s route. It gives parcels a higher chance of Review if they are heavy with a high scan warning, poorly sealed, or fragile with many handling steps. It also gives the model one random column that played no part in generating the routes.</p>
+        <details class="teaching-note"><summary>Which patterns did we put into the simulator?</summary><p>A parcel’s weight and scan score work together when weight is above 5.7 kg and the score is above 5.8. A seal-quality score below 3.2 also raises the simulated chance of Review. The same happens if fragility is above 6 and the parcel had more than four handling steps. The notebook then draws an Auto or Review label using the resulting probability. The earlier intake diagram uses explicit desk checks. These larger examples use probabilities to create overlap between the two routes.</p></details>
         <ol class="bag-steps" aria-label="How the notebook uses the data">
           <li><strong>Inspect the records.</strong> Check column types, missing values, duplicate records and parcel IDs. Use the ID to track a row. Use the parcel measurements to predict its route.</li>
           <li><strong>Reserve 350 test parcels.</strong> A stratified split keeps roughly the same route proportions. Use the other 1,050 parcels for all fitting and tuning.</li>

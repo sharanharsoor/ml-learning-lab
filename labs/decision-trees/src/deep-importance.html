@@ -1,13 +1,13 @@
     <section class="chapter" id="deep-importance" aria-labelledby="deep-importance-title">
       <p class="eyebrow">Add repeated split contributions</p>
       <h2 id="deep-importance-title">Feature importance in a deeper tree</h2>
-      <p class="lede">A new batch of 20 synthetic parcels has three features: weight <var>X</var>, packaging <var>Y</var>, and scan score <var>Z</var>. Click a split to see its credit. Choose a feature to see all of its split credits add up.</p>
+      <p class="lede">A new batch of 20 synthetic parcels uses weight <var>X</var> in kilograms, packaging <var>Y</var> (A for a rigid box, B for a padded mailer), and scan warning score <var>Z</var>. Higher scan scores warn of harder-to-read labels. This sample uses scores 2 to 4 on the scanner’s 0–10 scale.</p>
 
       <div class="panel importance-explorer">
         <div class="panel-heading importance-header">
           <div>
             <h3>Which splits earn credit?</h3>
-            <p>Root at depth 0. Each split’s credit is its local entropy gain × its share of root rows.</p>
+            <p>Click a split to see its local entropy gain × its share of root rows. Choose a feature to add up its credits. The root is at depth 0.</p>
           </div>
           <label class="regression-control">Maximum tree depth
             <select id="importance-depth"><option value="4">4</option><option value="5" selected>5</option></select>
@@ -36,7 +36,7 @@
           <summary>Show the 20 training rows</summary>
           <div class="table-wrap"><table>
             <caption class="sr-only">Synthetic training parcels for the feature importance example</caption>
-            <thead><tr><th scope="col">Weight X</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z</th><th scope="col">Route</th></tr></thead>
+            <thead><tr><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z (0–10)</th><th scope="col">Recorded route</th></tr></thead>
             <tbody id="importance-training-rows"></tbody>
           </table></div>
         </details>

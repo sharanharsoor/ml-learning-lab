@@ -162,7 +162,7 @@
       rect(chartRect, 'boundary-chart__frame') + selection(selected, bounds) +
       splits(tree, bounds, selectedPath) + preview + overlay + regionLabels(leaves, bounds) + marks(rows, bounds, logistic) + labels +
       '<text class="boundary-chart__axis-title" text-anchor="middle" x="' + (box.left + width / 2) +
-      '" y="357">Weight X</text>' +
+      '" y="357">Weight X (kg)</text>' +
       '<text class="boundary-chart__axis-title" text-anchor="middle" transform="translate(18 ' +
       (box.top + height / 2) + ') rotate(-90)">Scan score Z</text></svg>';
   }

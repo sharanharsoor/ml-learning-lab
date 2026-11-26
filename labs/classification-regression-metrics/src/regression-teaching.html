@@ -2,8 +2,8 @@
   <div class="rg-teaching-opening">
     <div>
       <h2 id="regression-teaching-title">How far off was our arrival estimate?</h2>
-      <p>Order <strong>E01</strong> leaves at noon. At dispatch, Asha’s app estimates 25 minutes, so the customer sees an ETA of 12:25. The order arrives at 12:20, after 20 minutes. Only then can Asha compare the forecast with the actual duration.</p>
-      <p class="rg-teaching-context">We’ll pair those two numbers for each of five completed deliveries. All durations count from dispatch.</p>
+      <p>Order <strong>E01</strong> leaves at 12:00. Asha’s app gives the customer an estimated arrival time (ETA) of 12:25, which is a forecast of 25 minutes. The courier records delivery at 12:20. Asha can now subtract the dispatch time to get the actual duration of 20 minutes.</p>
+      <p class="rg-teaching-context">An ETA model could use the planned route distance and traffic known at dispatch. Here, we supply 25 minutes as an example forecast and start at the evaluation step.</p>
     </div>
     <!-- REGRESSION_STORY_IMAGE -->
   </div>
@@ -17,7 +17,8 @@
     </nav>
     <div class="rg-teaching-pane" id="rg-residual-pane" data-rg-pane="residual">
       <h3>Follow the forecast to the actual arrival</h3>
-      <p>The prediction comes first. Once the order arrives, compute <strong>residual = actual duration − predicted duration</strong>. A negative result means the app estimated too many minutes. A positive result means it estimated too few.</p>
+      <p>Each of the five example rows (E01 to E05) pairs a forecast made at dispatch with the duration measured after arrival. Every value is in minutes since that order left. The classification lesson uses a different set of orders (D01 to D20) to ask whether a promised deadline was met.</p>
+      <p>Once the order arrives, compute <strong>residual = actual duration − predicted duration</strong>. A negative result means the app estimated too many minutes. A positive result means it estimated too few.</p>
       <label for="rg-order">Delivery order</label>
       <select id="rg-order"></select>
       <div id="rg-timeline"></div>
@@ -31,7 +32,7 @@
     </div>
     <div class="rg-teaching-pane" id="rg-error-pane" data-rg-pane="error" hidden>
       <h3>Same average miss, different consequences</h3>
-      <p>Keep the five observed durations fixed and compare two sets of illustrative forecasts. Each row shows the actual duration minus its estimate. The bar shows either the absolute size or the square of that residual.</p>
+      <p>Keep the five observed durations fixed. We set up two example forecast patterns to see how the metrics respond. Each row shows the actual duration minus its estimate. The bar shows either the absolute size or the square of that residual.</p>
       <div class="button-row rg-error-modes" role="group" aria-label="Residual display">
         <button class="button small" type="button" data-rg-error="absolute" aria-pressed="true">Absolute error</button>
         <button class="button small" type="button" data-rg-error="squared" aria-pressed="false">Squared error</button>
@@ -45,7 +46,8 @@
     </div>
     <div class="rg-teaching-pane" id="rg-reference-pane" data-rg-pane="reference" hidden>
       <h3>Ask how much squared error the model saves</h3>
-      <p>Compare <strong>SSE</strong>, the sum of squared misses from the selected estimates, with <strong>SST</strong>, the sum of squared misses if we use the mean observed duration for all five orders. Only the selected estimates change.</p>
+      <p>Compare the <strong>sum of squared errors (SSE)</strong> from the selected estimates with the <strong>total sum of squares (SST)</strong> from using the mean observed duration for all five orders. Only the selected estimates change.</p>
+      <p>The mean gives the smallest squared error among constant guesses on these rows. R² builds its reference from the durations observed after delivery. To evaluate a constant predictor you could use at dispatch, choose its value from training data before scoring it here.</p>
       <label for="rg-reference">Prediction set</label>
       <select id="rg-reference"></select>
       <div id="rg-reference-bars" aria-live="polite"></div>

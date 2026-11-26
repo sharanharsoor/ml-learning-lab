@@ -172,8 +172,9 @@
     get('meet-trees').addEventListener('click', () => showStage(true));
     get('back-desk').addEventListener('click', () => showStage(false));
     const measurements = 'Weight ' + parcel.x + ' kg · Scan score ' + parcel.z + '/10';
-    get('intake-measurements').textContent = measurements;
-    get('desk-parcel').textContent = measurements;
+    get('intake-weight-reading').textContent = `${parcel.x} kg`;
+    get('model-weight').textContent = `${parcel.x} kg`;
+    get('model-scan').textContent = `${parcel.z}/10`;
     get('desk-examples').innerHTML = parcelTableRows(['P5', 'P3'].map(id => rowMap.get(id)));
     get('parcel').textContent = 'New parcel · ' + measurements;
     function paint(shown) {

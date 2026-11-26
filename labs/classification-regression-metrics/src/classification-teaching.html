@@ -8,10 +8,11 @@
  </header>
  <ol class="class-teach-timeline" aria-label="Timeline of a delivery forecast">
   <li><strong>Order accepted</strong><span>Set the 12:40 deadline.</span></li>
-  <li><strong>Courier dispatches</strong><span>Use available inputs, such as address and traffic, to score the order. Apply a cutoff to pick the message.</span></li>
+  <li><strong>Courier dispatches</strong><span>A real model could use the address and current traffic to score the order. The app applies a cutoff to pick the message.</span></li>
   <li><strong>Order arrives</strong><span>At or before 12:40 is on time. After 12:40 is late. That observed outcome supplies the label.</span></li>
  </ol>
- <p class="class-teach-context">The examples start with scores already supplied for 20 past orders. A higher score ranks an order as more likely to arrive on time. To read 0.45 as a 45% chance, we would first check whether about 45% of orders with that score actually arrived on time.</p>
+ <p class="class-teach-context">We made up 20 delivery records for this lesson. Each row has an order ID, an assigned on-time score from 0 to 1, and an actual on-time or late label for that example. Address, traffic, and the clock times illustrate what a real desk might see. The teaching table starts with the score already assigned.</p>
+ <p class="class-teach-context">A higher score ranks an order as more likely to arrive on time. To read 0.45 as a 45% chance, we would first check whether about 45% of orders with similar scores actually arrived on time.</p>
  <nav class="class-teach-route" aria-label="Classification teaching sequence">
   <button class="button" type="button" data-class-lesson-stage="one" aria-controls="class-teach-one" aria-pressed="true">Follow one order</button>
   <button class="button" type="button" data-class-lesson-stage="python" aria-controls="class-teach-python" aria-pressed="false">Run the code</button>
@@ -21,7 +22,7 @@
  </nav>
  <section class="class-teach-panel" id="class-teach-one" aria-labelledby="class-teach-one-title">
   <div class="class-teach-heading">
-   <div><h3 id="class-teach-one-title">Follow an order into the matrix</h3><p>Choose one of the 20 past orders and replay what the app knew at dispatch and what happened at arrival. At cutoff 0.25, a score of 0.25 or higher produces <strong>On track</strong>. A lower score produces <strong>Likely late</strong>. P (positive) means on time. N (negative) means late.</p></div>
+   <div><h3 id="class-teach-one-title">Follow an order into the matrix</h3><p>Choose one of the 20 past orders. At dispatch, use the assigned score to forecast. After arrival, compare with the recorded outcome. We start at <strong>0.25</strong> so the example shows all four kinds of outcome. A score of 0.25 or higher gives <strong>On track</strong>. A lower score gives <strong>Likely late</strong>. P (positive) means on time. N (negative) means late.</p></div>
    <label for="class-teach-order">Past order ID <select id="class-teach-order"></select></label>
   </div>
   <div id="class-teach-replay" aria-live="polite"></div>
@@ -32,7 +33,7 @@
  </section>
  <section class="class-teach-panel" id="class-teach-python" aria-labelledby="class-teach-python-title" hidden>
   <h3 id="class-teach-python-title">Build the decision rule in Python</h3>
-  <p>The first two lists contain the scores and recorded outcomes for D14 and D19. The item in the same position in both lists belongs to the same order. Use 1 for on time and 0 for late.</p>
+  <p>The first two lists contain the assigned scores and recorded outcomes for D14 and D19. Each position refers to the same order in both lists. Use 1 for on time and 0 for late. Read <code>scores</code> to make the forecasts. Read <code>actual</code> later to count correct forecasts.</p>
   <pre class="class-teach-code"><code id="class-teach-code-example"></code></pre>
   <p id="class-teach-code-output"></p>
   <p>In Colab, apply the same rule to all 20 orders and change the cutoff to 0.10. Read what changes for D19, whose score is exactly 0.10.</p>
@@ -46,7 +47,7 @@
    <article><h4>Precision</h4><p>Of the orders we called On track, how many arrived on time? Count the left column. It contains 15 correct forecasts and D14, the false positive.</p><p class="class-teach-equation">15 ÷ (15 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="precision">Highlight predicted positives</button></article>
    <article><h4>Recall</h4><p>Of the orders that actually arrived on time, how many did we call On track? Count the top row. It contains the same 15 correct forecasts and D19, the false negative.</p><p class="class-teach-equation">15 ÷ (15 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="recall">Highlight actual positives</button></article>
    <article><h4>Accuracy</h4><p>How many forecasts were correct overall? Add the two correct cells and divide by all 20 orders.</p><p class="class-teach-equation">(15 + 3) ÷ 20 = 90%</p></article>
-   <article><h4>F1</h4><p>F1 is the harmonic mean of precision and recall. You can calculate it from the counts as twice the true positives divided by twice the true positives plus both kinds of mistake.</p><p class="class-teach-equation">30 ÷ (30 + 1 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="f1">Read the F1 calculation</button></article>
+   <article><h4>F1</h4><p>F1 is the harmonic mean of precision and recall. You can calculate it from the counts as twice the true positives divided by twice the true positives plus both kinds of mistake.</p><p class="class-teach-equation">(2 × 15) ÷ (2 × 15 + 1 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="f1">Read the F1 calculation</button></article>
   </div>
  </section>
  <section class="class-teach-panel" id="class-teach-policies" aria-labelledby="class-teach-policies-title" hidden>
@@ -56,10 +57,13 @@
   </div>
   <div id="class-teach-comparison-result" aria-live="polite"></div>
   <div class="button-row class-teach-actions"><button class="button primary" id="class-teach-use-cutoff" type="button">Use second cutoff in playground</button></div>
+  <details class="class-teach-note"><summary>Why try these cutoffs?</summary><p>0.10 includes D19, which scores exactly 0.10. 0.50 is a stricter rule that gives fewer On track messages. Every score reaches 0.00. The largest score is 0.98, so 1.01 makes every forecast Likely late. The two extreme settings show what happens when everyone gets the same message.</p></details>
+  <details class="class-teach-note"><summary>How could the desk choose a cutoff?</summary><p>For this calculation, suppose the desk assigns 10 penalty points to a false On track message (FP) and 1 to an unnecessary Likely late warning (FN). These weights are an assumption for the example. Add <strong>10 × FP + FN</strong> using the counts for each policy.</p><p>At 0.25, the total is <strong>10 × 1 + 1 = 11</strong>. At 0.10, it is <strong>10 × 3 + 0 = 30</strong>. A real desk would agree on its own error costs or constraints, choose the cutoff on validation data, and evaluate that choice on separate test orders.</p></details>
  </section>
  <section class="class-teach-panel" id="class-teach-ranking" aria-labelledby="class-teach-ranking-title" hidden>
   <h3 id="class-teach-ranking-title">One cutoff gives one ROC point</h3>
-  <p>Use the confusion counts at 0.25. Of the 4 actual late orders, 1 was forecast On track. That gives the <strong>false-positive rate</strong> of <strong>1/4</strong>, the horizontal coordinate. Of the 16 actual on-time orders, 15 were forecast On track. That gives <strong>recall</strong>, or true-positive rate, of <strong>15/16</strong>, the vertical coordinate. Repeat this calculation at every score cutoff to trace the curve.</p>
+  <p>Use the confusion counts at 0.25. Of the 4 actual late orders, 1 was forecast On track. That gives the <strong>false-positive rate</strong> of <strong>1/4</strong>, the horizontal coordinate. Of the 16 actual on-time orders, 15 were forecast On track. That gives <strong>recall</strong>, or true-positive rate, of <strong>15/16</strong>, the vertical coordinate.</p>
+  <p>To build the curve, start above every score so the point is (0, 0). Lower the cutoff to 0.98 and D01, an actual on-time order, enters the On track group. The point moves up by 1/16. At 0.45, D14, an actual late order, enters and the point moves right by 1/4. Orders with tied scores enter together.</p>
   <div class="button-row class-teach-actions"><button class="button small" type="button" data-class-focus="roc">Explore the ROC point</button></div>
   <h4>Use the original scores to explain the area</h4>
   <p>Pair each actual on-time order with each actual late order. The pair earns 1 when the on-time score is higher, ½ when the scores tie, and 0 when the late score is higher. For example, on-time D19 (0.10) earns 0 against late D14 (0.45) and earns 1 against late D20 (0.05).</p>

@@ -10,14 +10,32 @@
   const rows = fixture.rows;
   const actual = core.regressionActual;
   const defaultPredictions = rows.map(row => row.predicted_duration_minutes);
+  const outlierPredictions = fixture.additional_prediction_sets.outlier;
+  const last = rows.length - 1;
+  const constant = rows[0].worse_predicted_duration_minutes;
   const models = [
-    ['Small misses', defaultPredictions],
-    ['One large miss', fixture.additional_prediction_sets.outlier],
-    ['Mean reference', rows.map(row => row.baseline_duration_minutes)],
-    ['Always predict ' + rows[0].worse_predicted_duration_minutes + ' minutes', rows.map(row => row.worse_predicted_duration_minutes)],
-    ['Perfect predictions', fixture.additional_prediction_sets.perfect],
+    {
+      name: 'Small misses', predictions: defaultPredictions,
+      origin: `Set every example estimate ${defaultPredictions[0] - actual[0]} minutes higher than its actual duration.`,
+    },
+    {
+      name: 'One large miss', predictions: outlierPredictions,
+      origin: `Set the first four estimates exactly right and make ${rows[last].case_id} ${outlierPredictions[last] - actual[last]} minutes too high.`,
+    },
+    {
+      name: 'Mean reference', predictions: rows.map(row => row.baseline_duration_minutes),
+      origin: 'Use the same mean observed duration as the estimate for every order.',
+    },
+    {
+      name: `Always predict ${constant} minutes`, predictions: rows.map(row => row.worse_predicted_duration_minutes),
+      origin: `Use a constant ${constant}-minute guess to see what happens when a predictor’s squared error is higher than the reference’s.`,
+    },
+    {
+      name: 'Perfect predictions', predictions: fixture.additional_prediction_sets.perfect,
+      origin: 'Set each example estimate equal to its actual duration to see the best possible score.',
+    },
   ];
-  const stats = models.map(([, predictions]) => core.regression(predictions));
+  const stats = models.map(({ predictions }) => core.regression(predictions));
   const referenceScale = Math.max(...stats.map(result => result.sse), stats[0].sst);
   const format = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
   const fmt = value => format.format(value).replace('-', '−');
@@ -73,7 +91,7 @@
     const unit = absolute ? 'min' : 'min²';
     const cards = values.map((errors, index) => {
       const total = errors.reduce((acc, error) => acc + error, 0);
-      const [name, predictions] = models[index];
+      const { name, predictions, origin } = models[index];
       const { residuals, mae, mse, rmse } = stats[index];
       const bars = errors.map((value, rowIndex) => `<div class="rg-bar-row">
         <span>${rows[rowIndex].case_id}<small class="rg-bar-operands">${residualEquation(actual[rowIndex], predictions[rowIndex], residuals[rowIndex])}</small></span>
@@ -85,14 +103,14 @@
         : `MSE = ${fmt(total)} ÷ ${rows.length} = ${fmt(mse)} min²<br>RMSE = √${fmt(mse)} ${Number.isInteger(rmse) ? '=' : '≈'} ${fmt(rmse)} min`;
       return `<article class="rg-error-card">
         <h4>${name}</h4>
-        <p class="rg-chart-scale">Each row shows actual − estimate in minutes.</p>
+        <p class="rg-chart-scale">${origin}</p>
         <div class="rg-error-bars" aria-label="${absolute ? 'Absolute' : 'Squared'} errors in ${unit}">${bars}</div>
         <p>${equation}</p>
       </article>`;
     });
     const reading = absolute
-      ? 'The five small misses and the one large miss add up to the same number of minutes.'
-      : `The ${fmt(Math.max(...stats[1].absoluteErrors))}-minute miss contributes ${fmt(largest)} min² by itself. The five small misses contribute ${fmt(stats[0].sse)} min² together.`;
+      ? 'Mean absolute error (MAE) averages the sizes of the misses. The five small misses and the one large miss add up to the same number of minutes.'
+      : `Mean squared error (MSE) averages the squares of the misses, so its unit is min². Root mean squared error (RMSE) takes the square root to return to minutes. The ${fmt(Math.max(...stats[1].absoluteErrors))}-minute miss contributes ${fmt(largest)} min² by itself.`;
     select('#rg-error-bars').innerHTML = `<div class="rg-error-grid">${cards.join('')}</div>
       <p class="rg-chart-scale">Shared scale from 0 to ${fmt(largest)} ${unit} per order.</p>
       <p class="rg-teaching-callout">${reading}</p>`;
@@ -115,19 +133,21 @@
     <p>The other three residuals are zero. Mean residual = ${fmt(cancellation.meanResidual)} min. <strong>MAE = (${absoluteTerms}) ÷ ${rows.length} = ${fmt(cancellation.mae)} min</strong>. The signed errors cancel and their sizes add.</p>`;
 
   const reference = select('#rg-reference');
-  reference.replaceChildren(...models.map(([name], index) => new Option(name, String(index))));
+  reference.replaceChildren(...models.map(({ name }, index) => new Option(name, String(index))));
   reference.value = '0';
 
   function renderReference() {
     const index = Number(reference.value);
     const { mean, sse, sst, r2, squaredErrors, baselineErrors } = stats[index];
-    const estimate = models[index][1][0];
+    const { predictions, origin } = models[index];
+    const estimate = predictions[0];
     const meaning = r2 === 1 ? 'Every prediction is exact.' :
       r2 > 0 ? 'The model has smaller squared error than the reference.' :
       r2 === 0 ? 'The model and the mean reference have the same squared error.' :
       'The model has larger squared error than the reference.';
     select('#rg-reference-bars').innerHTML = `
       <div class="rg-teaching-callout">
+        <p>${origin}</p>
         <p><strong>Find the reference.</strong> The five actual durations average (${actual.map(fmt).join(' + ')}) ÷ ${rows.length} = <strong>${fmt(mean)} min</strong>.</p>
         <p><strong>Read both contributions for ${rows[0].case_id}.</strong> The selected estimate gives (${fmt(actual[0])} − ${fmt(estimate)})² = ${fmt(squaredErrors[0])} min². The mean reference gives (${fmt(actual[0])} − ${fmt(mean)})² = ${fmt(baselineErrors[0])} min².</p>
       </div>
@@ -151,7 +171,7 @@
   order.addEventListener('change', renderTimeline);
   reference.addEventListener('change', renderReference);
   explorerJump.addEventListener('click', () => {
-    if (activeStep === 'reference') window.MetricsLab.setPredictions(models[Number(reference.value)][1]);
+    if (activeStep === 'reference') window.MetricsLab.setPredictions(models[Number(reference.value)].predictions);
     const explorer = document.getElementById('regression-chart');
     explorer.setAttribute('tabindex', '-1');
     explorer.focus({ preventScroll: true });
