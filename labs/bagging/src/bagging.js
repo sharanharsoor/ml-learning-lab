@@ -2,21 +2,47 @@
   'use strict';
 
   const get = id => document.getElementById('bag-' + id);
-  const { rows, parcel, samples } = JSON.parse(get('data').textContent);
+  const { rows, email, samples, perturbationId } = JSON.parse(get('data').textContent);
   const rowMap = new Map(rows.map(row => [row.id, row]));
-  const route = label => label ? 'Review' : 'Auto';
+  const classLabels = ['Legitimate', 'Spam'];
+  const labelName = label => classLabels[label];
   const tone = label => label ? 'review' : 'auto';
-  const featureName = { x: 'Weight', z: 'Scan score' };
+  const featureName = { x: 'Dollar signs', z: 'Exclamation marks' };
   const fmt = value => String(Number(value.toFixed(4)));
   const percent = value => Number((value * 100).toFixed(1)) + '%';
+  const frequency = value => fmt(value) + '%';
   const mean = values => values.reduce((sum, value) => sum + value, 0) / values.length;
-  const question = split => featureName[split.feature] + ' ≤ ' + fmt(split.threshold);
+  const question = split => featureName[split.feature] + ' ≤ ' + frequency(split.threshold);
+  const measurements = row => 'Dollar signs ' + frequency(row.x) + ' · Exclamation marks ' + frequency(row.z);
+  const badge = label => '<span class="bag-badge ' + tone(label) + '">' + labelName(label) + '</span>';
   const sampleRows = sample => sample.draws.map(id => rowMap.get(id));
-  const parcelTableRows = records => records.map(({ id, x, z, label }) =>
-    `<tr><th scope="row">${id}</th><td>${x.toFixed(1)} kg</td><td>${z.toFixed(1)} / 10</td>
-      <td><span class="bag-badge ${tone(label)}">${route(label)}</span></td></tr>`).join('');
+  const emailTableRows = (records, predict) => records.map(({ id, x, z, label }) =>
+    `<tr><th scope="row">${id}</th><td>${frequency(x)}</td><td>${frequency(z)}</td>
+      <td>${badge(label)}</td>${predict ? '<td>' + badge(Number(x > 0)) + '</td>' : ''}</tr>`).join('');
   const treeMarkup = (tree, tracedPaths) => TreeLabDiagram.render(tree,
-    { criterion: 'gini', tracedPaths, interactive: false, showScore: false });
+    { criterion: 'gini', tracedPaths, interactive: false, showScore: false,
+      classLabels, sampleNoun: 'draw', formatCondition: question });
+  const traces = samples.map(({ tree }) => TreeLab.trace(tree, email));
+  const probabilities = traces.map(({ leaf }) => leaf.review / leaf.n);
+  const drawCounts = ids => {
+    const counts = new Map();
+    for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1);
+    return counts;
+  };
+
+  function pathText(steps) {
+    return steps.map(({ split, yes }) => frequency(email[split.feature]) + ' ' +
+      (yes ? '≤' : '>') + ' ' + frequency(split.threshold) + ' (' +
+      featureName[split.feature] + ', ' + (yes ? 'Yes' : 'No') + ')').join(' → ') || 'Root is already a leaf';
+  }
+
+  function plotScale(feature) {
+    const top = Math.max(email[feature], ...rows.map(row => row[feature])) || 1;
+    const rough = top / 4;
+    const power = 10 ** Math.floor(Math.log10(rough));
+    const unit = [1, 2, 2.5, 5, 10].find(value => value * power >= rough) * power;
+    return Array.from({ length: Math.ceil(top / unit) + 1 }, (_, index) => index * unit);
+  }
 
   function setupNavigation() {
     const chapters = [...document.querySelectorAll('.chapter')];
@@ -89,8 +115,12 @@
   }
 
   function scatter(sample, reveal) {
-    const x = value => 41 + 30 * value;
-    const z = value => 226 - 21 * value;
+    const xTicks = plotScale('x');
+    const zTicks = plotScale('z');
+    const xMax = xTicks.at(-1);
+    const zMax = zTicks.at(-1);
+    const x = value => 54 + 286 * value / xMax;
+    const z = value => 226 - 209 * value / zMax;
     const line = (a, b, c, d, css) =>
       '<line class="' + css + '" x1="' + a + '" y1="' + b + '" x2="' + c + '" y2="' + d + '"/>';
     function regions(tree, bounds) {
@@ -105,54 +135,49 @@
       return regions(tree.left, [left, right, bottom, t]) +
         regions(tree.right, [left, right, t, top]) + line(x(left), z(t), x(right), z(t), 'bag-cut');
     }
-    const ticks = [0, 2, 4, 6, 8, 10];
-    const grid = ticks.map(t => line(x(t), z(10), x(t), z(0), 'bag-grid') +
-      line(x(0), z(t), x(10), z(t), 'bag-grid') +
-      '<text x="' + x(t) + '" y="243" text-anchor="middle">' + t + '</text>' +
-      '<text x="33" y="' + (z(t) + 4) + '" text-anchor="end">' + t + '</text>').join('');
-    const drawCounts = new Map();
-    for (const id of sample.draws) drawCounts.set(id, (drawCounts.get(id) ?? 0) + 1);
+    const grid = xTicks.map(t => line(x(t), z(zMax), x(t), z(0), 'bag-grid') +
+      '<text x="' + x(t) + '" y="243" text-anchor="middle">' + fmt(t) + '</text>').join('') +
+      zTicks.map(t => line(x(0), z(t), x(xMax), z(t), 'bag-grid') +
+        '<text x="47" y="' + (z(t) + 4) + '" text-anchor="end">' + fmt(t) + '</text>').join('');
+    const counts = drawCounts(sample.draws);
     const marks = rows.map(row => {
       const px = x(row.x), py = z(row.z);
       const mark = row.label === 0 ? '<circle cx="' + px + '" cy="' + py + '" r="4.8"' :
         '<rect x="' + (px - 3.8) + '" y="' + (py - 3.8) + '" width="7.6" height="7.6" transform="rotate(45 ' + px + ' ' + py + ')"';
       const tag = row.label === 0 ? 'circle' : 'rect';
-      const count = drawCounts.get(row.id) ?? 0;
+      const count = counts.get(row.id) ?? 0;
       return mark + ' class="bag-point ' + tone(row.label) + (count ? '' : ' is-omitted') + '"><title>' +
-        row.id + ' · ' + route(row.label) + ' · ' + count + ' in this tray</title></' + tag + '>';
+        row.id + ' · ' + labelName(row.label) + ' · ' + count + ' in this tray</title></' + tag + '>';
     }).join('');
-    const px = x(parcel.x), py = z(parcel.z);
+    const px = x(email.x), py = z(email.z);
     const focus = '<circle class="bag-new-mark" cx="' + px + '" cy="' + py +
       '" r="9"/>' + line(px - 5, py, px + 5, py, 'bag-cross') + line(px, py - 5, px, py + 5, 'bag-cross');
     const root = sample.tree.split;
-    const firstCut = root.feature === 'x' ? line(x(root.threshold), z(10), x(root.threshold), z(0), 'bag-cut') :
-      line(x(0), z(root.threshold), x(10), z(root.threshold), 'bag-cut');
-    return '<svg class="bag-scatter" viewBox="0 0 360 268" role="img" aria-label="Historical parcels by weight and scan score. ' +
-      (reveal ? 'This tree predicts ' + route(sample.prediction) + ' for the new parcel.' : 'The first split is ' + question(root) + '.') +
-      '">' + grid + (reveal ? regions(sample.tree, [0, 10, 0, 10]) : firstCut) + marks + focus +
-      '<text x="191" y="262" text-anchor="middle" class="bag-axis">Weight X</text>' +
-      '<text transform="translate(12 120) rotate(-90)" text-anchor="middle" class="bag-axis">Scan score Z</text></svg>';
+    const firstCut = root.feature === 'x' ? line(x(root.threshold), z(zMax), x(root.threshold), z(0), 'bag-cut') :
+      line(x(0), z(root.threshold), x(xMax), z(root.threshold), 'bag-cut');
+    return '<svg class="bag-scatter" viewBox="0 0 360 268" role="img" aria-label="Labeled emails by dollar-sign and exclamation-mark frequency. ' +
+      (reveal ? 'This tree predicts ' + labelName(sample.prediction) + ' for email ' + email.id + '.' : 'The first split is ' + question(root) + '.') +
+      '">' + grid + (reveal ? regions(sample.tree, [0, xMax, 0, zMax]) : firstCut) + marks + focus +
+      '<text x="197" y="262" text-anchor="middle" class="bag-axis">Dollar signs (% of characters)</text>' +
+      '<text transform="translate(14 120) rotate(-90)" text-anchor="middle" class="bag-axis">Exclamation marks (% of characters)</text></svg>';
   }
 
-  function setupIntakeFlow() {
-    const figure = get('intake-flow');
-    const barcode = get('intake-barcode');
-    const weight = get('intake-weight');
-    const result = get('intake-result');
-    function paint() {
-      const declared = Number(weight.value);
-      const excess = parcel.x - declared;
-      const issues = [];
-      if (barcode.value === 'unreadable') issues.push('the barcode is unreadable after a retry');
-      if (parcel.x > declared + 1) issues.push(`the parcel weighs ${fmt(excess)} kg more than the label says`);
-      figure.dataset.route = issues.length ? 'review' : 'auto';
-      result.textContent = issues.length ? `These example checks give Review because ${issues.join(' and ')}.` :
-        `These example checks give Auto. The barcode is readable and the parcel is ${fmt(excess)} kg over the label, within the limit.`;
-    }
-
-    barcode.addEventListener('change', paint);
-    weight.addEventListener('change', paint);
-    paint();
+  function setupRule() {
+    const control = get('test-rule');
+    const result = get('rule-result');
+    const legit = rows.filter(row => row.label === 0).sort((a, b) => b.x - a.x)[0];
+    const spam = rows.filter(row => row.label === 1).sort((a, b) => a.x - b.x)[0];
+    get('desk-examples').innerHTML = emailTableRows([legit, spam], true);
+    const mismatches = [legit, spam].filter(row => Number(row.x > 0) !== row.label);
+    get('rule-takeaway').textContent = 'The dollar-sign rule misclassifies ' +
+      mismatches.map(row => row.id).join(' and ') + '. The recorded labels let us check that mistake. ' +
+      'A tree can learn to ask a follow-up question, such as how common exclamation marks are.';
+    control.addEventListener('click', () => {
+      const open = result.hidden;
+      result.hidden = !open;
+      control.setAttribute('aria-expanded', String(open));
+      control.textContent = open ? 'Hide the rule’s predictions' : 'Test the dollar-sign rule';
+    });
   }
 
   function setupHook() {
@@ -171,25 +196,33 @@
     }
     get('meet-trees').addEventListener('click', () => showStage(true));
     get('back-desk').addEventListener('click', () => showStage(false));
-    const measurements = 'Weight ' + parcel.x + ' kg · Scan score ' + parcel.z + '/10';
-    get('intake-weight-reading').textContent = `${parcel.x} kg`;
-    get('model-weight').textContent = `${parcel.x} kg`;
-    get('model-scan').textContent = `${parcel.z}/10`;
-    get('desk-examples').innerHTML = parcelTableRows(['P5', 'P3'].map(id => rowMap.get(id)));
-    get('parcel').textContent = 'New parcel · ' + measurements;
+    get('model-id').textContent = email.id;
+    get('model-dollar').textContent = frequency(email.x);
+    get('model-exclaim').textContent = frequency(email.z);
+    get('email').textContent = email.id + ' · ' + measurements(email);
+    get('opening-paths').innerHTML = traces.slice(0, 2).map(({ steps, leaf }, i) =>
+      `<p><strong>Tree ${i + 1}</strong> · ${pathText(steps)} → <strong>${labelName(leaf.prediction)}</strong>.</p>`).join('');
+    get('cutoff-origin').innerHTML = samples.slice(0, 2).map((sample, index) => {
+      const { feature, threshold } = sample.tree.split;
+      const readings = sampleRows(sample).map(row => row[feature]);
+      const below = Math.max(...readings.filter(value => value <= threshold));
+      const above = Math.min(...readings.filter(value => value > threshold));
+      return `<p><strong>Tree ${index + 1}</strong> asks about ${featureName[feature].toLowerCase()}. ` +
+        `The neighboring values in its tray are ${frequency(below)} and ${frequency(above)}. Their midpoint is ${frequency(threshold)}.</p>`;
+    }).join('');
     function paint(shown) {
       get('hook-plots').innerHTML = samples.slice(0, 2).map((sample, i) => '<figure class="bag-plot-card"><figcaption><strong>Tree ' +
         (i + 1) + '</strong>' + (shown ? '<span class="bag-badge ' + tone(sample.prediction) + '">' +
-        route(sample.prediction) + '</span>' : '') + '</figcaption>' + scatter(sample, shown) +
+        labelName(sample.prediction) + '</span>' : '') + '</figcaption>' + scatter(sample, shown) +
         '<p class="bag-plot-question"><strong>First question</strong> ' + question(sample.tree.split) + '?<br>' +
-        sample.draws.length + ' draws · ' + new Set(sample.draws).size + ' distinct training parcels</p></figure>').join('');
+        sample.draws.length + ' draws · ' + new Set(sample.draws).size + ' distinct training emails</p></figure>').join('');
       reveal.setAttribute('aria-pressed', String(shown));
-      reveal.textContent = shown ? 'Hide the two calls' : 'Show the two calls';
+      reveal.textContent = shown ? 'Hide the two predictions' : 'Show the two predictions';
       get('ensemble-takeaway').hidden = !shown;
       get('hook-result').textContent = shown ?
-        'Tree 1 says ' + route(samples[0].prediction) + '. Tree 2 says ' + route(samples[1].prediction) +
+        'Tree 1 says ' + labelName(samples[0].prediction) + '. Tree 2 says ' + labelName(samples[1].prediction) +
         '. How could we combine their answers?' :
-        'Find the new parcel. Which side of each cut does it fall on?';
+        'Find the held-out email. Which side of each cut does it fall on?';
     }
     reveal.addEventListener('click', () => paint(reveal.getAttribute('aria-pressed') === 'false'));
     paint(false);
@@ -201,7 +234,15 @@
     const play = get('play');
     const fill = get('fill');
     const reset = get('reset');
-    get('source-records').innerHTML = parcelTableRows(rows);
+    get('source-records').innerHTML = emailTableRows(rows);
+    const firstSample = drawCounts(samples[0].draws);
+    const missed = rows.filter(row => !firstSample.has(row.id));
+    const [repeatedID, repeatedCount] = [...firstSample].find(([, total]) => total > 1);
+    get('bootstrap-worked').innerHTML = '<p>Tree 1 takes <strong>' + samples[0].draws.length +
+      ' draws</strong> and sees <strong>' + firstSample.size + ' distinct emails</strong>. It draws ' +
+      '<strong>' + repeatedID + ' ' + repeatedCount + ' times</strong>, and each copy contributes the same ' +
+      labelName(rowMap.get(repeatedID).label) + ' label. The emails it skips are ' + missed.map(row => row.id).join(', ') +
+      '. These are <strong>out of bag</strong> for Tree 1.</p>';
     let count = 0;
     let timer = null;
     const current = () => samples[Number(selector.value)].draws;
@@ -209,21 +250,20 @@
     function paint() {
       const ids = current();
       const seen = ids.slice(0, count);
-      const counts = new Map();
-      for (const id of seen) counts.set(id, (counts.get(id) ?? 0) + 1);
+      const counts = drawCounts(seen);
       const latest = seen.at(-1);
       const omitted = rows.filter(row => !counts.has(row.id));
       get('source-rows').innerHTML = rows.map(row => '<span class="bag-source-row ' + tone(row.label) +
-        (row.id === latest ? ' latest' : '') + '" title="' + route(row.label) + '">' +
+        (row.id === latest ? ' latest' : '') + '" title="' + labelName(row.label) + '">' +
         row.id + '<small>×' + (counts.get(row.id) ?? 0) + '</small></span>').join('');
       get('drawn-rows').innerHTML = ids.map((id, i) => '<li class="' + (i < count ? tone(rowMap.get(id).label) : 'empty') +
         (i + 1 === count ? ' latest' : '') + '">' + (i < count ? id : '·') + '</li>').join('');
       const picked = rowMap.get(latest);
       get('draw-current').textContent = picked ? 'Draw ' + count + ' picked ' + latest +
-        (counts.get(latest) > 1 ? ' again.' : '.') + ' Weight ' + picked.x.toFixed(1) + ' kg · Scan score ' +
-        picked.z.toFixed(1) + '/10 · Recorded ' + route(picked.label) + '.' : 'The sample tray is empty.';
+        (counts.get(latest) > 1 ? ' again. ' : '. ') + measurements(picked) +
+        ' · Recorded ' + labelName(picked.label) + '.' : 'The sample tray is empty.';
       get('sample-counts').innerHTML = '<span><strong>' + count + '/' + ids.length + '</strong> draws</span><span><strong>' +
-        counts.size + '</strong> unique parcels</span><span><strong>' + omitted.length + '</strong> ' +
+        counts.size + '</strong> unique emails</span><span><strong>' + omitted.length + '</strong> ' +
         (count === ids.length ? 'omitted · ' + (omitted.map(row => row.id).join(', ') || 'none') : 'not drawn yet') + '</span>';
       nextDraw.disabled = fill.disabled = count === ids.length;
       play.disabled = count === ids.length && timer === null;
@@ -258,41 +298,68 @@
 
   function setupForest() {
     const picker = get('tree-picker');
+    const labelToggle = get('reveal-label');
+    const recorded = get('recorded-label');
     let active = 0;
     let shown = 0;
     picker.innerHTML = samples.map((_, index) => '<button type="button" data-tree="' + index + '">Tree ' +
       (index + 1) + '</button>').join('');
     const buttons = [...picker.querySelectorAll('button')];
     get('code-output').innerHTML = '<p>Tree 1 draws <code>' + samples[0].draws.join(', ') +
-      '</code>. Its prediction is <strong>' + route(samples[0].prediction) +
-      '</strong>. All three predictions are <strong>' + samples.map(sample => route(sample.prediction)).join(', ') + '</strong>.</p>';
+      '</code>. Its prediction is <strong>' + labelName(samples[0].prediction) +
+      '</strong>. All three predictions are <strong>' + samples.map(sample => labelName(sample.prediction)).join(', ') + '</strong>.</p>';
+    get('trace-email').textContent = email.id + ' · ' + measurements(email);
+    const spamVotes = samples.reduce((count, sample) => count + sample.prediction, 0);
+    const hardLabel = Number(spamVotes > samples.length / 2);
+    const meanSpam = mean(probabilities);
+    const softLabel = Number(meanSpam > 0.5);
+    const fractions = traces.map(({ leaf }) => leaf.review + '/' + leaf.n).join(' + ');
+    const meanEquation = '(' + fractions + ') ÷ ' + samples.length + ' = ' + percent(meanSpam);
+    const hardSummary = samples.length - spamVotes + ' Legitimate · ' + spamVotes + ' Spam';
+    get('forest-worked').innerHTML = traces.map(({ steps, leaf }, index) =>
+      `<p><strong>Tree ${index + 1}</strong> · ${pathText(steps)}. The leaf has ${leaf.auto} Legitimate and ${leaf.review} Spam draws, giving a Spam probability of ${leaf.review}/${leaf.n}.</p>`).join('') +
+      `<p><strong>Hard vote</strong> · ${hardSummary}. Spam vote share is ${spamVotes}/${samples.length} = ${percent(spamVotes / samples.length)}. Predict <strong>${labelName(hardLabel)}</strong>.</p>` +
+      `<p><strong>Average of leaf probabilities</strong> · ${meanEquation}. Predict <strong>${labelName(softLabel)}</strong>.</p>`;
+    recorded.textContent = email.id + ' was labeled ' + labelName(email.label) + ' in Spambase. ' +
+      (hardLabel === email.label ? 'The majority vote matches that label.' : 'The majority vote misses that label.') +
+      ' Evaluating accuracy takes many held-out emails.';
+    labelToggle.addEventListener('click', () => {
+      const open = recorded.hidden;
+      recorded.hidden = !open;
+      labelToggle.setAttribute('aria-expanded', String(open));
+      labelToggle.textContent = open ? 'Hide the recorded label' : 'Show the recorded label';
+    });
     function drawTree() {
       const sample = samples[active];
-      const traced = TreeLab.trace(sample.tree, parcel);
+      const traced = traces[active];
       buttons.forEach((button, index) => { button.setAttribute('aria-pressed', String(active === index)); });
       get('tree-meta').innerHTML = '<p><strong>Draws</strong> ' + sample.draws.join(', ') +
-        '</p><p><strong>Path</strong> ' + traced.steps.map(({ split, yes }) => question(split) +
-          ' (' + (yes ? 'Yes' : 'No') + ')').join(' · ') +
-        '</p><p><strong>Leaf</strong> ' + traced.leaf.auto + ' Auto · ' + traced.leaf.review + ' Review · ' +
-        percent(sample.reviewProbability) + ' Review probability · Predict <strong>' + route(sample.prediction) + '</strong></p>';
+        '</p><p><strong>Path</strong> ' + pathText(traced.steps) +
+        '</p><p><strong>Leaf</strong> ' + traced.leaf.auto + ' Legitimate · ' + traced.leaf.review + ' Spam · ' +
+        percent(probabilities[active]) + ' Spam probability · Predict <strong>' + labelName(sample.prediction) + '</strong></p>';
       get('tree-plot').innerHTML = treeMarkup(sample.tree, traced.paths);
     }
     function drawVotes() {
-      get('vote-next').disabled = shown === samples.length;
+      const complete = shown === samples.length;
+      get('vote-next').disabled = complete;
       get('vote-reset').disabled = shown === 0;
+      get('vote-truth').hidden = !complete;
+      if (!complete) {
+        recorded.hidden = true;
+        labelToggle.setAttribute('aria-expanded', 'false');
+        labelToggle.textContent = 'Show the recorded label';
+      }
       const votes = samples.slice(0, shown);
       const cards = samples.map((sample, i) => '<div class="bag-vote"><span>Tree ' + (i + 1) + '</span><strong>' +
-        (i < shown ? route(sample.prediction) : 'Hidden') + '</strong></div>').join('');
-      const review = votes.filter(sample => sample.prediction === 1).length;
-      const auto = votes.length - review;
-      const result = shown === samples.length ? '<p class="bag-readout"><strong>Majority vote</strong> ' + auto + ' Auto · ' +
-        review + ' Review. Final prediction <strong>' + route(Number(review > auto)) + '</strong>.</p>' +
-        '<p><strong>Mean Review probability</strong> (' + samples.map(sample => {
-          const leaf = TreeLab.trace(sample.tree, parcel).leaf;
-          return leaf.review + '/' + leaf.n;
-        }).join(' + ') + ') ÷ ' + samples.length + ' = ' + percent(mean(samples.map(sample => sample.reviewProbability))) + '</p>' :
+        (i < shown ? labelName(sample.prediction) : 'Hidden') + '</strong></div>').join('');
+      const spam = votes.reduce((count, sample) => count + sample.prediction, 0);
+      const legitimate = votes.length - spam;
+      const result = complete ? '<p class="bag-readout"><strong>Majority vote</strong> · ' + hardSummary +
+        '. Predict <strong>' + labelName(hardLabel) + '</strong>.</p><p><strong>Mean Spam probability</strong> · ' +
+        meanEquation + '. Predict <strong>' + labelName(softLabel) + '</strong>.</p>' :
         '<p class="bag-readout">' + shown + ' of ' + samples.length + ' votes revealed. ' +
-        (shown ? 'Auto ' + auto + ' · Review ' + review + '.' : 'Predict the result before revealing the votes.') + '</p>';
+        (shown ? 'Legitimate ' + legitimate + ' · Spam ' + spam + '.' : 'Predict the result before revealing the votes.') +
+        (shown && spam === legitimate ? ' The votes are tied.' : '') + '</p>';
       get('votes').innerHTML = '<div class="bag-triptych">' + cards + '</div>' + result;
     }
     picker.addEventListener('click', event => {
@@ -315,14 +382,26 @@
     const available = index => mode.value === 'all' ? ['x', 'z'] : [presets[draw][index]];
     const bestFor = (group, features) => TreeLab.rank(group, 'gini').find(({ split, gain }) =>
       gain > 0 && features.includes(split.feature));
+    const initial = bestFor(parent, ['x', 'z']);
+    const giniFormula = ({ n, auto, review, score }) =>
+      '1 − (' + auto + '/' + n + ')² − (' + review + '/' + n + ')² ≈ ' + fmt(score);
+    const { parent: rootStats, leftStats, rightStats, weighted, gain } = initial;
+    get('gini-worked').innerHTML = '<p>Start with both features available. The best split is <strong>' +
+      question(initial.split) + '</strong>.</p><p><strong>Root Gini</strong> · ' +
+      giniFormula(rootStats) + '</p><p><strong>Yes child Gini</strong> · ' + giniFormula(leftStats) +
+      '</p><p><strong>No child Gini</strong> · ' + giniFormula(rightStats) +
+      '</p><p><strong>Weighted child Gini</strong> · (' + leftStats.n + '/' + rootStats.n +
+      ' × ' + fmt(leftStats.score) + ') + (' + rightStats.n + '/' + rootStats.n + ' × ' +
+      fmt(rightStats.score) + ') ≈ ' + fmt(weighted) + '</p><p><strong>Gini decrease</strong> · ' +
+      fmt(rootStats.score) + ' − ' + fmt(weighted) + ' ≈ ' + fmt(gain) + '</p>';
 
     function card(title, group, features, split) {
       const { auto, review } = TreeLab.stats(group, 'gini');
       const info = auto && review ? '<p><strong>Candidate features</strong> ' + features.map(feature => featureName[feature]).join(', ') +
         '</p><p>' + (split ? 'Best question <strong>' + question(split.split) + '</strong> · Gini decrease ' + fmt(split.gain) :
           'No positive-gain question among these candidates.') + '</p>' :
-        `<p>The draws agree on ${auto ? 'Auto' : 'Review'}, so this branch stops at a leaf.</p>`;
-      return `<article><h3>${title} · ${group.length} draws</h3><p>${auto} Auto · ${review} Review</p>${info}
+        `<p>The draws agree on ${auto ? 'Legitimate' : 'Spam'}, so this branch stops at a leaf.</p>`;
+      return `<article><h3>${title} · ${group.length} draws</h3><p>${auto} Legitimate · ${review} Spam</p>${info}
         <p class="small"><strong>Draws at this node</strong> ${group.map(row => row.id).join(', ')}</p></article>`;
     }
     function paint() {
@@ -344,43 +423,55 @@
 
   function setupDepth() {
     const depth = get('base-depth');
+    const fit = (sample, limit) => {
+      const training = sampleRows(sample);
+      const tree = TreeLab.fit(training, 'gini', limit);
+      const correct = training.filter(row => TreeLab.predict(tree, row) === row.label).length;
+      return { tree, correct, n: training.length };
+    };
+    const shallow = fit(samples[2], 1);
+    const deeper = fit(samples[2], 2);
+    get('depth-worked').innerHTML = '<p><strong>Try it.</strong> At depth 1, Tree 3 classifies ' + shallow.correct +
+      '/' + shallow.n + ' training draws correctly and predicts <strong>' + labelName(TreeLab.predict(shallow.tree, email)) +
+      '</strong> for ' + email.id + '. At depth 2, it classifies ' + deeper.correct + '/' + deeper.n +
+      ' correctly and predicts <strong>' + labelName(TreeLab.predict(deeper.tree, email)) +
+      '</strong> for that same email. Test on more unseen emails to judge whether more depth helps.</p>';
     function paint() {
-      const trees = samples.map(sample => TreeLab.fit(sampleRows(sample), 'gini', Number(depth.value)));
-      const results = trees.map((tree, i) => {
-        const training = sampleRows(samples[i]);
-        const correct = training.filter(row => TreeLab.predict(tree, row) === row.label).length;
-        return '<article><h3>Tree ' + (i + 1) + '</h3><p>New parcel <strong>' +
-          route(TreeLab.predict(tree, parcel)) + '</strong></p><p>Training draws correct ' + correct + '/' + training.length + '</p></article>';
-      });
+      const fits = samples.map(sample => fit(sample, Number(depth.value)));
+      const results = fits.map(({ tree, correct, n }, i) =>
+        '<article><h3>Tree ' + (i + 1) + '</h3><p>' + email.id + ' <strong>' +
+        labelName(TreeLab.predict(tree, email)) + '</strong></p><p>Training draws correct ' + correct + '/' + n + '</p></article>');
       get('depth-summary').innerHTML = '<div class="bag-triptych">' + results.join('') + '</div>';
-      get('depth-tree').innerHTML = treeMarkup(trees[2], TreeLab.trace(trees[2], parcel).paths);
+      const tree = fits[2].tree;
+      get('depth-tree').innerHTML = treeMarkup(tree, TreeLab.trace(tree, email).paths);
     }
     depth.addEventListener('change', paint);
     paint();
   }
 
   function setupPerturbation() {
-    const control = get('flip-p3');
-    const changedID = 'P3';
-    const original = samples.map(sample => sample.reviewProbability);
+    const control = get('flip-label');
+    const changedID = perturbationId;
+    const actual = rowMap.get(changedID);
+    const original = probabilities;
     const afterEdit = samples.map(sample => {
-      const training = sampleRows(sample).map(row => row.id === changedID ? { ...row, label: 1 } : row);
-      const leaf = TreeLab.trace(TreeLab.fit(training, 'gini', 2), parcel).leaf;
+      const training = sampleRows(sample).map(row => row.id === changedID ? { ...row, label: 1 - row.label } : row);
+      const leaf = TreeLab.trace(TreeLab.fit(training, 'gini', 2), email).leaf;
       return leaf.review / leaf.n;
     });
     function paint(changed) {
       const probabilities = changed ? afterEdit : original;
       control.setAttribute('aria-pressed', String(changed));
-      control.textContent = changed ? 'Restore P3’s recorded route' : 'Flip P3’s recorded route';
+      control.textContent = (changed ? 'Restore ' : 'Flip ') + changedID + '’s recorded label';
       const cards = samples.map((sample, i) => {
         const count = sample.draws.filter(id => id === changedID).length;
-        return `<article><h3>Tree ${i + 1}</h3><p>P3 drawn ${count} ${count === 1 ? 'time' : 'times'}.</p>
-          <p><strong>${percent(probabilities[i])} Review</strong>${changed && probabilities[i] !== original[i] ?
+        return `<article><h3>Tree ${i + 1}</h3><p>${changedID} drawn ${count} ${count === 1 ? 'time' : 'times'}.</p>
+          <p><strong>${percent(probabilities[i])} Spam</strong>${changed && probabilities[i] !== original[i] ?
             ' · was ' + percent(original[i]) : ''}</p></article>`;
       });
       get('perturbation').innerHTML = `<div class="bag-triptych">${cards.join('')}</div>
-        <p class="bag-worked"><strong>P3 recorded as ${changed ? 'Review' : 'Auto'}.</strong>
-        Mean Review probability ${percent(mean(probabilities))}${changed ? ' · was ' + percent(mean(original)) : ''}.</p>`;
+        <p class="bag-worked"><strong>${changedID} treated as ${labelName(changed ? 1 - actual.label : actual.label)}.</strong>
+        Mean Spam probability for ${email.id} ${percent(mean(probabilities))}${changed ? ' · was ' + percent(mean(original)) : ''}.</p>`;
     }
     control.addEventListener('click', () => paint(control.getAttribute('aria-pressed') === 'false'));
     paint(false);
@@ -409,31 +500,44 @@
   }
 
   function setupInterview() {
-    function credits(tree, totals) {
-      if (!tree.split) return;
-      const weightedScore = node => node.stats.n * node.stats.score;
-      totals[tree.split.feature] += weightedScore(tree) - weightedScore(tree.left) - weightedScore(tree.right);
-      credits(tree.left, totals);
-      credits(tree.right, totals);
+    function splitCredits(tree, total, path = 'Root') {
+      if (!tree.split) return [];
+      const { n, score } = tree.stats;
+      const weightedChildren = (tree.left.stats.n * tree.left.stats.score + tree.right.stats.n * tree.right.stats.score) / n;
+      const gain = score - weightedChildren;
+      return [{ path, question: question(tree.split), feature: tree.split.feature, n, gain, credit: n / total * gain },
+        ...splitCredits(tree.left, total, path + ' → Yes'), ...splitCredits(tree.right, total, path + ' → No')];
     }
-    const scores = samples.map(({ tree }) => {
+    const models = samples.map(({ tree }) => {
+      const splits = splitCredits(tree, tree.stats.n);
       const totals = { x: 0, z: 0 };
-      credits(tree, totals);
+      for (const { feature, credit } of splits) totals[feature] += credit;
       const total = totals.x + totals.z;
-      return { x: totals.x / total, z: totals.z / total };
+      return { splits, totals, total, n: tree.stats.n, x: totals.x / total, z: totals.z / total };
     });
     const showScore = score => [score.x, score.z].map(value => `<td><strong>${percent(value)}</strong>
       <span class="bag-importance-track" aria-hidden="true"><span style="width:${percent(value)}"></span></span></td>`).join('');
-    get('importance').innerHTML = '<div class="table-wrap"><table><thead><tr><th scope="col">Model</th><th scope="col">Weight</th>' +
-      '<th scope="col">Scan score</th></tr></thead><tbody>' + scores.map((score, i) => '<tr><th scope="row">Tree ' +
+    get('importance').innerHTML = '<div class="table-wrap"><table><thead><tr><th scope="col">Model</th><th scope="col">Dollar signs</th>' +
+      '<th scope="col">Exclamation marks</th></tr></thead><tbody>' + models.map((score, i) => '<tr><th scope="row">Tree ' +
       (i + 1) + '</th>' + showScore(score) + '</tr>').join('') + '<tr class="bag-average"><th scope="row">Ensemble mean</th>' +
-      showScore({ x: mean(scores.map(score => score.x)), z: mean(scores.map(score => score.z)) }) + '</tr></tbody></table></div>';
+      showScore({ x: mean(models.map(score => score.x)), z: mean(models.map(score => score.z)) }) + '</tr></tbody></table></div>';
+    const worked = models[0];
+    get('importance-worked').innerHTML = '<p>Tree 1 gets ' + worked.n +
+      ' training draws. At each split, weight the local Gini decrease by the fraction of those draws that reach the node.</p>' +
+      '<div class="table-wrap"><table><caption class="sr-only">Weighted split credit in Tree 1</caption><thead><tr>' +
+      '<th scope="col">Node</th><th scope="col">Learned question</th><th scope="col">Weighted credit</th></tr></thead><tbody>' +
+      worked.splits.map(split => `<tr><th scope="row">${split.path}</th><td>${split.question}</td>
+      <td>${split.n}/${worked.n} × ${fmt(split.gain)} ≈ ${fmt(split.credit)}</td></tr>`).join('') + '</tbody></table></div>' +
+      '<p>The credits sum to ' + fmt(worked.total) + '. Divide each feature’s subtotal by that sum. ' +
+      'Dollar signs get ' + fmt(worked.totals.x) + '/' + fmt(worked.total) + ' ≈ <strong>' + percent(worked.x) +
+      '</strong>. Exclamation marks get ' + fmt(worked.totals.z) + '/' + fmt(worked.total) + ' ≈ <strong>' + percent(worked.z) +
+      '</strong>. Average the resulting shares across the three trees.</p>';
     const settings = [
-      ['Number of trees', 'n_estimators', 'How many trees answer for the same parcel?', 'If 10 trees already give similar Review probabilities, the next few may barely move their average. Compare validation scores as you add trees. Every extra tree also takes time to train and to consult for a prediction.'],
-      ['Row sample size', 'max_samples', 'How many tickets go into each training tray?', 'Switch from 12 draws per tree to 6. Each tray now has fewer tickets, so more parcels can be left out for an out-of-bag check. The trees may learn different rules, and each tree has fewer examples to learn from.'],
-      ['Columns sampled', 'max_features', 'Which measurements can a node consider?', 'Try one candidate instead of both weight and scan score. Some nodes can now ask only about weight, so the trees have more reason to learn different rules. A node with only weight can also miss a more useful scan-score cutoff.'],
-      ['Tree depth', 'max_depth', 'How many questions can a parcel answer?', 'At depth 1 a tree asks a single question. Depth 2 lets it use scan score in just one weight range. More questions can capture useful patterns or rules that happen to fit only the parcels in the training tray.'],
-      ['Pruning', 'ccp_alpha', 'How much does a branch have to earn to stay?', 'Imagine a split that creates two leaves and corrects just one training prediction. A larger penalty for extra leaves makes that split more likely to be removed. Check validation scores to see whether pruning helps on fresh parcels.'],
+      ['Number of trees', 'n_estimators', 'How many trees answer for one email?', 'If 10 trees already give similar Spam probabilities, the next few may barely move their average. Compare validation scores as you add trees. Every extra tree also takes time to train and to consult for a prediction.'],
+      ['Row sample size', 'max_samples', 'How many email rows go into each training tray?', 'Switch from 12 draws per tree to 6. Each tray now has fewer draws, so more emails can be left out for an out-of-bag check. The trees may learn different rules, and each tree has fewer examples to learn from.'],
+      ['Columns sampled', 'max_features', 'Which clues can a node consider?', 'Try one candidate instead of both punctuation features. Some nodes can consider only dollar-sign frequency. That can change the rules trees learn, but a node might miss a useful exclamation-mark cutoff.'],
+      ['Tree depth', 'max_depth', 'How many questions can an email answer?', 'At depth 1 a tree asks a single question. Depth 2 lets it use a different feature after the first answer. More questions can capture useful patterns or details peculiar to the emails in a training tray.'],
+      ['Pruning', 'ccp_alpha', 'How much does a branch have to earn to stay?', 'Imagine a split that creates two leaves and corrects just one training prediction. A larger penalty for extra leaves makes that split more likely to be removed. Check validation scores to see whether pruning helps on unseen emails.'],
     ];
     const knobs = get('knob-buttons');
     knobs.innerHTML = settings.map(([label], i) => '<button class="button secondary" type="button" data-knob="' + i +
@@ -451,7 +555,7 @@
   }
 
   setupNavigation();
-  setupIntakeFlow();
+  setupRule();
   setupHook();
   setupBootstrap();
   setupForest();

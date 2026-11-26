@@ -1,7 +1,7 @@
 {
   "slug": "bagging",
   "title": "Bagging & Random Forests",
-  "description": "Resample the parcel desk, follow a forest’s predictions, and explore variance, out-of-bag scoring, tuning, and feature importance.",
+  "description": "Learn to filter spam with real labeled emails. Resample rows, trace a forest, and explore variance, out-of-bag scoring, tuning, and feature importance.",
   "topics": ["Ensembles", "Random Forest", "Python notebooks"],
   "builder": "scripts/build_lab.py"
 }

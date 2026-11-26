@@ -23,7 +23,7 @@ def build():
         data = json.loads((SOURCE / filename).read_text())
         replacements[marker] = json.dumps(data, separators=(",", ":")).replace("<", "\\u003c")
     images = {
-        "PARCEL_DESK_IMAGE": "parcel-desk.jpg",
+        "EMAIL_DESK_IMAGE": "email-desk.jpg",
         "BOOTSTRAP_IMAGE": "scene-bootstrap.jpg",
         "FOREST_IMAGE": "scene-forest.jpg",
         "DIVERSITY_IMAGE": "scene-diversity.jpg",

@@ -100,7 +100,7 @@
 .bag-later #bagl-reducible-fill { background: var(--teal); }
 .bag-later .bagl-variance-legend { margin-block: .2rem .7rem; }
 
-.bag-later .bagl-oob-table { min-width: 26rem; }
+.bag-later .bagl-oob-table { min-width: 36rem; }
 .bag-later .bagl-oob-table td,
 .bag-later .bagl-oob-table th { vertical-align: middle; }
 .bag-later .bagl-oob-help { margin-top: .6rem; }
@@ -140,7 +140,7 @@
   gap: .4rem .6rem;
   margin-block: .6rem .2rem;
 }
-.bag-later .bagl-votes > span { padding: .2rem .45rem; border-radius: .3rem; background: var(--surface); }
+.bag-later .bagl-votes > div { padding: .35rem .55rem; border-radius: .3rem; background: var(--surface); }
 .bag-later .bagl-leaf-summaries {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

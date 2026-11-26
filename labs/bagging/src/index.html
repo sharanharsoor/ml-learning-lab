@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f4f2eb">
-<meta name="description" content="Build a forest with original parcel data. Practice bootstrap sampling, voting, variance, out-of-bag scoring, and tuning.">
+<meta name="description" content="Build a forest using real labeled Spambase emails. Practice bootstrap sampling, voting, variance, out-of-bag scoring, and tuning.">
 <link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/bagging/">
 <title>Bagging &amp; Random Forests | ML Learning Lab</title>
 <style>
@@ -31,131 +31,96 @@
   <main class="lesson" id="lesson">
     <section class="chapter" id="agenda" aria-labelledby="agenda-title">
       <p class="eyebrow">Bagging &amp; Random Forests</p>
-      <h1 id="agenda-title">From one parcel to a forest</h1>
-      <p class="lede">A parcel arrives at the sorting desk. Two trees disagree on where it should go. We’ll work out where that disagreement comes from, combine their answers, and check whether a forest works better on the next shipment.</p>
+      <h1 id="agenda-title">From one email to a forest</h1>
+      <p class="lede">Should a dollar sign send an email to spam? Start with real labeled emails, see how a tree learns its questions, and test whether several trees make better predictions together.</p>
       <ol class="bag-steps bag-agenda" aria-label="Lesson agenda">
         <li><a href="#ensemble">Ensemble models</a><span>Hear two trees answer the same question and see four ways to combine models.</span></li>
-        <li><a href="#bootstrap">Bagging and Random Forest intuition</a><span>Draw the training trays, trace the trees, and see why averaging can steady a prediction.</span></li>
-        <li><a href="#implementation">Random Forest implementation</a><span>Check the data, fit the baseline models, and read the tuning curves.</span></li>
+        <li><a href="#bootstrap">Bagging and Random Forest intuition</a><span>Draw training rows, trace the trees, and see why averaging can steady a prediction.</span></li>
+        <li><a href="#implementation">Random Forest implementation</a><span>Use the full Spambase dataset to compare models and read their tuning curves.</span></li>
         <li><a href="#randomized-search">Randomized Search</a><span>Compare a full grid with a fixed search budget on the same folds.</span></li>
-        <li><a href="#oob">Out-of-bag points</a><span>Score a parcel using the trees that left it out of training.</span></li>
+        <li><a href="#oob">Out-of-bag points</a><span>Score an email using only the trees that left it out of training.</span></li>
         <li><a href="#interview">Interview questions</a><span>Explain feature importance, bias and variance, and when a branch earns its place.</span></li>
       </ol>
-      <div class="bag-actions"><a class="button primary" href="#ensemble">Start at the parcel desk</a></div>
+      <div class="bag-actions"><a class="button primary" href="#ensemble">Start with the inbox</a></div>
     </section>
 
     <section class="chapter hero" id="ensemble" aria-labelledby="bag-title">
       <div id="bag-desk-stage">
         <p class="eyebrow">Bagging &amp; Random Forests</p>
-        <h1 id="bag-title" tabindex="-1">Where should this parcel go?</h1>
-        <p class="bag-desk-intro">A new parcel arrives at the intake desk. The courier scans its barcode and checks its weight before sending it to one of two routes.</p>
+        <h1 id="bag-title" tabindex="-1">Would you send this to spam?</h1>
+        <p class="bag-desk-intro">“Your invoice is ready. Total due $80.” A dollar sign tells us the message mentions money. We still need to decide whether it belongs in the inbox or the spam folder.</p>
         <figure class="bag-desk">
-          <!-- Original Bagging opener artwork, generated with built-in ImageGen. Prompt follows.
-          Use case: scientific-educational. Asset type: widescreen classroom slide illustration for an introductory machine learning lesson. Show a modern parcel sorting center with two visually distinct routes, understandable at a glance from a classroom projector. A friendly warehouse operator at the intake in the middle receives a small kraft parcel. At the LEFT, a different small cardboard parcel passes straight through a low teal automated scanner/conveyor toward dispatch. At the RIGHT, a second warehouse worker checks a different cardboard parcel by hand at a simple terracotta inspection counter, holding a small handheld scanner or checking the label. Each of the three stations and people is clear at small size, fully visible, and reads from left, center, to right in one continuous space. Communicate the route difference through poses and job actions. Clean editorial vector-like raster illustration, confident simple shapes, a warm off-white backdrop, deep evergreen and clay accents, thin consistent outlines, bright even lighting, approachable adult figures, minimal background detail. Wide horizontal 16:9 composition, centered, full-width and no cut-off objects, with breathing room at sides. No text, letters, signage, arrows, chart axes, labels, branding, or watermark.
-          -->
-          <img src="{{PARCEL_DESK_IMAGE}}" width="1672" height="941" alt="A sorting center with the intake desk in the middle, the Auto dispatch lane on the left, and the staffed Review station on the right.">
+          <img src="{{EMAIL_DESK_IMAGE}}" width="1450" height="816" alt="An incoming email can go to the inbox or the spam folder.">
           <figcaption class="bag-desk-routes">
-            <div class="auto"><strong>Auto</strong><span>Conveyor to dispatch</span></div>
-            <div><strong>Intake</strong><span>Receive and check the parcel</span></div>
-            <div class="review"><strong>Review</strong><span>Staff inspect the parcel by hand</span></div>
+            <div class="auto"><strong>Legitimate</strong><span>This message belongs in the inbox.</span></div>
+            <div><strong>Incoming email</strong><span>Which clues can we measure?</span></div>
+            <div class="review"><strong>Spam</strong><span>This message belongs in the spam folder.</span></div>
           </figcaption>
         </figure>
-        <figure class="bag-intake-flow" aria-labelledby="bag-intake-title" data-route="auto" id="bag-intake-flow">
-          <figcaption>
-            <h2 id="bag-intake-title">Follow the parcel through intake</h2>
-            <p>The desk makes its routing decision after two checks. Try example barcode results and label weights for the same parcel to see which route it takes.</p>
-          </figcaption>
-          <div class="bag-intake-arrival"><strong>New parcel arrives</strong></div>
-          <div class="bag-intake-arrow" aria-hidden="true"></div>
-          <div class="bag-intake-checks" role="group" aria-label="Intake checks">
-            <div>
-              <h3>Scan the barcode</h3>
-              <p>The reader tries to decode the parcel ID. It retries once if needed. The check passes if either attempt reads the ID.</p>
-              <label for="bag-intake-barcode">Example barcode result</label>
-              <select id="bag-intake-barcode"><option value="first">Reads on first scan</option><option value="retry">Reads on retry</option><option value="unreadable">Still unreadable after retry</option></select>
+
+        <div class="bag-rule-panel">
+          <h2>Test a one-clue rule against labeled examples</h2>
+          <p>Suppose the filter sends every email containing a dollar sign to spam. What would happen to an invoice? What about an unwanted message that says “CLAIM YOUR PRIZE!!!”? These are made-up snippets. The rule below is checked against actual measurements and labels from Spambase.</p>
+          <div class="bag-actions">
+            <button class="button secondary" id="bag-test-rule" type="button" aria-expanded="false" aria-controls="bag-rule-result">Test the dollar-sign rule</button>
+          </div>
+          <div id="bag-rule-result" hidden>
+            <div class="table-wrap">
+              <table>
+                <caption class="sr-only">Spambase records and predictions from a dollar-sign-only rule</caption>
+                <thead><tr><th scope="col">Email</th><th scope="col">$ frequency</th><th scope="col">! frequency</th><th scope="col">Recorded label</th><th scope="col">Rule predicts</th></tr></thead>
+                <tbody id="bag-desk-examples"></tbody>
+              </table>
             </div>
-            <div>
-              <h3>Weigh the parcel</h3>
-              <p>Compare the scale reading of <strong id="bag-intake-weight-reading">5.65 kg</strong> with the weight printed on the shipping label. The check fails if the parcel is more than 1 kg over.</p>
-              <label for="bag-intake-weight">Example weight on the label</label>
-              <select id="bag-intake-weight"><option value="5">5.00 kg</option><option value="4.65">4.65 kg</option><option value="4.45">4.45 kg</option></select>
-            </div>
+            <p id="bag-rule-takeaway" class="bag-worked"></p>
           </div>
-          <div class="bag-intake-arrow" aria-hidden="true"></div>
-          <div class="bag-intake-decision">Did either check fail?</div>
-          <div class="bag-intake-routes">
-            <article class="auto">
-              <p class="bag-intake-branch">No · Both passed</p>
-              <h3>Auto</h3><p>The parcel goes straight to dispatch.</p>
-            </article>
-            <article class="review">
-              <p class="bag-intake-branch">Yes · At least one failed</p>
-              <h3>Review</h3><p>A person checks the parcel. If they resolve the issue, it can go to dispatch. Otherwise, staff hold it for follow-up.</p>
-            </article>
+        </div>
+
+        <div class="bag-input-panel">
+          <h2>What can the trees learn from past emails?</h2>
+          <p>Spambase contains measurements for 4,601 emails with recorded spam or non-spam labels. Its collectors obtained spam from filed reports and legitimate examples from work and personal mail. We select <strong>12 labeled rows</strong> and two features for the opening demonstration. The original email text is unavailable. An ID such as <code>E100</code> means row 100 in the UCI file.</p>
+          <div class="bag-model-readings" role="group" aria-label="The two input measurements for our held-out email">
+            <div><h3>Dollar signs · <span id="bag-model-dollar"></span></h3><p>The percentage of characters that are dollar signs. One dollar sign in 1,000 characters would give 0.1%.</p></div>
+            <div><h3>Exclamation marks · <span id="bag-model-exclaim"></span></h3><p>The percentage of characters that are exclamation marks. Both trees get these same two values for email <strong id="bag-model-id"></strong>.</p></div>
           </div>
-          <p class="bag-intake-result" id="bag-intake-result" role="status">With these example check results, the route is Auto.</p>
-        </figure>
-        <div class="bag-intake-bridge">
-          <h2>Can the trees predict the route early?</h2>
-          <p>Imagine we want to estimate the route while the desk checks are still pending. The trees get two early readings for the same parcel.</p>
-          <div class="bag-intake-checks bag-model-readings" role="group" aria-label="Inputs for both trees">
-            <div><h3>Measured weight · <span id="bag-model-weight">5.65 kg</span></h3><p>The scale measures how much the parcel weighs. The trees can use this reading before they know the weight printed on the label.</p></div>
-            <div><h3>Scan warning score · <span id="bag-model-scan">5.7/10</span></h3><p>We supply an example reading from a camera that rates how hard the label looks to read. Blur or smudges can raise the score. The barcode reader still tries to decode the ID, even at 10/10.</p></div>
-          </div>
-          <p>A tree can learn a cutoff on this score from past records. At the desk, a parcel with any score goes to Auto if both checks pass.</p>
-          <p>Each training row pairs these two readings with the route the desk recorded. That initial route is the <strong>label</strong>. A parcel sent to Review keeps that label even if staff later clear it.</p>
-          <div class="bag-intake-routes bag-intake-predictions" aria-label="Both trees receive the same measurements">
-            <article><h3>Tree 1</h3></article>
-            <article><h3>Tree 2</h3></article>
-          </div>
+          <p>The <strong>features</strong> are the two measurements. The <strong>target</strong> is the recorded class, <strong>Legitimate</strong> or <strong>Spam</strong>. We keep this email out of all three training samples and hide its recorded label while the models predict.</p>
+          <p class="small">Source data from Hopkins, Reeber, Forman and Suermondt, <a href="https://doi.org/10.24432/C53G6X">UCI Spambase</a>. The selected rows make the mechanics visible. Later we evaluate the models on a separate test set from the full data.</p>
+          <details class="teaching-note"><summary>How did a published spam tree combine clues?</summary><p>The published tree first split on dollar-sign frequency. In the branch with more dollar signs, it checked how often <code>hp</code> appeared. Frequent <code>hp</code> sent the email to Legitimate in that branch, a pattern specific to its workplace data. Our two-feature demo uses the same principle and lets you follow every training row. <a href="https://web.math.ku.dk/~richard/courses/stat_learn/allpdf/figures9.pdf">Published spam tree, Figure 9.5</a></p></details>
           <div class="bag-desk-actions">
-            <p>Both trees use the same readings and predict independently. The controls above show possible check results. The actual barcode result and label weight are unknown for this parcel in the demo.</p>
+            <p>Two trees have learned from different draws of those 12 rows. Give them the same measurements and compare their answers.</p>
             <button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button>
           </div>
         </div>
-        <details class="teaching-note bag-desk-rules">
-          <summary>Why use both weight and scan score?</summary>
-          <p>Compare two past parcels. The score describes the label’s appearance. The barcode check records whether the reader actually decoded the parcel ID.</p>
-          <div class="table-wrap">
-            <table>
-              <caption class="sr-only">Two past parcels and their recorded routes</caption>
-              <thead><tr><th scope="col">Parcel</th><th scope="col">Measured weight</th><th scope="col">Scan score</th><th scope="col">Recorded route</th></tr></thead>
-              <tbody id="bag-desk-examples"></tbody>
-            </table>
-          </div>
-          <p>P3 had the stronger scan warning and still went to Auto. If we sent every parcel above one scan-score cutoff to Review, any cutoff that sends P5 to Review would also send P3 there. A tree can also consider weight when it learns how to separate the recorded routes.</p>
-          <p class="small">These rows provide the recorded routes. The exact check that sent P5 to Review is unknown because the table leaves out the barcode result and shipping-label weight.</p>
-        </details>
       </div>
 
       <div id="bag-model-stage" hidden>
         <p class="eyebrow">Ensemble intuition</p>
-        <h2 id="bag-model-title" class="bag-stage-title" tabindex="-1">Same parcel. Two trees.</h2>
-        <p class="lede">Both trees predict the intake route for the same parcel from its measured weight and the camera’s warning about the label image. Each tree learned from a different selection of the courier’s past records, so the questions they ask can lead to different predictions.</p>
+        <h2 id="bag-model-title" class="bag-stage-title" tabindex="-1">Same email, two predictions</h2>
+        <p class="lede">Each tree learned its own cutoffs from the emails in its training sample. Here both trees receive the same two measurements for the held-out email.</p>
         <div class="panel bag-hook">
-          <div class="panel-heading"><p id="bag-parcel"></p><div class="bag-legend"><span class="bag-mark auto">● Recorded Auto</span><span class="bag-mark review">◆ Recorded Review</span><span>⊕ New parcel</span></div></div>
-          <p class="small">Both plots show the same 12 past parcels. A filled mark means the tree drew that parcel for training. An outlined mark means its tray missed that parcel. Several copies of one record share a single position on the plot.</p>
+          <div class="panel-heading"><p id="bag-email"></p><div class="bag-legend"><span class="bag-mark auto">● Legitimate</span><span class="bag-mark review">◆ Spam</span><span>⊕ Held-out email</span></div></div>
+          <p class="small">Each plot shows the same 12 labeled emails. A filled mark means this tree drew the row for training. An outline means its sample missed that row. Repeated copies share one point. Shading shows the class predicted in each region after you reveal the answers.</p>
           <div class="bag-pair" id="bag-hook-plots"></div>
-          <p id="bag-hook-result" class="bag-hook-result" aria-live="polite">Find the new parcel. Which side of each cut does it fall on?</p>
+          <p id="bag-hook-result" class="bag-hook-result" aria-live="polite">Can you find the held-out email on both plots?</p>
           <div class="bag-actions">
-            <button id="bag-hook-reveal" class="button primary" type="button" aria-controls="bag-hook-plots bag-ensemble-takeaway" aria-pressed="false">Show the two calls</button>
-            <button id="bag-back-desk" class="button secondary" type="button" aria-controls="bag-desk-stage">Back to parcel desk</button>
+            <button id="bag-hook-reveal" class="button primary" type="button" aria-controls="bag-hook-plots bag-ensemble-takeaway" aria-pressed="false">Show the two predictions</button>
+            <button id="bag-back-desk" class="button secondary" type="button" aria-controls="bag-desk-stage">Back to the inbox</button>
           </div>
-          <details class="teaching-note"><summary>How to read the plots</summary><p>Read measured weight in kg along the horizontal axis and scan warning score out of 10 up the vertical axis. Find the plus for the new parcel at 5.65 kg and score 5.7.</p><p>Compare the plus with the first cutoff in each plot. Shading after the reveal shows the route the tree would predict for a parcel in that region. The circles and diamonds retain their historical route labels.</p></details>
+          <details class="teaching-note"><summary>How to read the plots</summary><p>Read dollar-sign frequency along the horizontal axis and exclamation-mark frequency up the vertical axis. The plus sign marks the same held-out email in both plots. A vertical cut asks about dollar signs. A horizontal cut asks about exclamation marks.</p></details>
         </div>
         <div id="bag-ensemble-takeaway" hidden>
-          <p class="bag-worked"><strong>Follow the cut.</strong> The parcel’s scan score is 5.7. That’s below Tree 1’s cutoff of 5.8, so it reaches Auto. It’s above Tree 2’s cutoff of 5.25, so it reaches Review.</p>
-          <div class="bag-say"><p>One tree says Auto. The other says Review. The courier still needs one route, so we can ask several models for their predictions and use a rule, such as a vote, to make the final call.</p><p>That group of models and its rule make an <strong>ensemble</strong>. Each model that contributes an answer is a <strong>base learner</strong>. Here each tree is a base learner.</p></div>
+          <div id="bag-opening-paths" class="bag-worked"></div>
+          <div class="bag-say"><p>One vote each leaves us with a tie. That tells us these two trees disagree. We could train more trees and choose an aggregation rule, then evaluate that rule on other labeled emails.</p><p>An <strong>ensemble</strong> combines predictions from multiple models. Each model that contributes an answer is a <strong>base learner</strong>. Here each tree is a base learner.</p></div>
           <div class="bag-pair">
-            <article><h3>Bagging</h3><p>Give each tree its own sample drawn from the courier’s records. Train the trees separately, then combine their predictions for the new parcel.</p></article>
-            <article><h3>Boosting</h3><p>Build the trees in order. In gradient-boosted decision trees (GBDT), each new tree learns a correction to the current model. If the model keeps missing parcels that need Review, the next tree can learn a pattern that helps correct those predictions.</p></article>
-            <article><h3>Stacking</h3><p>Give a second model the first models’ predictions as inputs. For example, it can learn how to combine a decision tree’s answer with a logistic regression model’s answer for each parcel.</p></article>
-            <article><h3>Cascading</h3><p>Send parcels through models in stages. A quick first model can route a clear case immediately. If a parcel is borderline, pass it to a second model with more measurements for a closer decision.</p></article>
+            <article><h3>Bagging</h3><p>Give each tree its own resample of the training emails. Fit the trees independently and ask them all to classify the same incoming email.</p></article>
+            <article><h3>Boosting</h3><p>Build trees in sequence. In gradient boosting, each new tree learns a correction to the current model, for example to improve predictions on spam it often misses.</p></article>
+            <article><h3>Stacking</h3><p>Use a second model to learn from the first models’ predictions. It could learn how to combine a tree’s prediction with a logistic regression score for the same email.</p></article>
+            <article><h3>Cascading</h3><p>Apply models in stages. A quick filter can handle clear cases. It can send uncertain emails to a model that examines more signals.</p></article>
           </div>
-          <details class="teaching-note"><summary>Where did the two cutoffs come from?</summary><p>For a numerical feature, the tree sorts the distinct values in its own training tray and tries the midpoints between neighbors. Around Tree 1’s chosen boundary, the neighboring scan scores in its tray are 5.0 and 6.6. Their midpoint is 5.8. In Tree 2’s tray the chosen boundary is between 5.0 and 5.5, giving 5.25.</p><p>Each tree scores the possible cuts by how well they separate Auto and Review. Different draws change both the available values and the label counts on each side.</p></details>
-          <details class="teaching-note"><summary>How does stacking get examples for the second model?</summary><p>Set aside a group of past parcels. Train the first models on the rest, then ask them to predict that group. The second model learns from those predictions and the group’s recorded routes. Rotating which group we set aside gives us predictions for more parcels. These are called <strong>out-of-fold predictions</strong>.</p></details>
+          <details class="teaching-note"><summary>Where did the cutoffs come from?</summary><div id="bag-cutoff-origin"></div><p>The tree compares possible cuts by how well they separate the recorded labels. A new draw changes which values and labels are available at each node.</p></details>
+          <details class="teaching-note"><summary>How does stacking get training examples?</summary><p>Set aside some labeled emails, train the first models on the rest, then have them predict the set-aside emails. Train the second model on those predictions and recorded labels. Rotating the set-aside group gives more examples. These are called <strong>out-of-fold predictions</strong>.</p></details>
           <p class="bag-quiz-cue">Quiz 1</p>
-          <p class="transition">Where did the two training samples come from?</p>
+          <p class="transition">Both trees started from the same 12 labeled records. How did they end up with different training rows?</p>
           <div class="bag-actions"><a href="#bootstrap" class="button primary">Draw a training sample</a></div>
         </div>
       </div>
@@ -163,27 +128,27 @@
 
     <section class="chapter" id="bootstrap" aria-labelledby="bootstrap-title">
       <p class="eyebrow">Bagging</p><h2 id="bootstrap-title">Draw a bootstrap sample</h2>
-      <p class="lede">The courier has 12 past parcel records. We want to give each tree its own training sample. How can we do that with the same 12 records?</p>
+      <p class="lede">The two trees disagreed because their training samples gave them different evidence. We can make different samples from the same 12 labeled email records.</p>
       <figure class="bag-scene">
-        <img src="{{BOOTSTRAP_IMAGE}}" width="1344" height="756" loading="lazy" alt="At the courier desk, a worker draws a paper parcel record while a separate tray holds records copied from earlier draws.">
-        <figcaption>Picture one ticket per parcel record. Pick one at random, copy it into Tree 1’s tray, and put the original back before the next draw. That last step is what <strong>with replacement</strong> means.</figcaption>
+        <img src="{{BOOTSTRAP_IMAGE}}" width="1450" height="816" loading="lazy" alt="A stack of email records is copied into different training trays.">
+        <figcaption>Picture one ticket per email row. Draw a ticket, copy it into the tree’s tray, then put the original back. That last step is what <strong>with replacement</strong> means.</figcaption>
       </figure>
       <div class="bag-pair">
-        <article><h3>Bootstrap · Fill one tray per tree</h3><p>Make 12 draws from the original pile. Since every ticket goes back, you might copy one parcel twice and miss another entirely. That new tray of 12 draws is one <strong>bootstrap sample</strong>. Start again from the same original pile for the next tree.</p></article>
-        <article><h3>Aggregate · Combine the trees’ answers</h3><p>Train each tree on its own tray. A different mix of records can change the questions a tree learns. Then give every tree the same new parcel. If two trees say Review and one says Auto, a majority vote gives Review. Combining the answers is <strong>aggregation</strong>.</p></article>
+        <article><h3>Bootstrap · Draw a training set</h3><p>Make 12 draws. Every row stays eligible after each draw, so the tray may contain multiple copies of an email and leave other emails out. That tray is one <strong>bootstrap sample</strong>.</p></article>
+        <article><h3>Aggregate · Combine the predictions</h3><p>Fit one tree per tray. All the trees classify the same held-out email. You can count their class votes or average their predicted probabilities.</p></article>
       </div>
-      <p class="bag-say"><strong>Bagging</strong> is short for <strong>bootstrap aggregating</strong>. Make a training sample for each model, then combine their predictions so the final route depends on several models.</p>
+      <p class="bag-say"><strong>Bagging</strong> is short for <strong>bootstrap aggregating</strong>. Draw a new sample and fit a model for each tray, then combine the models’ predictions.</p>
       <div class="panel">
-        <div class="panel-heading"><div><h2>Draw from the parcel desk</h2><p>Choose Tree 1 and click <strong>Draw next parcel</strong> twice. Watch the ID and its count.</p></div><label>Sample <select id="bag-sample"><option value="0">Tree 1</option><option value="1">Tree 2</option><option value="2">Tree 3</option></select></label></div>
+        <div class="panel-heading"><div><h2>Draw from the same 12 emails</h2><p>Choose Tree 1 and click <strong>Draw next email</strong>. Watch the ID and its draw count.</p></div><label>Sample <select id="bag-sample"><option value="0">Tree 1</option><option value="1">Tree 2</option><option value="2">Tree 3</option></select></label></div>
         <div id="bag-source-rows" class="bag-source" aria-label="Original rows and their draw counts"></div>
-        <details class="teaching-note"><summary>See the 12 original parcel records</summary>
-          <div class="table-wrap"><table><caption class="sr-only">Historical parcels used to fill each training tray</caption>
-            <thead><tr><th scope="col">Parcel</th><th scope="col">Measured weight</th><th scope="col">Scan score</th><th scope="col">Recorded route</th></tr></thead>
+        <details class="teaching-note"><summary>See the 12 original email records</summary>
+          <div class="table-wrap"><table><caption class="sr-only">Spambase rows used to draw the training samples</caption>
+            <thead><tr><th scope="col">Email</th><th scope="col">$ frequency</th><th scope="col">! frequency</th><th scope="col">Recorded label</th></tr></thead>
             <tbody id="bag-source-records"></tbody>
           </table></div>
         </details>
         <div class="bag-actions">
-          <button class="button primary" type="button" id="bag-draw">Draw next parcel</button>
+          <button class="button primary" type="button" id="bag-draw">Draw next email</button>
           <button class="button secondary" type="button" id="bag-play">Play draws</button>
           <button class="button secondary" type="button" id="bag-fill">Show all draws</button>
           <button class="button secondary" type="button" id="bag-reset">Reset sample</button>
@@ -194,146 +159,134 @@
         <p class="bag-quiz-cue">Quiz 2</p>
       </div>
       <ol class="bag-steps">
-        <li><strong>Draw a whole row.</strong> The latest draw shows the measurements and label together. In Tree 1 the first draw is P2, a 2.0 kg parcel with scan score 5.0 and recorded route Auto.</li>
-        <li><strong>Put it back.</strong> The first two draws for Tree 1 both select P2. Each copy carries the same measurements and the same Auto label.</li>
-        <li><strong>Compare the trays.</strong> Use <strong>Show all draws</strong> to count Tree 1’s repeated and omitted IDs. Then select Tree 2 and do the same. The original table stays the same while the mix in each tray changes.</li>
+        <li><strong>Draw the whole row.</strong> Each ticket keeps its two features and recorded label together.</li>
+        <li><strong>Put it back.</strong> When you draw another copy of a row, its measurements and label count again in that tree’s fit.</li>
+        <li><strong>Compare the trays.</strong> Use <strong>Show all draws</strong>, then switch to Tree 2. Compare repeated and omitted IDs. The original 12 rows stay the same.</li>
       </ol>
-      <details class="teaching-note"><summary>Check your count for Tree 1</summary><div class="bag-worked"><p>Tree 1 takes <strong>12 draws</strong> and sees <strong>8 distinct parcels</strong>. P2 appears three times, so its Auto label contributes three times to that tree’s training counts. P3, P4, P7, and P11 each appear zero times. Those four rows are <strong>out of bag for Tree 1</strong>. Check Tree 2 to see that P7 can appear in another sample.</p></div></details>
-      <details class="teaching-note"><summary>What changes without replacement?</summary><p>With 12 draws from 12 rows and no replacement, every row appears once. Drawing fewer than 12 without replacement would give a subset with no repeats. With replacement, repeated and omitted rows can occur even when the number of draws equals the original row count.</p></details>
-      <details class="teaching-note"><summary>How do we combine the predictions?</summary><p>For classification, one simple approach is to count the predicted classes and choose the majority. Another approach averages probabilities by class. For numerical regression, average the predicted numbers.</p></details>
-      <p class="transition">We have three different samples. Give each one to its own tree and follow the same new parcel through all three.</p>
+      <details class="teaching-note"><summary>Check your count for Tree 1</summary><div class="bag-worked" id="bag-bootstrap-worked"></div></details>
+      <details class="teaching-note"><summary>What changes without replacement?</summary><p>With 12 draws from 12 original rows and no replacement, every row appears once. Drawing fewer than 12 without replacement gives a subset. With replacement, repeated and omitted rows can occur even when the number of draws equals the number of original rows.</p></details>
+      <p class="transition">Now fit a tree on each tray. The third tree gives us another prediction for the email that the first two disagreed on.</p>
     </section>
 
     <section class="chapter" id="forest" aria-labelledby="forest-title">
       <p class="eyebrow">Random Forest intuition</p><h2 id="forest-title">Train three trees and combine their answers</h2>
-      <p class="lede">Each tray holds a different mix of the courier’s past parcels. Give one tray to each tree and let it learn which questions separate Auto from Review. When the new parcel arrives, give all three trees its same measurements and see whether they agree.</p>
-      <p>These three trees demonstrate bagging with both features available at each split. The next chapter adds the feature sampling used by Random Forest.</p>
+      <p class="lede">Let each tree learn from its own tray. Then give all three the same held-out email from the opening and follow the questions down each tree.</p>
+      <p>These three trees demonstrate bagging. Both features are available at every split. The next chapter adds the per-split feature sampling that distinguishes a Random Forest.</p>
       <figure class="bag-scene">
-        <img src="{{FOREST_IMAGE}}" width="1344" height="756" loading="lazy" alt="Three courier operators at separate stations look over the same kind of parcel, illustrating three separate routing decisions.">
-        <figcaption>Think of three people at the desk, each making a call about the same parcel. Here the trees play that role.</figcaption>
+        <img src="{{FOREST_IMAGE}}" width="1450" height="816" loading="lazy" alt="Three separate decision trees examine the same incoming email and contribute their predictions.">
+        <figcaption>Train on different rows. At prediction time, every tree receives the same email. Each tree follows its own learned questions to a leaf.</figcaption>
       </figure>
       <ol class="bag-steps">
-        <li><strong>Sample.</strong> Make a tray of 12 draws for each tree. Each time you pick a row, keep a copy in the tray and allow the original to be picked again.</li>
-        <li><strong>Fit.</strong> Train each tree on its own tray. It uses the recorded routes to choose questions such as “Is the scan score at most 5.8?”</li>
-        <li><strong>Predict.</strong> Give each trained tree the same 5.65 kg parcel with a scan score of 5.7. Answer its questions until you reach a leaf, the group where that tree makes its prediction.</li>
-        <li><strong>Combine.</strong> Each tree can vote Auto or Review. We can also average the Review probabilities from the three leaves. Either rule gives the courier one final route.</li>
+        <li><strong>Sample.</strong> Draw 12 rows with replacement for each tree.</li>
+        <li><strong>Fit.</strong> Use the measured features and recorded labels to choose splits that make the child groups less mixed.</li>
+        <li><strong>Predict.</strong> Pass the same two input values down each tree until they reach a leaf.</li>
+        <li><strong>Combine.</strong> Count class votes or average the leaf probabilities for Spam.</li>
       </ol>
       <div class="panel">
-        <div class="panel-heading"><div><h2>Run the core code</h2><p>Change the sampling line, fit one tree, and predict the same parcel. Then run the cell that fits all three trees.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/bagging-intuition.ipynb" target="_blank" rel="noopener">Open intuition notebook</a></div>
-        <p><code>X</code> holds the 12 historical parcels’ weight and scan score. <code>y</code> holds their recorded routes, encoded as 0 for Auto and 1 for Review. <code>parcel</code> holds the two measurements of the one new parcel.</p>
-        <pre class="bag-code"><code>rng = np.random.default_rng(bootstrap_seed)
-draw = rng.choice(len(X), size=len(X), replace=True)
-tree = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=tree_seed)
-tree.fit(X.iloc[draw], y.iloc[draw])
-tree.predict(parcel)</code></pre>
+        <div class="panel-heading"><div><h2>Run the core code</h2><p>Change how the training rows are drawn, fit one tree, and predict the same email. Then run the cell that fits all three trees.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/bagging-intuition.ipynb" target="_blank" rel="noopener">Open intuition notebook</a></div>
+        <p><code>X</code> holds the 12 rows’ dollar-sign and exclamation-mark frequencies. <code>y</code> holds their labels, encoded as 0 for Legitimate and 1 for Spam. <code>email</code> holds the same two feature values for our held-out email.</p>
+        <pre class="bag-code"><code>draw = demo_draws[0]
+tree = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=0)
+tree.fit(X.loc[draw], y.loc[draw])
+tree.predict(email)</code></pre>
         <details class="teaching-note"><summary>Walk through the code line by line</summary><ol class="bag-steps">
-          <li><strong>Set the seed.</strong> The bootstrap seed is 11. Start a fresh generator with that seed to replay the same draws.</li>
-          <li><strong>Draw row positions.</strong> <code>len(X)</code> is 12, so the positions run from 0 to 11. <code>size=len(X)</code> asks for 12 draws. <code>replace=True</code> makes each position eligible again. The first positions are 1, 1, and 9, which correspond to P2, P2, and P10.</li>
-          <li><strong>Set up the tree.</strong> Gini measures how mixed the labels are. The tree looks for splits that make the child groups less mixed. <code>max_depth=2</code> allows up to two questions on a path to a leaf. The tree seed of 0 controls random choices during fitting.</li>
-          <li><strong>Fit the tree.</strong> <code>X</code> holds the measurements and <code>y</code> holds the recorded routes. Use <code>iloc[draw]</code> on both so every parcel stays paired with its own route. If P2 is drawn twice, both its measurements and its Auto label enter the training sample twice.</li>
-          <li><strong>Predict the new parcel.</strong> <code>tree.predict(parcel)</code> takes its weight and scan score. The tree applies the questions it learned and returns Auto or Review.</li>
-        </ol><p>In the notebook, try <code>replace=False</code> and count how many different rows you get in 12 draws. Restore <code>True</code> and rerun from the seed to get the sample shown here.</p></details>
-        <details class="teaching-note"><summary>Expected output and what to point at</summary><div id="bag-code-output"></div><p>Read the sample IDs first, then the tree prediction. This small hand-built ensemble makes the bootstrap and aggregation visible. The second notebook adds the full scikit-learn Random Forest workflow.</p></details>
+          <li><strong>Replay the draw IDs.</strong> <code>demo_draws[0]</code> stores the first tray you just saw. These saved samples were selected to make differences between trees easy to inspect.</li>
+          <li><strong>Set up the tree.</strong> Gini measures how mixed the labels are. Depth 2 allows two questions along a path. The tree seed controls random choices during fitting.</li>
+          <li><strong>Fit the tree.</strong> Use the same <code>loc[draw]</code> IDs in <code>X</code> and <code>y</code> so repeated rows keep their own labels.</li>
+          <li><strong>Predict.</strong> <code>tree.predict(email)</code> follows the questions for the held-out email and reports its predicted class.</li>
+        </ol><p>To draw a fresh tray, set <code>rng = np.random.default_rng(11)</code> and try <code>draw = rng.choice(X.index, size=len(X), replace=True)</code>. Change <code>replace</code> to <code>False</code> and compare how many distinct rows you get.</p></details>
+        <details class="teaching-note"><summary>Expected output and what to point at</summary><div id="bag-code-output"></div><p>Read the sample IDs first, then the predicted class. The implementation notebook uses the full dataset and adds per-split feature sampling.</p></details>
       </div>
       <div class="panel">
-        <div class="panel-heading"><div><h2>Follow the parcel through each tree</h2><p>Start with Tree 1. Compare the parcel’s scan score of 5.7 with the first cutoff. Then switch to Tree 2 and make the same comparison.</p></div><div class="segmented bag-tree-picker" id="bag-tree-picker" aria-label="Select a tree"></div></div>
-        <p class="small"><strong>New parcel</strong> · X is weight (5.65 kg). Z is scan warning score (5.7 out of 10). These inputs stay fixed as you switch trees.</p>
+        <div class="panel-heading"><div><h2>Trace the same email through each tree</h2><p>Compare the measurement with each cutoff. Follow the highlighted branch to the leaf and read the label counts.</p></div><div class="segmented bag-tree-picker" id="bag-tree-picker" aria-label="Select a tree"></div></div>
+        <p class="small" id="bag-trace-email"></p>
         <div class="bag-tree-meta" id="bag-tree-meta"></div>
         <div id="bag-tree-plot" class="tree-diagram"></div>
         <p class="bag-quiz-cue">Quiz 3</p>
         <div class="bag-actions"><button type="button" class="button primary" id="bag-vote-next">Reveal next vote</button><button type="button" class="button secondary" id="bag-vote-reset">Reset votes</button></div>
         <div id="bag-votes" aria-live="polite"></div>
+        <div id="bag-vote-truth" class="bag-worked" hidden>
+          <button class="button secondary" type="button" id="bag-reveal-label" aria-expanded="false" aria-controls="bag-recorded-label">Show the recorded label</button>
+          <p id="bag-recorded-label" hidden></p>
+        </div>
       </div>
-      <details class="teaching-note"><summary>Work through the three routes and both final answers</summary>
-        <div class="bag-worked">
-          <p><strong>Tree 1.</strong> 5.7 is at most 5.8. The Yes leaf has 8 Auto and 0 Review occurrences, so the tree says Auto.</p>
-          <p><strong>Tree 2.</strong> 5.7 is greater than 5.25. The No leaf has 0 Auto and 7 Review occurrences, so the tree says Review.</p>
-          <p><strong>Tree 3.</strong> The parcel’s weight of 5.65 takes the Yes branch at 7.25. Its scan score then takes the No branch at 5.25. That leaf has 1 Auto and 2 Review occurrences, so the tree says Review.</p>
-          <p><strong>Hard vote.</strong> Two of three trees say Review, for a Review vote share of <strong>66.7%</strong>.</p>
-          <p><strong>Probability average.</strong> The Review shares inside the reached leaves are 0/8, 7/7, and 2/3. Their average is 5/9, or <strong>55.6%</strong>. That also gives Review the larger share for this parcel.</p>
-        </div>
-      </details>
-      <details class="teaching-note"><summary>Is vote share the same as average predicted probability?</summary><p>Each hard vote contributes one class. In a probability average, a leaf with two Review rows and one Auto row contributes a Review probability of 2/3. For example, three Review probabilities of 0.49, 0.49 and 0.99 give two Auto hard votes but a mean Review probability of about 0.657. In scikit-learn, the forest classifier picks the class with the largest mean probability.</p><p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier.predict_proba">Scikit-learn probability reference</a></p></details>
-      <details class="teaching-note"><summary>What if the courier needs an estimate in minutes?</summary>
-        <p>Suppose the target is now <strong>minutes until dispatch</strong>. We train three regression trees on records that include the actual time. Each tree gives a number for the same new parcel.</p>
-        <div class="bag-triptych" aria-label="Illustrative regression tree predictions">
-          <div class="bag-vote"><span>Tree 1</span><strong>9 minutes</strong></div>
-          <div class="bag-vote"><span>Tree 2</span><strong>11 minutes</strong></div>
-          <div class="bag-vote"><span>Tree 3</span><strong>13 minutes</strong></div>
-        </div>
-        <p class="bag-worked">The <strong>Random Forest regression prediction</strong> is their mean, <strong>(9 + 11 + 13) ÷ 3 = 11 minutes</strong>.</p>
-        <p><a href="https://scikit-learn.org/1.6/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor.predict">Scikit-learn regression prediction reference</a></p>
-      </details>
-      <p class="transition">Changing the training rows gave us three different trees. A Random Forest also samples which features a tree can consider at each split. Let’s see what happens if the tree can ask about weight for one question and scan score for the next.</p>
+      <details class="teaching-note"><summary>Work through the three paths and the two aggregation rules</summary><div class="bag-worked" id="bag-forest-worked"></div></details>
+      <details class="teaching-note"><summary>Is vote share the same as average predicted probability?</summary><p>Each hard vote contributes one class. In a probability average, a leaf with two Spam rows and one Legitimate row contributes a Spam probability of 2/3. For example, leaf probabilities of 0.49, 0.49 and 0.99 give two Legitimate hard votes, while the mean Spam probability of about 0.657 predicts Spam. Scikit-learn’s Random Forest classifier picks the class with the largest mean probability.</p><p><a href="https://scikit-learn.org/1.6/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier.predict_proba">Scikit-learn probability reference</a></p></details>
+      <details class="teaching-note"><summary>How would an ensemble predict a number?</summary><p>Suppose three regression trees estimate <strong>minutes until an email gets a reply</strong>. Train them on a different dataset containing actual reply times. For one email they might predict 9, 11 and 13 minutes. Their mean is <strong>(9 + 11 + 13) ÷ 3 = 11 minutes</strong>. These times illustrate regression. The Spambase rows supply class labels.</p><p><a href="https://scikit-learn.org/1.6/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor.predict">Scikit-learn regression prediction reference</a></p></details>
+      <p class="transition">Sampling rows gave us different trees. What happens if we also vary the features each node is allowed to consider?</p>
     </section>
 
     <section class="chapter" id="diversity" aria-labelledby="diversity-title">
-      <p class="eyebrow">How do we get different trees?</p><h2 id="diversity-title">Change the rows and the candidate features</h2>
-      <p class="lede">Imagine scan score wins the first question in tree after tree. Even with different samples, those trees could learn similar rules. A Random Forest adds another draw. Each tree gets its own sample of parcels, and each split gets a fresh list of feature columns to consider.</p>
+      <p class="eyebrow">How do we get different trees?</p><h2 id="diversity-title">Draw rows for trees and features for splits</h2>
+      <p class="lede">If every tree can consider dollar signs at every split, several trees might lean on the same clue. A Random Forest draws a candidate set of features at each node. This gives other clues a chance to shape the tree.</p>
       <figure class="bag-scene">
-        <img src="{{DIVERSITY_IMAGE}}" width="1344" height="756" loading="lazy" alt="Parcel records on one side of a courier desk, with a weighing scale and a scanner on the other">
-        <figcaption>A row describes one parcel. A feature is one measurement, such as weight or scan score.</figcaption>
+        <img src="{{DIVERSITY_IMAGE}}" width="1450" height="816" loading="lazy" alt="Email rows and their measured features are highlighted separately in a data table.">
+        <figcaption>A row describes one whole email. A feature is one column, such as dollar-sign or exclamation-mark frequency.</figcaption>
       </figure>
       <ol class="bag-steps">
-        <li><strong>Which parcels does this tree learn from?</strong> Give it a bootstrap sample. When a parcel is drawn twice, its label counts twice as the tree learns.</li>
-        <li><strong>Which measurements can it ask about here?</strong> If the first split draws Weight, it can try weight cutoffs. At the next split, a fresh draw could bring in Scan score.</li>
-        <li><strong>Which question separates the labels best?</strong> The tree tests questions on the parcels that reached this node. It chooses the allowed question that reduces the mix of Auto and Review labels the most.</li>
+        <li><strong>Which emails does this tree learn from?</strong> The bootstrap draw picks rows for the whole tree. A repeated email contributes its class twice.</li>
+        <li><strong>Which features can this node use?</strong> A feature draw chooses candidate columns. The draw at the next node is fresh.</li>
+        <li><strong>What is the best available split?</strong> Among its candidates, the tree picks the question that most reduces weighted Gini impurity for the rows at that node.</li>
       </ol>
       <div class="panel">
-        <div class="panel-heading"><div><h2>A different candidate list at each node</h2><p>Start with the 12 draws from Tree 2’s tray. The root chooses a question from its candidates. That question sends every draw to the Yes or No child below. Each child that still needs a split gets its own candidate list.</p></div>
+        <div class="panel-heading"><div><h2>Change the candidate features at each node</h2><p>Keep Tree 2’s 12 training draws fixed and replay different candidate draws. The root sends its rows to the Yes or No child. A mixed child tries cutoffs on its own list of candidates.</p></div>
         <label>Features considered <select id="bag-feature-mode"><option value="all">Both features</option><option value="one">One feature at each node</option></select></label></div>
         <div class="bag-actions"><button id="bag-feature-next" class="button primary" type="button">Reveal next feature draw</button></div>
         <div class="bag-pair" id="bag-features" aria-live="polite"></div>
         <p class="bag-quiz-cue">Quiz 4</p>
-        <div class="bag-worked"><p><strong>Try it.</strong> Start with <strong>Both features</strong>. Read the root question and the number of draws in each child. Click <strong>Reveal next feature draw</strong>. Which parcels move when the root switches to Weight? Where does Scan score get a turn?</p></div>
-        <details class="teaching-note"><summary>Where does the Gini decrease of 0.3111 come from?</summary><p>Gini impurity measures how mixed the labels are. In each node, square the fraction of Auto draws and the fraction of Review draws, add them, and subtract from 1.</p><ol class="bag-steps"><li>The root has 4 Auto and 8 Review draws. Its Gini is <strong>1 − (4/12)² − (8/12)² ≈ 0.4444</strong>.</li><li>The cut at 5.25 sends 4 Auto and 1 Review to Yes, where Gini is <strong>1 − (4/5)² − (1/5)² = 0.32</strong>. All 7 draws in No are Review, so its Gini is <strong>0</strong>.</li><li>The children’s weighted Gini is <strong>(5/12 × 0.32) + (7/12 × 0) ≈ 0.1333</strong>. The decrease is <strong>0.4444 − 0.1333 ≈ 0.3111</strong>.</li></ol></details>
-        <details class="teaching-note"><summary>Check the first feature draw</summary><p>With both features available, <strong>Scan score ≤ 5.25</strong> gives a Gini decrease of 0.3111 and sends 5 draws to Yes and 7 to No. The first one-feature draw offers only Weight at the root. <strong>Weight ≤ 3</strong> gives a decrease of 0.2963 and sends 3 draws to Yes and 9 to No. The three Yes draws are all Auto, so that branch stops. The mixed No child considers <strong>Scan score ≤ 3.75</strong>, with a local Gini decrease of 0.1975.</p></details>
+        <div class="bag-worked"><p><strong>Try it.</strong> Read the root’s question with <strong>Both features</strong>. Click <strong>Reveal next feature draw</strong> and compare the new question and child rows. Advance again to see a fresh set of candidates.</p></div>
+        <details class="teaching-note"><summary>Work through the first Gini decrease</summary><div class="bag-worked" id="bag-gini-worked"></div></details>
       </div>
-      <div class="bag-say"><strong>Draw parcels for each tree. Draw feature columns for each split.</strong> If weight is the only option at one root, that tree has a chance to learn a rule another tree would have skipped. Different rules can help the forest catch mistakes that several similar trees would share.</div>
-      <details class="teaching-note"><summary>Does choosing fewer features always help?</summary><p>A shorter list gives the tree a chance to use a different measurement. It can also leave out a strong feature that would have separated Auto and Review better. Try several list sizes and check which one predicts better on validation data.</p></details>
-      <details class="teaching-note"><summary>Where does the 0.3111 Gini decrease come from?</summary><p>Gini measures how mixed the Auto and Review labels are at a node. The root has four Auto and eight Review draws, so its Gini is <strong>1 − (4/12)² − (8/12)² ≈ 0.4444</strong>. The scan cut leaves four Auto and one Review in the Yes group and seven Review in the No group. Their Gini scores are 0.32 and 0, weighted by 5/12 and 7/12. Subtracting that weighted result from the root score gives <strong>0.4444 − [(5/12 × 0.32) + (7/12 × 0)] ≈ 0.3111</strong>.</p></details>
-      <p class="transition">We’ve made the trees different. Now let’s see how much we want each one to learn.</p>
+      <div class="bag-say"><strong>Draw rows for each tree. Draw candidate features for each split.</strong> If dollar-sign frequency is absent from a candidate list, another useful measurement can shape the tree. Combining trees helps most when the models make different mistakes across emails.</div>
+      <details class="teaching-note"><summary>How often does the first question change on real data?</summary><p>In a published reproduction, 100 single trees were trained on different bootstrap draws from the Spam dataset. Seventy-nine started with a dollar-sign cutoff and 21 started with exclamation-mark frequency. Even the dollar-sign cutoffs varied. Feature sampling gives other clues a chance when a strong feature keeps winning. <a href="https://trung-tinnguyen.github.io/courses/esl/ch09-additive-models-trees.html">Spambase bootstrap experiment, §9.2.4</a></p></details>
+      <details class="teaching-note"><summary>Does choosing fewer features always help?</summary><p>A shorter list can give each tree a different view of the data. It can also leave out a useful feature. Compare candidate-list sizes on validation data to see which works better.</p></details>
+      <p class="transition">We’ve changed the rows and questions a tree can see. Now change how many questions it can ask.</p>
     </section>
 
     <section class="chapter" id="base-learners" aria-labelledby="base-title">
-      <p class="eyebrow">Properties of base learners</p><h2 id="base-title">Useful alone, better able to disagree</h2>
-      <p class="lede">Tree 3 can ask about weight first, then ask about scan score on just one branch. That lets it learn a pattern that uses both measurements. Each tree is a <strong>base learner</strong>, an individual model that contributes an answer. When useful trees make different mistakes, combining their answers can give us a steadier decision.</p>
+      <p class="eyebrow">Properties of base learners</p><h2 id="base-title">Give each tree enough room to learn</h2>
+      <p class="lede">A useful base learner should find some signal in the emails. We also want the trees to make different mistakes, so their average can be more stable.</p>
       <div class="bag-pair">
-        <article><h3>When a tree is too simple</h3><p>A tree with one question can miss a real pattern that depends on both weight and scan score. When the same pattern is missed across many new training samples, the model is <strong>underfitting</strong> and can have high bias.</p></article>
-        <article><h3>When a tree learns its tray too well</h3><p>A deep tree can capture that pattern and also learn a cutoff that matches a few unusual training tickets. <strong>Overfitting</strong> happens when fitting those details hurts predictions on new parcels. Flexible trees can reduce bias and become more sensitive to which rows they saw, increasing variance.</p></article>
+        <article><h3>When a tree is too simple</h3><p>A single split can miss a pattern that depends on two features. If the model repeatedly misses such a pattern, it is <strong>underfitting</strong> and can have high bias.</p></article>
+        <article><h3>When a tree learns its tray too well</h3><p>A deep tree can learn useful combinations, but it can also fit patterns peculiar to a few training rows. If those patterns hurt performance on new emails, we call it <strong>overfitting</strong>.</p></article>
       </div>
       <div class="panel">
-        <div class="panel-heading"><div><h2>Change the maximum depth</h2><p>Maximum depth sets how many questions a parcel can answer on its way to the tree’s decision. All three trees refit on their original samples so you can see what changing the limit does.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · root only</option><option value="1">1 · one split</option><option value="2" selected>2 · two levels</option><option value="4">4 · deeper tree</option></select></label></div>
+        <div class="panel-heading"><div><h2>Change the maximum depth</h2><p>Maximum depth limits how many questions an email can answer. All three trees refit on their original bootstrap samples.</p></div><label>Maximum depth <select id="bag-base-depth"><option value="0">0 · root only</option><option value="1">1 · one split</option><option value="2" selected>2 · two levels</option><option value="4">4 · deeper tree</option></select></label></div>
         <div id="bag-depth-summary" class="bag-pair" aria-live="polite"></div>
-        <p class="small">The diagram shows <strong>Tree 3</strong>, which the example below compares at depths 1 and 2. Each card shows its tree’s answer for the new parcel and how many training draws it got right. A parcel drawn twice counts twice in that training total.</p>
+        <p class="small">The diagram shows <strong>Tree 3</strong>. Each card counts correct predictions on its own training tray. A row drawn twice counts twice.</p>
         <div id="bag-depth-tree" class="tree-diagram"></div>
-        <div class="bag-worked"><p><strong>Try it.</strong> Change depth from <strong>1</strong> to <strong>2</strong> and watch Tree 3. Its second question helps it get <strong>11 of 12</strong> training draws right, up from <strong>10 of 12</strong>. It also changes its answer for our new parcel from <strong>Auto</strong> to <strong>Review</strong>. To judge whether the extra question helps with new parcels, test it on a separate group the tree hasn’t seen.</p></div>
+        <div class="bag-worked" id="bag-depth-worked"></div>
       </div>
-      <details class="teaching-note"><summary>How much should one tree learn?</summary><p>At depth 0 the tree makes the same call for every parcel. It picks whichever route appears more often in its sample. At depth 2 it can learn an <strong>interaction</strong>, where the value of one feature changes how another feature is used. For instance, it can ask about scan score for just the lighter parcels. Extra questions can also pick up patterns that were peculiar to this tray. Averaging several trees helps when those details send the individual predictions in different directions.</p></details>
-      <details class="teaching-note"><summary>What if every tree makes the same mistake?</summary><p>Every vote points the same way, so the aggregate makes that same mistake. For a numerical prediction, averaging identical numbers also leaves the prediction unchanged.</p></details>
-      <p class="transition">Keep the new parcel fixed and change the training batch. How much does the answer move when we use one tree or an average of trees?</p>
+      <details class="teaching-note"><summary>What can a second question learn?</summary><p>Depth 0 makes one prediction for all emails. At depth 2 the second question can differ depending on the first answer. A tree might examine exclamation marks only in emails with almost no dollar signs. This is an <strong>interaction</strong>. Extra questions can also learn quirks specific to the training draw.</p></details>
+      <details class="teaching-note"><summary>What if every tree makes the same mistake?</summary><p>The ensemble repeats that mistake. Varying trees is helpful when they still learn useful patterns and their errors differ across emails.</p></details>
+      <p class="transition">Hold the email fixed and train on new draws. How much does the prediction move when we use one tree or average several?</p>
     </section>
 
     {{VARIANCE}}
 
     <section class="chapter" id="implementation" aria-labelledby="implementation-title">
       <p class="eyebrow">Random Forest code implementation</p><h2 id="implementation-title">Fit, tune, and evaluate a forest</h2>
-      <p class="lede">The courier wants a forest it can use on tomorrow’s parcels. Which settings should it pick? <strong>Tuning</strong> means comparing choices such as tree depth and feature-list size. We select those settings using one group of past parcels and save a separate group for the final check.</p>
+      <p class="lede">We saw how the three small trees disagreed. To learn whether combining trees actually helps, compare their predictions on many emails whose labels they never saw. The notebook runs a single tree, bagging, and a random forest on the full Spambase data.</p>
       <div class="panel">
-        <div class="panel-heading"><div><h2>From parcel records to a fair comparison</h2><p>We switch from the 12 demo rows to 1,400 synthetic parcels so we have enough to fit, tune, and test a model on separate rows.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/random-forest-implementation.ipynb" target="_blank" rel="noopener">Open implementation notebook</a></div>
-        <p>The notebook simulates each parcel’s route. It gives parcels a higher chance of Review if they are heavy with a high scan warning, poorly sealed, or fragile with many handling steps. It also gives the model one random column that played no part in generating the routes.</p>
-        <details class="teaching-note"><summary>Which patterns did we put into the simulator?</summary><p>A parcel’s weight and scan score work together when weight is above 5.7 kg and the score is above 5.8. A seal-quality score below 3.2 also raises the simulated chance of Review. The same happens if fragility is above 6 and the parcel had more than four handling steps. The notebook then draws an Auto or Review label using the resulting probability. The earlier intake diagram uses explicit desk checks. These larger examples use probabilities to create overlap between the two routes.</p></details>
+        <div class="panel-heading"><div><h2>From 12 teaching rows to a held-out test</h2><p>The small demo trained on 12 emails and held out E574. This notebook makes a fresh train-test partition of all 4,601 historical emails. It uses 57 features, including the two you already traced. E574 is also in this run’s test set, so the notebook can follow it through the full forest.</p></div><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/bagging/notebooks/random-forest-implementation.ipynb" target="_blank" rel="noopener">Open implementation notebook</a></div>
+        <div class="bag-triptych" aria-label="Spambase feature groups">
+          <article><h3>Word frequencies</h3><p>48 columns. For example, the percentage of words that are <code>free</code> or <code>remove</code>.</p></article>
+          <article><h3>Character frequencies</h3><p>6 columns. Dollar signs and exclamation marks use the same percentages as the opening example.</p></article>
+          <article><h3>Capital-letter runs</h3><p>3 columns. The average run length, the longest run, and the total length of all runs.</p></article>
+        </div>
+        <p id="bag-fit-split" class="bag-worked" aria-live="polite"></p>
         <ol class="bag-steps" aria-label="How the notebook uses the data">
-          <li><strong>Inspect the records.</strong> Check column types, missing values, duplicate records and parcel IDs. Use the ID to track a row. Use the parcel measurements to predict its route.</li>
-          <li><strong>Reserve 350 test parcels.</strong> A stratified split keeps roughly the same route proportions. Use the other 1,050 parcels for all fitting and tuning.</li>
-          <li><strong>Fit a baseline tree and forest.</strong> Compare both on the same measurements and splits. Their scores give us a reference for what tuning achieves.</li>
-          <li><strong>Rotate four validation folds.</strong> Fit on three folds and score the fourth, then rotate. Compare settings by their mean validation score.</li>
+          <li><strong>Inspect the emails.</strong> Check features, missing values, duplicate measurements, and class counts. The email row ID lets us track the example. The 57 measurements enter the model and the recorded class is the target.</li>
+          <li><strong>Reserve a test set.</strong> Keep entire groups of identical feature vectors together so repeated measurements cannot appear on both sides. The grouped split aims for similar Spam proportions on each side.</li>
+          <li><strong>Compare three starting points.</strong> Use a single tree, a bagging classifier, and a random forest. Give all three the same input columns and data partition.</li>
+          <li><strong>Rotate the validation fold.</strong> Within the training split, use the same grouping rule for four folds. Fit on three folds, score the fourth, then rotate. Choose settings using mean validation balanced accuracy.</li>
         </ol>
+        <p class="small">The notebook uses a different split and model settings from the published Spambase benchmark. The curves here come from the notebook’s seeded run. <a href="https://doi.org/10.24432/C53G6X">UCI Spambase source</a></p>
       </div>
       <div class="panel"><h2>Change one forest setting at a time</h2>
         <p>Start with tree depth. Watch what happens to the score on training folds and the score on validation folds as the trees can ask more questions. Then try changing the number of trees, the feature budget, and the two limits on node size.</p>
         <div id="bag-tuning-explorer"></div>
-        <p class="small">These are seeded notebook results from scikit-learn 1.6.1. In the score table, validation refers to the rotating folds within the training set. The final test parcels are still set aside.</p>
+        <p class="small" id="bag-tuning-provenance"></p>
         <div class="bag-pair bag-split-limits">
           <article><h3>Is the parent big enough to try?</h3><p><code>min_samples_split</code> checks the parent before a split. A node with 10 rows qualifies at a minimum of 8. At a minimum of 11, it stays a leaf.</p></article>
           <article><h3>Would both children be big enough?</h3><p><code>min_samples_leaf</code> checks each proposed child. With a minimum of 3, a <strong>9 | 1</strong> split is ruled out while a <strong>6 | 4</strong> split clears that requirement.</p></article>
@@ -348,14 +301,14 @@ grid_demo = GridSearchCV(
 ).fit(X_train, y_train)</code></pre>
         <p>Compare the mean validation scores in <code>grid_demo.cv_results_</code>. This demonstration stops after scoring the four combinations. The full tuning run refits the winner.</p>
       </details>
-      <details class="teaching-note"><summary>Why balanced accuracy?</summary><p>Suppose 90 of 100 parcels are Auto. Sending every parcel to Auto would give 90% accuracy and miss every Review. <strong>Balanced accuracy</strong> finds the fraction correct within each actual route and averages those fractions. Here it averages 100% for Auto and 0% for Review, giving 50%.</p></details>
+      <details class="teaching-note"><summary>Why balanced accuracy?</summary><p>On a hypothetical set of 90 legitimate emails and 10 spam emails, a model that always says Legitimate gets 90 out of 100 right. Its Spam recall is zero. <strong>Balanced accuracy</strong> gives the two classes equal weight by averaging their recall scores. In this example, (100% + 0%) ÷ 2 = 50%.</p></details>
       <p class="transition">We can read the effect of one setting. Next, look at how two search strategies try combinations.</p>
       <div class="bag-actions"><a class="button primary" href="#randomized-search">Compare the search strategies</a></div>
     </section>
 
     <section class="chapter" id="randomized-search" aria-labelledby="randomized-search-title">
       <p class="eyebrow">Hyperparameter search</p><h2 id="randomized-search-title">Randomized Search</h2>
-      <p class="lede">Suppose the courier wants to test two depth limits and two feature budgets. There are four possible pairings. If time is tight, what can we learn from trying just two?</p>
+      <p class="lede">We changed one forest setting at a time. What if depth and the number of candidate features work together? With two choices for each, there are four pairings. Compare a search that tries all four with a search that can afford only two.</p>
       <div class="panel">
         <h2>Same candidates, different search budgets</h2>
         <p><strong>Grid search</strong> checks every pairing in the grid. <strong>Randomized search</strong> samples a fixed number of configurations. Compare them using the same candidate pool, four folds, forest seed, and balanced accuracy.</p>
@@ -364,60 +317,52 @@ grid_demo = GridSearchCV(
       </div>
       <div class="panel">
         <h2>Run the broader search and read the final test</h2>
-        <p>The notebook also samples 15 configurations from a larger space. Each is fitted on four folds, for 60 search fits before the winner is refit.</p>
+        <p id="bag-search-budget"></p>
         <pre class="bag-code"><code>search = RandomizedSearchCV(
     RandomForestClassifier(bootstrap=True, oob_score=True, random_state=seed),
-    parameter_space, n_iter=15, scoring='balanced_accuracy',
+    parameter_space, n_iter=<span id="bag-search-iterations"></span>, scoring='balanced_accuracy',
     cv=folds, refit=True, random_state=seed
 )
 search.fit(X_train, y_train)
 forest = search.best_estimator_
 test_predictions = forest.predict(X_test)</code></pre>
         <p class="small"><code>parameter_space</code> gives the choices or distributions. The search seed replays the configuration draws. The forest seed controls randomness within a fit.</p>
-        <div class="bag-worked"><p><strong>Read the two scores.</strong> Use <strong>81.26%</strong> to see how the winning setting did on average during its four cross-validation checks. Then use <strong>78.88%</strong> to see how the refitted forest did on the 350 parcels reserved for the final test. Both use balanced accuracy.</p></div>
-        <details class="teaching-note"><summary>Read the worked notebook results</summary><p>With 1,050 training rows and 350 held-out rows, the selected candidate averaged 81.26% balanced accuracy across four validation folds. The held-out balanced accuracies were 72.65% for the single tree, 76.89% for the baseline forest, and 78.88% for the tuned forest. The tuned forest’s OOB accuracy was 81.24% across 1,050 covered training rows. That last value uses ordinary accuracy on the OOB predictions. Results are from the seeded run with scikit-learn 1.6.1.</p></details>
+        <div class="bag-worked" id="bag-search-scores"></div>
+        <details class="teaching-note"><summary>Read the worked notebook results</summary><div id="bag-benchmark"></div>
+          <p class="small">On a separate historical test split, the textbook reported error rates of 9.3% for one pruned tree, 5.4% for bagging and 4.88% for a random forest. The table above reports this notebook’s own test accuracy and balanced accuracy. <a href="https://course.ccs.neu.edu/ds4420sp20/readings/ESLII.pdf">Published results, Table 9.3 and Figure 15.1</a></p>
+        </details>
         <details class="teaching-note"><summary>Read the per-class report</summary>
-          <p>Here are the counts for the tuned forest on its 350 held-out parcels. Each row groups the recorded routes. Each prediction column groups the forest’s answers.</p>
-          <div class="table-wrap"><table><caption class="sr-only">Confusion matrix for the tuned forest on 350 held-out parcels</caption>
-            <thead><tr><th scope="col">Recorded route</th><th scope="col">Predicted Auto</th><th scope="col">Predicted Review</th><th scope="col">Total</th></tr></thead>
-            <tbody><tr><th scope="row">Auto</th><td>167</td><td>41</td><td>208</td></tr><tr><th scope="row">Review</th><td>32</td><td>110</td><td>142</td></tr></tbody>
-            <tfoot><tr><th scope="row">Total</th><td>199</td><td>151</td><td>350</td></tr></tfoot>
-          </table></div>
-          <p>Review <strong>precision</strong> uses the prediction column, 110 ÷ 151 ≈ 72.8%. Review <strong>recall</strong> uses the recorded row, 110 ÷ 142 ≈ 77.5%. <strong>F1</strong> combines them as 2 × 110 ÷ (2 × 110 + 41 + 32) ≈ 75.1%. <strong>Support</strong> is the 142 recorded Review parcels.</p>
+          <p>Rows are the recorded classes of the held-out emails. Columns are the tuned forest’s predictions. A false positive sends legitimate mail to Spam. A false negative lets spam through.</p>
+          <div id="bag-test-report"></div>
         </details>
       </div>
-      <p class="transition">The forest also has a way to check parcels that never entered a particular tree’s training tray. Let’s see which trees can give us that check.</p>
+      <p class="transition">A separate test set evaluates the completed model. Training emails also let us make a different check, using only the trees that left them out.</p>
     </section>
 
     {{OOB}}
 
     <section class="chapter" id="interview" aria-labelledby="interview-title">
       <p class="eyebrow">Interview questions</p><h2 id="interview-title">Explain importance and tune the trade-offs</h2>
-      <p class="lede">A colleague at the courier desk asks two questions. Which measurement did the forest rely on, and what would change if we gave each tree a different depth limit? Start by tracing how a split earns credit. Then pick a setting and explain what it would change about the forest.</p>
+      <p class="lede">A colleague asks which clues the spam classifier relied on and how to make its trees simpler. Go back to the three trees you traced. Credit their dollar-sign and exclamation-mark splits before comparing settings.</p>
       <div class="panel">
         <h2>How does a forest compute feature importance?</h2>
-        <p>Every draw reaches the first split in Tree 2. Its later weight question affects just the parcels that reach that branch. <strong>Impurity-based feature importance</strong> gives a question more credit when it separates the labels well and reaches more rows.</p>
+        <p>Every draw reaches the first split. A follow-up question only affects the emails on its branch. <strong>Impurity-based feature importance</strong> gives a question more credit when it separates the labels well and reaches more rows.</p>
         <p>Multiply each split’s impurity decrease by the fraction of training draws that reached it. Credit the feature used at that split. Add the credits for each feature, express them as shares of that tree’s total, then average those shares across the trees.</p>
-        <p>When a tree splits but never uses a feature, it contributes <strong>zero</strong> for that feature. Tree 1 uses only scan score, so its weight entry is 0%. The ensemble average keeps that zero in the denominator. Scikit-learn skips root-only trees in this calculation.</p>
+        <p>A splitting tree contributes <strong>zero</strong> for each feature it never uses. The ensemble average includes those zeros. Scikit-learn omits root-only trees when averaging these importances.</p>
         <div id="bag-importance" aria-label="Three fitted trees and their impurity importances"></div>
-        <details class="teaching-note"><summary>Work through the numbers for these trees</summary>
-          <div class="bag-worked">
-            <p>In Tree 2, the scan-score split is at the root, so all 12 draws reach it. Its weighted credit is <strong>12/12 × 0.3111 ≈ 0.3111</strong>. The weight split is lower down. Its weighted credit is <strong>5/12 × 0.32 ≈ 0.1333</strong>.</p>
-            <p>Those credits total about <strong>0.4444</strong>. Dividing each credit by that total gives <strong>70% scan score</strong> and <strong>30% weight</strong> within Tree 2. Across the three trees, mean weight importance is <strong>(0% + 30% + 64.3%) ÷ 3 ≈ 31.4%</strong>. The other <strong>68.6%</strong> goes to scan score.</p>
-          </div>
-        </details>
-        <p class="small">A feature with many possible cutoffs gets more chances to earn split credit. For a check on fresh data, shuffle the scan scores among the held-out parcels, keep each parcel’s other information in place, and score the same forest again. The drop in score tells you how much this forest relied on scan score in that test. This is <strong>permutation importance</strong>.</p>
+        <details class="teaching-note"><summary>Work through the numbers for these trees</summary><div class="bag-worked" id="bag-importance-worked"></div></details>
+        <p class="small">A feature with many possible cutoffs gets more chances to earn split credit. For a check on fresh data, shuffle the dollar-sign frequencies among the held-out emails, keep each email’s other information in place, and score the same forest again. The score drop measures how much the forest relied on that feature in this test. This is <strong>permutation importance</strong>.</p>
       </div>
       <div class="panel">
         <div class="panel-heading"><div><h2>Five settings, five different changes</h2><p>Pick one setting. Imagine keeping the other four fixed, then say which part changes. Does it affect the training tray, the questions a tree can ask, or the number of predictions we combine?</p></div></div>
         <div id="bag-knob-buttons" class="bag-actions" aria-label="Forest settings"></div>
         <div id="bag-knob-explanation" class="bag-knob" aria-live="polite"></div>
       </div>
-      <details class="teaching-note"><summary>Why can more trees give diminishing returns?</summary><p>If several trees already tend to give the same parcel the same answer, another similar tree adds little new information. More trees can steady the average and also take longer to train and use. Compare how much each increase improves the validation score.</p></details>
-      <details class="teaching-note"><summary>How do depth and pruning differ?</summary><p>Maximum depth caps how many questions a parcel can answer while the tree grows. Pruning checks whether a branch earns its extra size by improving the separation of the labels. A larger <code>ccp_alpha</code> makes that size more costly, so simpler trees are favored. A simpler tree may vary less with the training sample and also miss a useful pattern.</p></details>
+      <details class="teaching-note"><summary>Why can more trees give diminishing returns?</summary><p>If several trees already tend to give the same email the same answer, another similar tree adds little new information. More trees can steady the average and also take longer to train and use. Compare how much each increase improves the validation score.</p></details>
+      <details class="teaching-note"><summary>How do depth and pruning differ?</summary><p>Maximum depth caps how many questions an email can answer while the tree grows. Pruning checks whether a branch earns its extra size by improving the separation of the labels. A larger <code>ccp_alpha</code> makes that size more costly, so simpler trees are favored. A simpler tree may vary less with the training sample and also miss a useful pattern.</p></details>
       <div class="panel">
         <h2>When does a branch earn its place?</h2>
-        <p>Consider two possible subtrees from a parcel model. The four-leaf subtree separates the training labels better, so it has lower <strong>weighted leaf impurity</strong>. Each extra leaf comes with a cost. Move the penalty slider and watch which subtree becomes cheaper.</p>
+        <p>Compare two possible subtrees in an illustrative spam-filter example. The four-leaf subtree separates the training labels better, so it has lower <strong>weighted leaf impurity</strong>. Each extra leaf comes with a cost. Move the penalty slider and watch which subtree becomes cheaper.</p>
         <p class="bag-worked"><strong>Cost = weighted leaf impurity + α × number of leaves.</strong> Weighted leaf impurity adds each leaf’s impurity multiplied by its share of training weight.</p>
         <div class="bag-pruning-control">
           <label class="control-label" for="bag-prune-alpha">Penalty per leaf (α) <output id="bag-prune-alpha-value" for="bag-prune-alpha">0.01</output></label>
@@ -427,11 +372,11 @@ test_predictions = forest.predict(X_test)</code></pre>
         <p class="small">These are two illustrative pruning candidates. Starting with a fitted tree, cost-complexity pruning considers simpler subtrees. <code>max_depth</code> constrains the questions while the tree grows.</p>
         <p><a href="https://scikit-learn.org/1.6/modules/tree.html#minimal-cost-complexity-pruning">Scikit-learn pruning reference</a></p>
       </div>
-      <div class="bag-say"><strong>Recap</strong> Give each tree its own tray of training parcels. In a Random Forest, give each split its own list of measurements to consider. Send the new parcel to all the fitted trees and combine their answers. Test how well that final answer works on parcels the models haven’t seen.</div>
+      <div class="bag-say"><strong>Recap</strong> Learn the Spam or Legitimate label from measured clues. Give each tree its own bootstrap tray of emails. For a random forest, draw a candidate feature set at each split. Combine predictions for the same new email and test the result on unseen records.</div>
       <p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">Random Forest parameter and scoring reference</a></p>
     </section>
     <footer class="lesson-footer">
-      <span>All parcel data is synthetic.</span>
+      <a href="https://doi.org/10.24432/C53G6X">UCI Spambase data (CC BY 4.0)</a>
       <a href="../decision-trees/">Revisit decision trees</a>
       <a href="https://github.com/sharanharsoor/ml-learning-lab/tree/main/labs/bagging/notebooks">View notebooks on GitHub</a>
     </footer>

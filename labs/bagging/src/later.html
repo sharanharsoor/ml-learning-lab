@@ -1,28 +1,28 @@
 <section class="chapter bag-later" id="variance" aria-labelledby="variance-title">
   <p class="eyebrow">Variance</p>
   <h2 id="variance-title">Why averaging steadies a prediction</h2>
-  <p class="lede">Imagine we train one tree on a batch of past parcel records, then start over with a fresh batch. We give both trees the same new parcel. A different mix of training rows can change the first split, where the parcel lands, and the chance of Review the tree assigns.</p>
-  <p><strong>Model variance</strong> measures how spread out those predictions are across training runs. In each batch, we’ll also train several trees and average their Review probabilities for that parcel. We can then compare how far the single-tree prediction and the average move from batch to batch.</p>
+  <p class="lede">The first two trees disagreed on the same email. Their training draws changed, while the email’s dollar-sign and exclamation-mark frequencies stayed fixed. Now repeat the experiment to see how much the prediction moves.</p>
+  <p><strong>Model variance</strong> measures how spread out predictions for one fixed input are across training samples. A single tree can change its first question when its training rows change. Bagging averages the Spam estimates of several trees trained from the same batch.</p>
 
   <ol class="bag-steps">
-    <li><strong>Keep the parcel fixed.</strong> Its weight and scan score stay the same. The experiment compares how far predictions move, so we can do it even though its recorded route is unknown.</li>
-    <li><strong>Refit both models.</strong> Train one tree on the batch. To build the ensemble, draw several bootstrap samples from that same batch and train one tree per sample.</li>
-    <li><strong>Compare the spread.</strong> Look at the Review probability across batches for each model.</li>
+    <li><strong>Keep the email fixed.</strong> Use the same held-out email you already traced. Its features stay fixed and its label stays out of training.</li>
+    <li><strong>Refit both models.</strong> For each batch, draw 12 rows with replacement from the teaching pool. Fit one depth-two tree directly on the batch. Then fit 25 depth-two trees on separate bootstrap samples of that batch.</li>
+    <li><strong>Compare the spread.</strong> Track the single tree’s Spam estimate and the bagged average across these batches.</li>
   </ol>
 
   <div class="panel">
     <h3>What changes if one training label changes?</h3>
-    <p>Freeze the three bootstrap trays and the new parcel (5.65 kg, scan score 5.7). In the historical table, P3 is a 2.5 kg parcel with scan score 7.8 and recorded route Auto. Flip only that label and check which trees actually saw P3.</p>
-    <div class="bag-actions"><button class="button secondary" id="bag-flip-p3" type="button" aria-pressed="false">Flip P3’s recorded route</button></div>
+    <p>Keep the original three bootstrap trays and the held-out email fixed. Temporarily flip one label in the teaching pool. Check which trees drew that row and whether their Spam estimates change.</p>
+    <div class="bag-actions"><button class="button secondary" id="bag-flip-label" type="button" aria-pressed="false">Flip a training label</button></div>
     <div id="bag-perturbation" aria-live="polite"></div>
-    <p class="small">Trays that omitted P3 are unchanged. A tray that included P3 can learn a different rule or leaf probability. In a bigger forest, a row may appear in many trays.</p>
+    <p class="small">A tree that drew the edited label may learn a different split or leaf proportion. A tree that skipped that row receives the same training data.</p>
   </div>
 
   <div class="panel">
     <div class="bagl-heading">
       <div>
-        <h3>Same parcel, five new training batches</h3>
-        <p class="small">Each row is one training run. Its two dots show the chance of Review for the same parcel, on a scale from 0 to 1. Reveal a second row and compare how far each dot moves. The probabilities here are illustrative.</p>
+        <h3>Same email, five resampled training batches</h3>
+        <p class="small" id="bagl-spread-example"></p>
       </div>
       <button type="button" class="button secondary" id="bagl-next-batch">Reveal next batch</button>
     </div>
@@ -36,19 +36,16 @@
     <p class="bagl-result" id="bagl-batch-summary" aria-live="polite"></p>
     <details class="teaching-note">
       <summary>Work out the spread for the first two batches</summary>
-      <div class="bag-worked">
-        <p>Reveal Batch B. The single tree gives Review probabilities of <strong>0.10</strong> and <strong>0.90</strong>. Their mean is 0.50. Both estimates are 0.40 away from that mean, so their mean squared distance is <strong>0.16</strong>.</p>
-        <p>The bagged trees give <strong>0.42</strong> and <strong>0.56</strong>. Their mean is 0.49. Both estimates are 0.07 away, so their mean squared distance is <strong>0.0049</strong>. The square roots, 0.40 and 0.07, are the standard deviations shown as spread.</p>
-      </div>
+      <div class="bag-worked" id="bagl-spread-worked"></div>
     </details>
   </div>
-  <p>After revealing all five batches, compare the means and spread. Both sets average 0.50 in this illustration, while the bagged predictions sit closer to that average. A steady prediction can still be wrong. If the parcel’s recorded route is Auto and a model always predicts an 80% chance of Review, a 50% cutoff gives the wrong route every time. To measure accuracy, compare predictions with recorded routes on held-out parcels.</p>
+  <p>Once all five batches are visible, compare the variances. These are results for one email and five resamples of a small teaching pool. To measure whether we classify email better, compare the predictions with recorded labels across many held-out emails.</p>
 
   <div class="panel">
     <div class="panel-heading">
       <div>
         <h3>What if the trees move together?</h3>
-        <p class="small">Suppose one tree’s Review estimate rises 10 percentage points from its usual value and another’s falls 10 points. The changes cancel in the average. When both rise 10 points, their average rises by 10 points too.</p>
+        <p class="small">Suppose one tree’s Spam estimate rises 10 percentage points from its usual value and another’s falls 10 points. The changes cancel in their average. When both rise 10 points, their average rises by 10 points too.</p>
       </div>
     </div>
     <div class="bagl-variance-controls">
@@ -81,56 +78,56 @@
   </div>
 
   <div class="explanation-grid">
-    <div><h3>Why sample features?</h3><p>A strong feature can dominate many trees. Giving a node a smaller candidate set lets different useful splits emerge, which can reduce how closely the trees move together.</p></div>
-    <div><h3>Can a stable prediction still be biased?</h3><p>Suppose heavier parcels with a high scan score need review far more often than other parcels. Trees that can ask only one question may keep underestimating Review for that group. If the average prediction across fresh training batches is still too low, that systematic error is <strong>bias</strong>. Adding trees can make the average steadier while leaving that error in place.</p></div>
+    <div><h3>Why sample features?</h3><p>If most trees start with dollar-sign frequency, their errors may move together. Offering a smaller candidate set sometimes brings a different useful clue into the tree. The shared part of prediction variance can shrink when the trees make less similar errors.</p></div>
+    <div><h3>Can a stable prediction still be biased?</h3><p>If a model learns that certain workplace words strongly suggest Legitimate mail, it may overestimate that class for an inbox where those words have a different meaning. Even a steady average can have a systematic error, called <strong>bias</strong>. Compare new predictions with labels from the setting you care about.</p></div>
   </div>
   <details class="teaching-note">
-    <summary>Where do bias, variance, and noise show up in squared error?</summary>
-    <p>At a fixed parcel, average the squared prediction error over fresh training sets and possible dispatch times. When the new outcome is independent of the training draw, the expected error has three components.</p>
+    <summary>Where do bias, variance, and noise show up in a Spam score?</summary>
+    <p>For a probability prediction, square the difference between the predicted Spam score and the recorded label, coded as 0 or 1. This is the contribution to the <strong>Brier score</strong>. Consider a numerical illustration where emails with identical measurements have a true Spam rate of 0.50. Two equally likely training draws produce estimates of 0.40 and 0.80, with mean 0.60.</p>
     <p class="bag-worked"><strong>Expected squared error = bias² + prediction variance + irreducible noise.</strong></p>
     <div class="bag-triptych">
-      <article><h3>Bias² · 1 min²</h3><p>Across two equally likely training samples, the model predicts 12 or 16 minutes. The mean prediction is 14. The true mean is 13, so the squared gap is (14 − 13)².</p></article>
-      <article><h3>Variance · 4 min²</h3><p>Both predictions are 2 minutes from their own mean of 14. The average squared distance is 4.</p></article>
-      <article><h3>Noise · 9 min²</h3><p>For identical measured inputs, actual dispatch takes 10 or 16 minutes with equal probability. Both are 3 minutes away from the true mean of 13.</p></article>
+      <article><h3>Bias² · 0.01</h3><p>The mean prediction is 0.60 and the true rate is 0.50. The squared gap is (0.60 − 0.50)².</p></article>
+      <article><h3>Variance · 0.04</h3><p>Both predictions are 0.20 away from their own mean of 0.60. Their average squared distance is 0.04.</p></article>
+      <article><h3>Noise · 0.25</h3><p>Identical measured inputs can still have either recorded label. Both labels are 0.50 from the true mean, so the average squared distance is 0.25.</p></article>
     </div>
-    <p>These parts sum to <strong>14 min²</strong>. Averaging can shrink the variance part. A systematic prediction gap or unpredictable dispatch delay can still remain.</p>
+    <p>With an outcome independent of the training draw, these parts sum to <strong>0.30</strong>. Averaging can shrink the variance part. A systematic prediction gap or label uncertainty can remain.</p>
   </details>
-  <p class="transition">The model has two jobs now. Grow individual trees and combine their predictions. Put both into a reproducible training workflow.</p>
+  <p class="transition">We have traced one email and varied its training samples. Now use the complete Spambase dataset to test which approach classifies unseen email better.</p>
 </section>
 
 <!-- BAGGING_IMPLEMENTATION -->
 
 <section class="chapter bag-later" id="oob" aria-labelledby="oob-title">
   <p class="eyebrow">Out-of-bag scoring</p>
-  <h2 id="oob-title">Which trees can evaluate this parcel?</h2>
-  <p class="lede">Switch to a separate five-parcel example, O1 through O5, so you can inspect every draw. The table supplies each parcel’s measured weight and a synthetic recorded route. Each tree learns a single question about weight. Pick a parcel and look for the trees that missed it during training.</p>
+  <h2 id="oob-title">Which trees can evaluate this email?</h2>
+  <p class="lede">Return to the 12 original teaching rows and their three bootstrap trays. Each tray skipped some emails. We can use a tree to check an email it skipped, then compare its prediction with the recorded label.</p>
 
   <figure class="bag-scene">
-    <img src="{{OOB_IMAGE}}" width="1344" height="756" loading="lazy" alt="A parcel ticket sits beside the trays while an operator sorts other tickets into them.">
-    <figcaption>Each tree trains on the tickets in its own tray. A ticket left on the desk can be used to check that tree’s prediction.</figcaption>
+    <img src="{{OOB_IMAGE}}" width="1450" height="816" loading="lazy" alt="Email record cards organized into training samples, with one held apart for evaluation.">
+    <figcaption>An email that stayed out of a tree’s training tray can check that tree’s prediction.</figcaption>
   </figure>
 
   <div class="panel">
     <div class="panel-heading">
       <div>
-        <h3>Pick a training parcel</h3>
-        <p class="small">This five-parcel example has three trees. Each draws five rows with replacement and learns one split on weight.</p>
+        <h3>Pick an email from the training pool</h3>
+        <p class="small">Use the same row IDs, measured frequencies, recorded labels, and fixed trees from the earlier demo. The counts below show how often each tree drew that row.</p>
       </div>
     </div>
     <div class="table-wrap">
       <table class="bagl-oob-table">
-        <caption class="sr-only">Times each parcel was drawn into each tree's bootstrap sample</caption>
+        <caption class="sr-only">Times each email was drawn into each tree's bootstrap sample</caption>
         <thead>
-          <tr><th scope="col">Parcel</th><th scope="col">Weight (kg)</th><th scope="col">Recorded route</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Tree 3</th></tr>
+          <tr><th scope="col">Email</th><th scope="col">Dollar signs (%)</th><th scope="col">Exclamation marks (%)</th><th scope="col">Recorded label</th><th scope="col">Tree 1</th><th scope="col">Tree 2</th><th scope="col">Tree 3</th></tr>
         </thead>
         <tbody id="bagl-oob-grid"></tbody>
       </table>
     </div>
-    <p class="small bagl-oob-help">Read across a row to see how often each tree drew that parcel. A 2× means the tree trained on two copies. A zero means the parcel is <strong>out of bag (OOB)</strong> for that tree and can be used to check its prediction.</p>
+    <p class="small bagl-oob-help">A 2× means the tree trained on two copies. A zero means this email is <strong>out of bag (OOB)</strong> for that tree.</p>
     <ol class="bag-steps">
-      <li><strong>Find the zeros.</strong> Try O1. Only Trees 1 and 2 left it out of their training trays.</li>
-      <li><strong>Read the leaves.</strong> Follow that parcel's weight through each eligible tree. Average the fractions of Review draws in those leaves.</li>
-      <li><strong>Check the route.</strong> In this demo, an average above 50% gives Review, and 50% or below gives Auto. For O1, the two Review fractions are 1/3 and 0/2. Their mean is about 16.7%, so the answer is Auto. That matches O1’s recorded label. Then try O2, whose ticket appears in every tray.</li>
+      <li><strong>Find the zeros.</strong> Choose a row. Only the trees that missed it are eligible to predict it out of bag.</li>
+      <li><strong>Read the leaves.</strong> Trace the two features through each eligible tree. Average the fractions of Spam draws in the reached leaves.</li>
+      <li><strong>Check the prediction.</strong> In this demo an average above 50% predicts Spam. An average of 50% or lower predicts Legitimate. Compare the prediction with the recorded label.</li>
     </ol>
     <div id="bagl-oob-selected" class="bagl-selection" aria-live="polite"></div>
     <details class="teaching-note">
@@ -142,28 +139,24 @@
   <div class="panel">
     <div class="panel-heading">
       <div>
-        <h3>From one parcel to the OOB score</h3>
-        <p class="small">Do the same check for every parcel. First count how many parcels got an OOB prediction. Then, among that group, count how many predicted routes match the recorded routes.</p>
+        <h3>From one email to the OOB score</h3>
+        <p class="small">Repeat the check for all 12 rows. Coverage counts rows that get an OOB prediction. Accuracy counts the correct predictions among those covered rows.</p>
       </div>
     </div>
     <details class="bagl-score-details">
       <summary>Reveal all OOB predictions</summary>
       <div id="bagl-oob-score"></div>
-      <div class="bag-worked">
-        <p><strong>Coverage asks which parcels we could score.</strong> O1, O3 and O4 have eligible predictions, so coverage is 3 out of 5.</p>
-        <p><strong>Accuracy asks how many of those predictions match.</strong> O1 and O4 match. O3 was recorded as Review, and its OOB prediction is Auto. That gives 2 correct out of 3 scored parcels, or about 66.7%.</p>
-        <p><strong>Classification error asks how many are wrong.</strong> On the same scored parcels, OOB error is <strong>1 − 2/3 = 1/3 ≈ 33.3%</strong>. The two parcels without an OOB prediction count toward coverage only.</p>
-      </div>
+      <div class="bag-worked" id="bagl-oob-worked"></div>
     </details>
   </div>
 
   <div class="explanation-grid">
-    <div><h3>Why roughly 37%?</h3><p>With <var>n</var> training rows, one uniform draw misses a particular row with probability <span class="formula">1 − 1/n</span>. If a tree takes <var>m</var> independent draws with replacement, the chance it misses that row throughout is <span class="formula">(1 − 1/n)<sup>m</sup></span>. When <var>m</var> equals <var>n</var> and <var>n</var> is large, this approaches <span class="formula">e<sup>−1</sup> ≈ 36.8%</span>. Here, with five rows and five draws, the probability is about 32.8%.</p></div>
-    <div><h3>When is this score useful?</h3><p>OOB gives a convenient internal check when a bootstrapped forest already has trees that missed each row. Cross-validation can compare different models on shared folds. Reserve a separate held-out test set for final evaluation, especially after using OOB or cross-validation to choose settings. In scikit-learn Random Forest, enabling OOB scoring requires bootstrap sampling.</p></div>
+    <div><h3>Why roughly 37%?</h3><p>With <var>n</var> training rows, one uniform draw misses a particular row with probability <span class="formula">1 − 1/n</span>. If a tree takes <var>m</var> independent draws with replacement, the chance it misses that row throughout is <span class="formula">(1 − 1/n)<sup>m</sup></span>. With 12 rows and 12 draws that is about 35.2%. When <var>m</var> equals <var>n</var> and <var>n</var> is large, the limit is <span class="formula">e<sup>−1</sup> ≈ 36.8%</span>.</p></div>
+    <div><h3>When is this score useful?</h3><p>OOB gives an internal check for bootstrapped models. A tree skipping one row can still see another row with identical measurements, which is why the full notebook keeps matching vectors together for its cross-validation and final test. In scikit-learn Random Forest, OOB scoring requires bootstrap sampling.</p></div>
   </div>
   <details class="teaching-note">
-    <summary>What if every tree saw the parcel?</summary>
-    <p>There is no eligible OOB prediction for that parcel. This lab reports coverage and scores only rows with predictions. If every tree instead omitted the parcel, all of them would be eligible. The number of omitted rows in one tray is the original row count minus the number of <strong>distinct</strong> rows drawn.</p>
+    <summary>What if every tree saw the email?</summary>
+    <p>That email has no eligible OOB prediction. It belongs in the coverage denominator, while accuracy uses only the covered rows. The separate held-out example from the opener can use all three trees because we kept it outside the training pool altogether.</p>
   </details>
-  <p class="transition">You can now read three views of the forest. The trees' individual decisions, their combined prediction, and an estimate of generalization. Connect those views to model settings and interview questions.</p>
+  <p class="transition">You can now trace a tree’s answer, combine answers, and evaluate them. Finish by explaining which features earned split credit and what each setting changes.</p>
 </section>

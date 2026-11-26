@@ -1,297 +1,355 @@
 {
   "rows": [
     {
-      "id": "P1",
-      "x": 1.2,
-      "z": 2.0,
+      "id": "E3590",
+      "x": 0,
+      "z": 0,
       "label": 0
     },
     {
-      "id": "P2",
-      "x": 2.0,
-      "z": 5.0,
+      "id": "E3383",
+      "x": 0.024,
+      "z": 0,
       "label": 0
     },
     {
-      "id": "P3",
-      "x": 2.5,
-      "z": 7.8,
+      "id": "E4256",
+      "x": 0,
+      "z": 0.278,
       "label": 0
     },
     {
-      "id": "P4",
-      "x": 3.5,
-      "z": 4.0,
+      "id": "E2321",
+      "x": 0,
+      "z": 0.089,
       "label": 0
     },
     {
-      "id": "P5",
-      "x": 4.0,
-      "z": 7.0,
+      "id": "E3066",
+      "x": 0,
+      "z": 0.244,
+      "label": 0
+    },
+    {
+      "id": "E3776",
+      "x": 0.023,
+      "z": 0,
+      "label": 0
+    },
+    {
+      "id": "E779",
+      "x": 0.145,
+      "z": 0.393,
       "label": 1
     },
     {
-      "id": "P6",
-      "x": 5.0,
-      "z": 5.0,
-      "label": 0
-    },
-    {
-      "id": "P7",
-      "x": 6.1,
-      "z": 5.5,
+      "id": "E1375",
+      "x": 0.231,
+      "z": 0.925,
       "label": 1
     },
     {
-      "id": "P8",
-      "x": 7.0,
-      "z": 3.0,
-      "label": 0
-    },
-    {
-      "id": "P9",
-      "x": 7.5,
-      "z": 8.0,
+      "id": "E1748",
+      "x": 0,
+      "z": 0.518,
       "label": 1
     },
     {
-      "id": "P10",
-      "x": 8.2,
-      "z": 6.6,
+      "id": "E1188",
+      "x": 0.312,
+      "z": 0.625,
       "label": 1
     },
     {
-      "id": "P11",
-      "x": 8.8,
-      "z": 4.5,
+      "id": "E319",
+      "x": 0.107,
+      "z": 0.268,
       "label": 1
     },
     {
-      "id": "P12",
-      "x": 9.2,
-      "z": 8.8,
+      "id": "E1153",
+      "x": 0.073,
+      "z": 0.25,
       "label": 1
     }
   ],
-  "parcel": {
-    "x": 5.65,
-    "z": 5.7
+  "email": {
+    "id": "E574",
+    "x": 0.034,
+    "z": 0.375,
+    "label": 1
   },
   "samples": [
     {
       "draws": [
-        "P2",
-        "P2",
-        "P10",
-        "P6",
-        "P8",
-        "P8",
-        "P9",
-        "P1",
-        "P6",
-        "P2",
-        "P5",
-        "P12"
+        "E3776",
+        "E3776",
+        "E1748",
+        "E4256",
+        "E1188",
+        "E1153",
+        "E2321",
+        "E4256",
+        "E1153",
+        "E3066",
+        "E3776",
+        "E1375"
       ],
       "tree": {
-        "split": {
-          "feature": "z",
-          "threshold": 5.8
-        },
         "stats": {
           "n": 12,
-          "auto": 8,
-          "review": 4,
-          "score": 0.444444444444,
+          "auto": 7,
+          "review": 5,
+          "mean": null,
+          "score": 0.48611111111111105,
           "prediction": 0
         },
+        "split": {
+          "feature": "x",
+          "threshold": 0.048
+        },
         "left": {
-          "split": null,
           "stats": {
             "n": 8,
-            "auto": 8,
-            "review": 0,
-            "score": 0.0,
-            "prediction": 0
-          },
-          "left": null,
-          "right": null
-        },
-        "right": {
-          "split": null,
-          "stats": {
-            "n": 4,
-            "auto": 0,
-            "review": 4,
-            "score": 0.0,
-            "prediction": 1
-          },
-          "left": null,
-          "right": null
-        }
-      },
-      "reviewProbability": 0.0,
-      "prediction": 0
-    },
-    {
-      "draws": [
-        "P7",
-        "P1",
-        "P7",
-        "P2",
-        "P10",
-        "P12",
-        "P12",
-        "P8",
-        "P11",
-        "P5",
-        "P2",
-        "P7"
-      ],
-      "tree": {
-        "split": {
-          "feature": "z",
-          "threshold": 5.25
-        },
-        "stats": {
-          "n": 12,
-          "auto": 4,
-          "review": 8,
-          "score": 0.444444444444,
-          "prediction": 1
-        },
-        "left": {
-          "split": {
-            "feature": "x",
-            "threshold": 7.9
-          },
-          "stats": {
-            "n": 5,
-            "auto": 4,
+            "auto": 7,
             "review": 1,
-            "score": 0.32,
+            "mean": null,
+            "score": 0.21875,
             "prediction": 0
+          },
+          "split": {
+            "feature": "z",
+            "threshold": 0.398
           },
           "left": {
-            "split": null,
             "stats": {
-              "n": 4,
-              "auto": 4,
+              "n": 7,
+              "auto": 7,
               "review": 0,
-              "score": 0.0,
+              "mean": null,
+              "score": 0,
               "prediction": 0
             },
+            "split": null,
             "left": null,
-            "right": null
+            "right": null,
+            "gain": 0
           },
           "right": {
-            "split": null,
             "stats": {
               "n": 1,
               "auto": 0,
               "review": 1,
-              "score": 0.0,
+              "mean": null,
+              "score": 0,
               "prediction": 1
             },
+            "split": null,
             "left": null,
-            "right": null
-          }
+            "right": null,
+            "gain": 0
+          },
+          "gain": 0.21875
         },
         "right": {
-          "split": null,
-          "stats": {
-            "n": 7,
-            "auto": 0,
-            "review": 7,
-            "score": 0.0,
-            "prediction": 1
-          },
-          "left": null,
-          "right": null
-        }
-      },
-      "reviewProbability": 1.0,
-      "prediction": 1
-    },
-    {
-      "draws": [
-        "P6",
-        "P8",
-        "P12",
-        "P4",
-        "P11",
-        "P2",
-        "P5",
-        "P10",
-        "P3",
-        "P9",
-        "P6",
-        "P7"
-      ],
-      "tree": {
-        "split": {
-          "feature": "x",
-          "threshold": 7.25
-        },
-        "stats": {
-          "n": 12,
-          "auto": 6,
-          "review": 6,
-          "score": 0.5,
-          "prediction": 0
-        },
-        "left": {
-          "split": {
-            "feature": "z",
-            "threshold": 5.25
-          },
-          "stats": {
-            "n": 8,
-            "auto": 6,
-            "review": 2,
-            "score": 0.375,
-            "prediction": 0
-          },
-          "left": {
-            "split": null,
-            "stats": {
-              "n": 5,
-              "auto": 5,
-              "review": 0,
-              "score": 0.0,
-              "prediction": 0
-            },
-            "left": null,
-            "right": null
-          },
-          "right": {
-            "split": null,
-            "stats": {
-              "n": 3,
-              "auto": 1,
-              "review": 2,
-              "score": 0.444444444444,
-              "prediction": 1
-            },
-            "left": null,
-            "right": null
-          }
-        },
-        "right": {
-          "split": null,
           "stats": {
             "n": 4,
             "auto": 0,
             "review": 4,
-            "score": 0.0,
+            "mean": null,
+            "score": 0,
             "prediction": 1
           },
+          "split": null,
           "left": null,
-          "right": null
-        }
+          "right": null,
+          "gain": 0
+        },
+        "gain": 0.3402777777777777
       },
-      "reviewProbability": 0.6666666666666666,
+      "spamProbability": 0,
+      "prediction": 0
+    },
+    {
+      "draws": [
+        "E3590",
+        "E319",
+        "E3776",
+        "E779",
+        "E3590",
+        "E3776",
+        "E4256",
+        "E779",
+        "E2321",
+        "E1748",
+        "E1748",
+        "E3590"
+      ],
+      "tree": {
+        "stats": {
+          "n": 12,
+          "auto": 7,
+          "review": 5,
+          "mean": null,
+          "score": 0.48611111111111105,
+          "prediction": 0
+        },
+        "split": {
+          "feature": "z",
+          "threshold": 0.1785
+        },
+        "left": {
+          "stats": {
+            "n": 6,
+            "auto": 6,
+            "review": 0,
+            "mean": null,
+            "score": 0,
+            "prediction": 0
+          },
+          "split": null,
+          "left": null,
+          "right": null,
+          "gain": 0
+        },
+        "right": {
+          "stats": {
+            "n": 6,
+            "auto": 1,
+            "review": 5,
+            "mean": null,
+            "score": 0.27777777777777773,
+            "prediction": 1
+          },
+          "split": {
+            "feature": "z",
+            "threshold": 0.3355
+          },
+          "left": {
+            "stats": {
+              "n": 2,
+              "auto": 1,
+              "review": 1,
+              "mean": null,
+              "score": 0.5,
+              "prediction": 0
+            },
+            "split": null,
+            "left": null,
+            "right": null,
+            "gain": 0
+          },
+          "right": {
+            "stats": {
+              "n": 4,
+              "auto": 0,
+              "review": 4,
+              "mean": null,
+              "score": 0,
+              "prediction": 1
+            },
+            "split": null,
+            "left": null,
+            "right": null,
+            "gain": 0
+          },
+          "gain": 0.11111111111111108
+        },
+        "gain": 0.3472222222222222
+      },
+      "spamProbability": 1,
+      "prediction": 1
+    },
+    {
+      "draws": [
+        "E1748",
+        "E319",
+        "E3383",
+        "E2321",
+        "E1153",
+        "E1748",
+        "E3776",
+        "E1748",
+        "E1375",
+        "E1375",
+        "E3383",
+        "E4256"
+      ],
+      "tree": {
+        "stats": {
+          "n": 12,
+          "auto": 5,
+          "review": 7,
+          "mean": null,
+          "score": 0.4861111111111111,
+          "prediction": 1
+        },
+        "split": {
+          "feature": "z",
+          "threshold": 0.16949999999999998
+        },
+        "left": {
+          "stats": {
+            "n": 4,
+            "auto": 4,
+            "review": 0,
+            "mean": null,
+            "score": 0,
+            "prediction": 0
+          },
+          "split": null,
+          "left": null,
+          "right": null,
+          "gain": 0
+        },
+        "right": {
+          "stats": {
+            "n": 8,
+            "auto": 1,
+            "review": 7,
+            "mean": null,
+            "score": 0.21875,
+            "prediction": 1
+          },
+          "split": {
+            "feature": "z",
+            "threshold": 0.398
+          },
+          "left": {
+            "stats": {
+              "n": 3,
+              "auto": 1,
+              "review": 2,
+              "mean": null,
+              "score": 0.4444444444444445,
+              "prediction": 1
+            },
+            "split": null,
+            "left": null,
+            "right": null,
+            "gain": 0
+          },
+          "right": {
+            "stats": {
+              "n": 5,
+              "auto": 0,
+              "review": 5,
+              "mean": null,
+              "score": 0,
+              "prediction": 1
+            },
+            "split": null,
+            "left": null,
+            "right": null,
+            "gain": 0
+          },
+          "gain": 0.052083333333333315
+        },
+        "gain": 0.3402777777777778
+      },
+      "spamProbability": 0.6666666666666666,
       "prediction": 1
     }
-  ]
+  ],
+  "perturbationId": "E3383"
 }

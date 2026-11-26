@@ -2701,6 +2701,10 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     return String(Number(value.toFixed(3)));
   }
 
+  function defaultCondition({ feature, threshold }) {
+    return feature.toUpperCase() + (feature === 'y' ? ' = ' : ' ≤ ') + threshold;
+  }
+
   function describeTree(node, path = 'root') {
     if (!node.split) return { node, path, leaves: 1 };
     const yes = describeTree(node.left, path + 'l');
@@ -2710,25 +2714,25 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 
   function drawCard(item, options, branch) {
     const { node, path } = item;
-    const { criterion, selectedPath, traced, interactive, showScore } = options;
+    const { criterion, selectedPath, traced, interactive, showScore,
+      classLabels, sampleNoun, formatCondition } = options;
     const { n, auto, review, score, prediction } = node.stats;
     const root = path === 'root';
     const leaf = !node.split;
     const onPath = traced.has(path);
     const role = root ? (leaf ? 'Root and leaf' : 'Root') : (leaf ? 'Leaf' : 'Decision node');
-    const outcome = prediction === 1 ? 'Review' : 'Auto';
-    const condition = node.split && node.split.feature.toUpperCase() +
-      (node.split.feature === 'y' ? ' = ' : ' ≤ ') + node.split.threshold;
+    const outcome = classLabels[prediction];
+    const condition = node.split && formatCondition(node.split);
     const title = node.split ? condition + '?' : 'Predict ' +
       (criterion === 'mse' ? rounded(prediction) + ' min' : outcome);
     const impurity = criterionNames[criterion] + ' ' + rounded(score) +
       (criterion === 'entropy' ? (score === 1 ? ' bit' : ' bits') : (criterion === 'mse' ? ' min²' : ''));
-    const samples = n + (n === 1 ? ' parcel' : ' parcels');
+    const samples = n + ' ' + sampleNoun + (n === 1 ? '' : 's');
     const classes = ['dt-node', root && 'dt-node--root', leaf && 'dt-node--leaf',
       onPath && 'dt-node--traced'].filter(Boolean).join(' ');
     const tag = interactive ? 'button' : 'div';
     const label = [branch && branch + ' branch', role, title, samples, showScore && impurity,
-      criterion !== 'mse' && auto + ' Auto, ' + review + ' Review',
+      criterion !== 'mse' && auto + ' ' + classLabels[0] + ', ' + review + ' ' + classLabels[1],
       onPath && 'On traced path'].filter(Boolean).join('. ');
     const attrs = interactive
       ? ' type="button" data-node="' + path + '" aria-pressed="' + String(path === selectedPath) +
@@ -2737,8 +2741,8 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
     const mix = criterion === 'mse' ? '' : '<span class="dt-mix" aria-hidden="true">' +
       '<span class="dt-mix-bar" style="--dt-auto:' + (100 * auto / n) + '%"></span>' +
       '<span class="dt-mix-labels"><span><i class="dt-mark" aria-hidden="true"></i>' + auto +
-      ' Auto</span><span><i class="dt-mark dt-mark--review" aria-hidden="true"></i>' + review +
-      ' Review</span></span></span>';
+      ' ' + escapeHtml(classLabels[0]) + '</span><span><i class="dt-mark dt-mark--review" aria-hidden="true"></i>' + review +
+      ' ' + escapeHtml(classLabels[1]) + '</span></span></span>';
     return '<' + tag + ' class="' + classes + '"' + attrs + '>' +
       '<span class="dt-node-top"><span class="dt-node-role">' + role +
       '</span><span class="dt-node-samples">' + samples + '</span></span>' +
@@ -2769,9 +2773,11 @@ print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
 
   function render(tree, {
     criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true, showScore = true,
+    classLabels = ['Auto', 'Review'], sampleNoun = 'parcel', formatCondition = defaultCondition,
   } = {}) {
     const item = describeTree(tree);
-    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive, showScore };
+    const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive, showScore,
+      classLabels, sampleNoun, formatCondition };
     return '<div class="dt-viewport"><div class="dt-graph' +
       (item.leaves > 4 ? ' dt-graph--dense' : '') +
       '" role="group" aria-label="Decision tree diagram">' +
