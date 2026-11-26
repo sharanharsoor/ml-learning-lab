@@ -176,7 +176,19 @@
             </div>
           </section>
           <details class="teaching-note"><summary>Where did the cutoffs come from?</summary><div id="bag-cutoff-origin"></div><p>The tree compares possible cuts by how well they separate the recorded labels. A new draw changes which values and labels are available at each node.</p></details>
-          <details class="teaching-note"><summary>How does stacking get training examples?</summary><p>Set aside some labeled emails, train the first models on the rest, then have them predict the set-aside emails. Train the second model on those predictions and recorded labels. Rotating the set-aside group gives more examples. These are called <strong>out-of-fold predictions</strong>.</p></details>
+          <details class="teaching-note bag-oof"><summary>How does stacking get training examples?</summary>
+            <p>Picture the 12 past emails divided into three groups of four. Each group is a <strong>fold</strong>. In each round, both base models train on two folds and predict for the third.</p>
+            <div class="segmented bag-oof-controls" id="bag-oof-rounds" role="group" aria-label="Choose which fold to hold out">
+              <button type="button" data-fold="A" aria-pressed="true" aria-controls="bag-oof-round">Hold out A</button>
+              <button type="button" data-fold="B" aria-pressed="false" aria-controls="bag-oof-round">Hold out B</button>
+              <button type="button" data-fold="C" aria-pressed="false" aria-controls="bag-oof-round">Hold out C</button>
+            </div>
+            <div id="bag-oof-round" aria-live="polite"></div>
+            <div class="bag-worked">
+              <p><strong>After all three rounds, train the combiner.</strong> Pool the score rows from A, B, and C. You now have 12 rows, each with the decision tree’s score, the logistic model’s score, and the email’s ground-truth label.</p>
+              <p>These are <strong>out-of-fold predictions</strong> because each email’s scores come from models trained on the other folds. The final test set stays separate.</p>
+            </div>
+          </details>
           <p class="bag-quiz-cue">Quiz 1</p>
           <p class="transition">Let’s build Bagging. Both trees started from the same 12 labeled emails. How did they get different training samples?</p>
           <div class="bag-actions"><a href="#bootstrap" class="button primary">Draw a training sample</a></div>

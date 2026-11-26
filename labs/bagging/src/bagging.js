@@ -224,6 +224,26 @@
     paint(false);
   }
 
+  function setupStackingFolds() {
+    const controls = [...get('oof-rounds').querySelectorAll('button')];
+    const folds = controls.map(control => control.dataset.fold);
+    const round = get('oof-round');
+    function paint(heldOut) {
+      const training = folds.filter(fold => fold !== heldOut).join(' and ');
+      controls.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.fold === heldOut)));
+      round.innerHTML = '<div class="bag-oof-folds">' + folds.map(fold =>
+        `<div class="bag-oof-fold${fold === heldOut ? ' is-held-out' : ''}"><strong>Fold ${fold}</strong>` +
+        `<span>${fold === heldOut ? 'Hold out' : 'Use for fitting'}</span><small>4 emails</small></div>`).join('') +
+        `</div><ol class="bag-steps bag-oof-steps">
+          <li><strong>Fit both base models.</strong> Train the decision tree and logistic model on folds ${training}.</li>
+          <li><strong>Predict fold ${heldOut}.</strong> Each model gives a spam score for each of those four emails.</li>
+          <li><strong>Save one row per email.</strong> Keep its two spam scores and ground-truth label together.</li>
+        </ol>`;
+    }
+    controls.forEach(control => control.addEventListener('click', () => paint(control.dataset.fold)));
+    paint(folds[0]);
+  }
+
   function setupBootstrap() {
     const selector = get('sample');
     const nextDraw = get('draw');
@@ -553,6 +573,7 @@
   setupNavigation();
   setupRule();
   setupHook();
+  setupStackingFolds();
   setupBootstrap();
   setupForest();
   setupFeatures();

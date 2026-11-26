@@ -811,6 +811,27 @@ button.dt-node:focus-visible {
 .bag-method-join > div::after { top: 100%; }
 .bag-method-arrow { align-self: center; justify-self: center; color: var(--bag-method-line); font-weight: 700; line-height: 1; }
 .bag-method-flow figcaption { margin-block-start: .55rem; color: var(--muted); font-size: .9rem; line-height: 1.4; }
+.bag-oof-controls { margin-block: .65rem; max-width: 100%; flex-wrap: wrap; }
+.bag-oof-folds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .55rem;
+}
+.bag-oof-fold {
+  display: grid;
+  justify-items: center;
+  gap: .1rem;
+  padding: .55rem .3rem;
+  border: 1px solid #bbd5ca;
+  border-radius: .45rem;
+  background: var(--light);
+  text-align: center;
+  line-height: 1.3;
+}
+.bag-oof-fold.is-held-out { border-color: #cfc3df; background: #ece6f4; color: var(--forest-focus); }
+.bag-oof-fold small { color: var(--muted); }
+.bag-oof-steps { margin-bottom: .7rem; }
+.bag-oof .bag-worked p + p { margin-top: .4rem; }
 .bag-say {
   margin-block: 1.3rem;
   padding: .75rem 1rem;
@@ -1348,7 +1369,19 @@ button.dt-node:focus-visible {
             </div>
           </section>
           <details class="teaching-note"><summary>Where did the cutoffs come from?</summary><div id="bag-cutoff-origin"></div><p>The tree compares possible cuts by how well they separate the recorded labels. A new draw changes which values and labels are available at each node.</p></details>
-          <details class="teaching-note"><summary>How does stacking get training examples?</summary><p>Set aside some labeled emails, train the first models on the rest, then have them predict the set-aside emails. Train the second model on those predictions and recorded labels. Rotating the set-aside group gives more examples. These are called <strong>out-of-fold predictions</strong>.</p></details>
+          <details class="teaching-note bag-oof"><summary>How does stacking get training examples?</summary>
+            <p>Picture the 12 past emails divided into three groups of four. Each group is a <strong>fold</strong>. In each round, both base models train on two folds and predict for the third.</p>
+            <div class="segmented bag-oof-controls" id="bag-oof-rounds" role="group" aria-label="Choose which fold to hold out">
+              <button type="button" data-fold="A" aria-pressed="true" aria-controls="bag-oof-round">Hold out A</button>
+              <button type="button" data-fold="B" aria-pressed="false" aria-controls="bag-oof-round">Hold out B</button>
+              <button type="button" data-fold="C" aria-pressed="false" aria-controls="bag-oof-round">Hold out C</button>
+            </div>
+            <div id="bag-oof-round" aria-live="polite"></div>
+            <div class="bag-worked">
+              <p><strong>After all three rounds, train the combiner.</strong> Pool the score rows from A, B, and C. You now have 12 rows, each with the decision tree’s score, the logistic model’s score, and the email’s ground-truth label.</p>
+              <p>These are <strong>out-of-fold predictions</strong> because each email’s scores come from models trained on the other folds. The final test set stays separate.</p>
+            </div>
+          </details>
           <p class="bag-quiz-cue">Quiz 1</p>
           <p class="transition">Let’s build Bagging. Both trees started from the same 12 labeled emails. How did they get different training samples?</p>
           <div class="bag-actions"><a href="#bootstrap" class="button primary">Draw a training sample</a></div>
@@ -2303,6 +2336,26 @@ test_predictions = forest.predict(X_test)</code></pre>
     paint(false);
   }
 
+  function setupStackingFolds() {
+    const controls = [...get('oof-rounds').querySelectorAll('button')];
+    const folds = controls.map(control => control.dataset.fold);
+    const round = get('oof-round');
+    function paint(heldOut) {
+      const training = folds.filter(fold => fold !== heldOut).join(' and ');
+      controls.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.fold === heldOut)));
+      round.innerHTML = '<div class="bag-oof-folds">' + folds.map(fold =>
+        `<div class="bag-oof-fold${fold === heldOut ? ' is-held-out' : ''}"><strong>Fold ${fold}</strong>` +
+        `<span>${fold === heldOut ? 'Hold out' : 'Use for fitting'}</span><small>4 emails</small></div>`).join('') +
+        `</div><ol class="bag-steps bag-oof-steps">
+          <li><strong>Fit both base models.</strong> Train the decision tree and logistic model on folds ${training}.</li>
+          <li><strong>Predict fold ${heldOut}.</strong> Each model gives a spam score for each of those four emails.</li>
+          <li><strong>Save one row per email.</strong> Keep its two spam scores and ground-truth label together.</li>
+        </ol>`;
+    }
+    controls.forEach(control => control.addEventListener('click', () => paint(control.dataset.fold)));
+    paint(folds[0]);
+  }
+
   function setupBootstrap() {
     const selector = get('sample');
     const nextDraw = get('draw');
@@ -2632,6 +2685,7 @@ test_predictions = forest.predict(X_test)</code></pre>
   setupNavigation();
   setupRule();
   setupHook();
+  setupStackingFolds();
   setupBootstrap();
   setupForest();
   setupFeatures();
