@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 SOURCE = Path(__file__).resolve().parents[1] / "src"
+FAVICON = SOURCE.parents[2] / "site/assets/favicon.png"
 PARTS = {
     "{{CSS}}": "lesson.css",
     "{{COURSE_CSS}}": "course.css",
@@ -44,6 +45,8 @@ def main():
     args = parser.parse_args()
 
     page = (SOURCE / "index.html").read_text(encoding="utf-8")
+    favicon = base64.b64encode(FAVICON.read_bytes()).decode("ascii")
+    page = page.replace("{{FAVICON}}", favicon, 1)
     for marker, filename in PARTS.items():
         if page.count(marker) != 1:
             raise SystemExit(f"Expected one occurrence of {marker} in index.html")

@@ -10,6 +10,7 @@ from export_demo import render_demo
 
 LAB = Path(__file__).resolve().parents[1]
 SOURCE = LAB / "src"
+FAVICON = LAB.parents[1] / "site/assets/favicon.png"
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--output", type=Path, default=LAB.parents[1] / "docs" / LAB.name / "index.html")
 parser.add_argument("--check", action="store_true")
@@ -22,7 +23,8 @@ if args.check:
         raise SystemExit("Generated Python script is out of date")
 else:
     script_path.write_text(expected_script)
-template = (SOURCE / "studio.html").read_text()
+favicon = base64.b64encode(FAVICON.read_bytes()).decode("ascii")
+template = (SOURCE / "studio.html").read_text().replace("{{FAVICON}}", favicon, 1)
 guide = (SOURCE / "guide.html").read_text()
 toc = '''<nav class="guide-toc" aria-label="Learning guide contents"><strong>Learning reference</strong>
 <a href="#guide-tools">Using the tools</a><a href="#guide-data">Data and labels</a>

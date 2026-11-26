@@ -9,6 +9,7 @@ from pathlib import Path
 LABS = Path(__file__).resolve().parents[2]
 SOURCE = LABS / "bagging" / "src"
 TREE = LABS / "decision-trees" / "src"
+FAVICON = LABS.parent / "site/assets/favicon.png"
 
 
 def build():
@@ -19,6 +20,7 @@ def build():
         "LAB_JS": [SOURCE / "bagging.js", SOURCE / "later.js", SOURCE / "tuning.js"],
     }
     replacements = {key: "\n".join(path.read_text() for path in paths) for key, paths in parts.items()}
+    replacements["FAVICON"] = base64.b64encode(FAVICON.read_bytes()).decode("ascii")
     for marker, filename in {"DATA": "intuition-data.json", "TUNING_DATA": "tuning-data.json"}.items():
         data = json.loads((SOURCE / filename).read_text())
         replacements[marker] = json.dumps(data, separators=(",", ":")).replace("<", "\\u003c")
