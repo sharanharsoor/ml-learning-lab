@@ -23,6 +23,7 @@
     });
     const letters = 'ABCDE';
     const reveal = byId('bagl-next-batch');
+    byId('bagl-flow-measurements').textContent = `${email.id} · Dollar signs ${frequency(email.x)} · Exclamation marks ${frequency(email.z)}`;
     byId('bagl-spread-example').textContent = `Track ${email.id} at ${frequency(email.x)} dollar signs and ${frequency(email.z)} exclamation marks. Each row shows two fitted estimates for this same email. A fixed random seed repeats the draws. Reveal another batch to compare the estimates.`;
     let visible = 1;
 

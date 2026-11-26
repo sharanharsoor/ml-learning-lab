@@ -1043,6 +1043,32 @@ button.dt-node:focus-visible {
 .bag-later .bagl-heading p { margin-top: .25rem; }
 .bag-later .bagl-heading .button { flex: none; }
 
+.bag-later .bagl-spread-flow { margin: 1rem 0 1.3rem; }
+.bag-later .bagl-spread-flow figcaption {
+  margin-bottom: .5rem;
+  color: var(--ink);
+  font-weight: 750;
+}
+.bag-later .bagl-spread-flow .bag-method-board { padding: clamp(.65rem, 2.4vw, 1.35rem); }
+.bag-later .bagl-spread-flow .bag-method-node {
+  padding: .58rem .68rem;
+  font-size: 1rem;
+}
+.bag-later .bagl-spread-flow .bagl-flow-email { margin-bottom: 1rem; font-weight: 500; }
+.bag-later .bagl-flow-path {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  align-items: stretch;
+  min-width: 0;
+}
+.bag-later .bagl-flow-path .bag-method-arrow { margin-block: .24rem; }
+.bag-later .bagl-flow-series {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+}
+
 .bag-later .bagl-spread { margin: 0; }
 .bag-later .bagl-spread figcaption { margin-bottom: .5rem; }
 .bag-later .bagl-symbol {
@@ -1534,13 +1560,44 @@ tree.predict(email)</code></pre>
   <p class="eyebrow">Variance</p>
   <h2 id="variance-title">Why averaging steadies a prediction</h2>
   <p class="lede">The first two trees disagreed on the same email. Their training draws changed, while the email’s dollar-sign and exclamation-mark frequencies stayed fixed. Now repeat the experiment to see how much the prediction moves.</p>
-  <p><strong>Model variance</strong> measures how spread out predictions for one fixed input are across training samples. A single tree can change its first question when its training rows change. Bagging averages the Spam estimates of several trees trained from the same batch.</p>
+  <p><strong>Model variance</strong> measures how much the prediction for the same email varies when we change the training sample.</p>
 
-  <ol class="bag-steps">
-    <li><strong>Keep the email fixed.</strong> Use the same held-out email you already traced. Its features stay fixed and its label stays out of training.</li>
-    <li><strong>Refit both models.</strong> For each batch, draw 12 rows with replacement from the teaching pool. Fit one depth-two tree directly on the batch. Then fit 25 depth-two trees on separate bootstrap samples of that batch.</li>
-    <li><strong>Compare the spread.</strong> Track the single tree’s Spam estimate and the bagged average across these batches.</li>
-  </ol>
+  <figure class="bagl-spread-flow" aria-labelledby="bagl-spread-flow-title">
+    <figcaption id="bagl-spread-flow-title">How one training batch produces two Spam scores</figcaption>
+    <div class="bag-method-board">
+      <div class="bag-method-node bag-method-input bagl-flow-email">
+        <strong>Same email in both paths</strong>
+        <span id="bagl-flow-measurements"></span>
+        <span>Held out of training</span>
+      </div>
+      <div class="bag-method-node">
+        <strong>Draw one training batch</strong>
+        <span>Draw 12 rows with replacement from the teaching pool.</span>
+      </div>
+      <div class="bag-method-branches bag-method-fork bag-method-join">
+        <div class="bagl-flow-path">
+          <div class="bag-method-node"><strong>Fit 1 depth-2 tree</strong><span>Train directly on those 12 draws.</span></div>
+          <span class="bag-method-arrow" aria-hidden="true">↓</span>
+          <div class="bag-method-node bag-method-forward">
+            <strong class="bagl-flow-series"><i class="bagl-symbol bagl-symbol-single" aria-hidden="true"></i> Single tree</strong>
+            <span>Take the tree’s Spam score for E574.</span>
+          </div>
+        </div>
+        <div class="bagl-flow-path">
+          <div class="bag-method-node"><strong>Fit 25 depth-2 trees</strong><span>For each tree, draw 12 rows with replacement from this batch.</span></div>
+          <span class="bag-method-arrow" aria-hidden="true">↓</span>
+          <div class="bag-method-node bag-method-result">
+            <strong class="bagl-flow-series"><i class="bagl-symbol bagl-symbol-bagged" aria-hidden="true"></i> Bagged trees</strong>
+            <span>Average the 25 Spam scores for E574.</span>
+          </div>
+        </div>
+      </div>
+      <div class="bag-method-node">
+        <strong>Repeat for batches A through E</strong>
+        <span>Compare the spread of the five single-tree scores and the five bagged averages.</span>
+      </div>
+    </div>
+  </figure>
 
   <div class="panel">
     <h3>What changes if one training label changes?</h3>
@@ -2724,6 +2781,7 @@ test_predictions = forest.predict(X_test)</code></pre>
     });
     const letters = 'ABCDE';
     const reveal = byId('bagl-next-batch');
+    byId('bagl-flow-measurements').textContent = `${email.id} · Dollar signs ${frequency(email.x)} · Exclamation marks ${frequency(email.z)}`;
     byId('bagl-spread-example').textContent = `Track ${email.id} at ${frequency(email.x)} dollar signs and ${frequency(email.z)} exclamation marks. Each row shows two fitted estimates for this same email. A fixed random seed repeats the draws. Reveal another batch to compare the estimates.`;
     let visible = 1;
 

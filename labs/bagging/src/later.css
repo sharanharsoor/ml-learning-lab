@@ -8,6 +8,32 @@
 .bag-later .bagl-heading p { margin-top: .25rem; }
 .bag-later .bagl-heading .button { flex: none; }
 
+.bag-later .bagl-spread-flow { margin: 1rem 0 1.3rem; }
+.bag-later .bagl-spread-flow figcaption {
+  margin-bottom: .5rem;
+  color: var(--ink);
+  font-weight: 750;
+}
+.bag-later .bagl-spread-flow .bag-method-board { padding: clamp(.65rem, 2.4vw, 1.35rem); }
+.bag-later .bagl-spread-flow .bag-method-node {
+  padding: .58rem .68rem;
+  font-size: 1rem;
+}
+.bag-later .bagl-spread-flow .bagl-flow-email { margin-bottom: 1rem; font-weight: 500; }
+.bag-later .bagl-flow-path {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  align-items: stretch;
+  min-width: 0;
+}
+.bag-later .bagl-flow-path .bag-method-arrow { margin-block: .24rem; }
+.bag-later .bagl-flow-series {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+}
+
 .bag-later .bagl-spread { margin: 0; }
 .bag-later .bagl-spread figcaption { margin-bottom: .5rem; }
 .bag-later .bagl-symbol {
