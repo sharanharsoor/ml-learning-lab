@@ -67,8 +67,16 @@
         <details class="teaching-note bag-desk-rules">
           <summary>What counts as unusual?</summary>
           <p>In this example, a person checks the parcel if the barcode still won’t scan after a retry or it weighs over 1 kg more than the shipping label says. For example, a 5.2 kg parcel labeled 4 kg goes to Review, even if its barcode scans.</p>
-          <p>Our training table keeps the measured weight, a scanner warning score from 0 to 10, and the route taken. Higher scores mean stronger warnings. The desk staff can also see the barcode flag and shipping-label weight. The trees use just the measured weight and scan score.</p>
-          <p>Look at scan score alone. P5 scored <strong>7.0</strong> and went to <strong>Review</strong>. P3 scored <strong>7.8</strong> and went to <strong>Auto</strong>. A rule that reviews everything above one score would send P3 to Review whenever it sends P5 there. Each tree works from the examples it sees and can split on either input.</p>
+          <p>Here are two parcels from the training table. The scan score measures the strength of the scanner’s warning on a scale from 0 to 10. The recorded route is what the staff decided at the time.</p>
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">Two past parcels and their recorded routes</caption>
+              <thead><tr><th scope="col">Parcel</th><th scope="col">Measured weight</th><th scope="col">Scan score</th><th scope="col">Recorded route</th></tr></thead>
+              <tbody id="bag-desk-examples"></tbody>
+            </table>
+          </div>
+          <p>P3 had the stronger scan warning and still went to Auto. If we sent every parcel above one scan-score cutoff to Review, any cutoff that sends P5 to Review would also send P3 there. A tree can use measured weight as well as scan score to learn a better rule.</p>
+          <p class="small">Staff also see the barcode retry result and shipping-label weight. Those values are absent from the training rows, so the recorded routes show what happened. The exact check that sent P5 to Review is unknown.</p>
         </details>
       </div>
 

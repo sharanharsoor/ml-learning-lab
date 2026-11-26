@@ -145,6 +145,11 @@
     get('back-desk').addEventListener('click', () => showStage(false));
     const measurements = 'Weight ' + parcel.x + ' kg · Scan score ' + parcel.z + '/10';
     get('desk-parcel').textContent = measurements;
+    get('desk-examples').innerHTML = ['P5', 'P3'].map(id => {
+      const { x, z, label } = rowMap.get(id);
+      return `<tr><th scope="row">${id}</th><td>${x.toFixed(1)} kg</td><td>${z.toFixed(1)} / 10</td>
+        <td><span class="bag-badge ${tone(label)}">${route(label)}</span></td></tr>`;
+    }).join('');
     get('parcel').textContent = 'New parcel · ' + measurements;
     function paint(shown) {
       get('hook-plots').innerHTML = samples.slice(0, 2).map((sample, i) => '<figure class="bag-plot-card"><figcaption><strong>Tree ' +
