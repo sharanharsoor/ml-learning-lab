@@ -48,7 +48,8 @@
       <div id="bag-desk-stage">
         <p class="eyebrow">Bagging &amp; Random Forests</p>
         <h1 id="bag-title" tabindex="-1">Would you send this to spam?</h1>
-        <p class="bag-desk-intro">“Your invoice is ready. Total due $80.” A dollar sign tells us the message mentions money. We still need to decide whether it belongs in the inbox or the spam folder.</p>
+        <p class="bag-desk-intro">“Your invoice is ready. Total due $80.” Would you classify it as Spam just because it contains a dollar sign?</p>
+        <button id="bag-jump-trees" class="button secondary bag-jump-trees" type="button" aria-controls="bag-model-stage">Jump to the two trees</button>
         <figure class="bag-desk">
           <img src="{{EMAIL_DESK_IMAGE}}" width="1450" height="816" alt="An incoming email can go to the inbox or the spam folder.">
           <figcaption class="bag-desk-routes">
@@ -60,53 +61,46 @@
 
         <div class="bag-rule-panel">
           <h2>Test a one-clue rule against labeled examples</h2>
-          <p>Suppose the filter sends every email containing a dollar sign to spam. What would happen to an invoice? What about an unwanted message that says “CLAIM YOUR PRIZE!!!”? These are made-up snippets. The rule below is checked against actual measurements and labels from Spambase.</p>
+          <p>Try this rule. Send any email containing <strong>$</strong> to Spam. The invoice above is made up. The two emails below are actual records with labels we can check.</p>
           <div class="bag-actions">
             <button class="button secondary" id="bag-test-rule" type="button" aria-expanded="false" aria-controls="bag-rule-result">Test the dollar-sign rule</button>
           </div>
           <div id="bag-rule-result" hidden>
+            <p class="small">Each percentage is the share of the email’s characters that match the symbol.</p>
             <div class="table-wrap">
               <table>
                 <caption class="sr-only">Spambase records and predictions from a dollar-sign-only rule</caption>
-                <thead><tr><th scope="col">Email</th><th scope="col">$ frequency</th><th scope="col">! frequency</th><th scope="col">Recorded label</th><th scope="col">Rule predicts</th></tr></thead>
+                <thead><tr><th scope="col">Email</th><th scope="col">Dollar signs (%)</th><th scope="col">Exclamation marks (%)</th><th scope="col">Recorded label</th><th scope="col">Rule predicts</th></tr></thead>
                 <tbody id="bag-desk-examples"></tbody>
               </table>
             </div>
             <p id="bag-rule-takeaway" class="bag-worked"></p>
           </div>
+          <p class="bag-rule-bridge"><strong>A decision tree also follows rules.</strong> During training, it learns which questions to ask, where to put the cutoffs, and when a follow-up question helps separate the recorded labels.</p>
         </div>
 
         <div class="bag-input-panel">
-          <h2>What can the trees learn from past emails?</h2>
-          <p>Spambase contains measurements for 4,601 emails with recorded spam or non-spam labels. Its collectors obtained spam from filed reports and legitimate examples from work and personal mail. We select <strong>12 labeled rows</strong> and two features for the opening demonstration. The original email text is unavailable. An ID such as <code>E100</code> means row 100 in the UCI file.</p>
-          <div class="bag-model-readings" role="group" aria-label="The two input measurements for our held-out email">
-            <div><h3>Dollar signs · <span id="bag-model-dollar"></span></h3><p>The percentage of characters that are dollar signs. One dollar sign in 1,000 characters would give 0.1%.</p></div>
-            <div><h3>Exclamation marks · <span id="bag-model-exclaim"></span></h3><p>The percentage of characters that are exclamation marks. Both trees get these same two values for email <strong id="bag-model-id"></strong>.</p></div>
+          <h2>One email to classify</h2>
+          <p>We train on samples from <strong>12 past emails</strong> with recorded labels. Both trees get a separate email, <strong id="bag-model-id"></strong>, with the same two measurements, or <strong>features</strong>. We keep its label hidden while they predict Legitimate or Spam.</p>
+          <div class="bag-model-readings" role="group" aria-label="Two measurements of the same held-out email">
+            <div><h3>Dollar signs ($) · <span id="bag-model-dollar"></span></h3><p>Count the <strong>$</strong> characters, divide by the total characters, and multiply by 100. One $ in 1,000 characters gives 0.1%.</p></div>
+            <div><h3>Exclamation marks (!) · <span id="bag-model-exclaim"></span></h3><p>Count the <strong>!</strong> characters the same way. For example, 3 exclamation marks in 800 characters gives 3 ÷ 800 × 100 = 0.375%.</p></div>
           </div>
-          <p>The <strong>features</strong> are the two measurements. The <strong>target</strong> is the recorded class, <strong>Legitimate</strong> or <strong>Spam</strong>. We keep this email out of all three training samples and hide its recorded label while the models predict.</p>
-          <p class="small">Source data from Hopkins, Reeber, Forman and Suermondt, <a href="https://doi.org/10.24432/C53G6X">UCI Spambase</a>. The selected rows make the mechanics visible. Later we evaluate the models on a separate test set from the full data.</p>
-          <details class="teaching-note"><summary>How did a published spam tree combine clues?</summary><p>The published tree first split on dollar-sign frequency. In the branch with more dollar signs, it checked how often <code>hp</code> appeared. Frequent <code>hp</code> sent the email to Legitimate in that branch, a pattern specific to its workplace data. Our two-feature demo uses the same principle and lets you follow every training row. <a href="https://web.math.ku.dk/~richard/courses/stat_learn/allpdf/figures9.pdf">Published spam tree, Figure 9.5</a></p></details>
-          <div class="bag-desk-actions">
-            <p>Two trees have learned from different draws of those 12 rows. Give them the same measurements and compare their answers.</p>
-            <button id="bag-meet-trees" class="button primary" type="button" aria-controls="bag-model-stage">Meet the two trees</button>
-          </div>
+          <p class="small">The 3-in-800 calculation is an illustration. The dataset supplies measured percentages and labels for 4,601 emails. An ID such as E574 identifies the row in the data file. <a href="https://doi.org/10.24432/C53G6X">UCI Spambase</a></p>
         </div>
       </div>
 
-      <div id="bag-model-stage" hidden>
-        <p class="eyebrow">Ensemble intuition</p>
-        <h2 id="bag-model-title" class="bag-stage-title" tabindex="-1">Same email, two predictions</h2>
-        <p class="lede">Each tree learned its own cutoffs from the emails in its training sample. Here both trees receive the same two measurements for the held-out email.</p>
-        <div class="panel bag-hook">
-          <div class="panel-heading"><p id="bag-email"></p><div class="bag-legend"><span class="bag-mark auto">● Legitimate</span><span class="bag-mark review">◆ Spam</span><span>⊕ Held-out email</span></div></div>
-          <p class="small">Each plot shows the same 12 labeled emails. A filled mark means this tree drew the row for training. An outline means its sample missed that row. Repeated copies share one point. Shading shows the class predicted in each region after you reveal the answers.</p>
-          <div class="bag-pair" id="bag-hook-plots"></div>
-          <p id="bag-hook-result" class="bag-hook-result" aria-live="polite">Can you find the held-out email on both plots?</p>
+      <div id="bag-model-stage" class="bag-opening-models">
+        <div class="panel">
+          <h2 id="bag-model-title" tabindex="-1">Two trees classify the same email</h2>
+          <p>Each tree learned from a different sample of the 12 past emails. Now start at each tree’s top question and follow Yes or No using the same measurements.</p>
+          <p class="bag-opening-email" id="bag-email"></p>
+          <div class="bag-pair bag-opening-trees" id="bag-hook-trees"></div>
           <div class="bag-actions">
-            <button id="bag-hook-reveal" class="button primary" type="button" aria-controls="bag-hook-plots bag-ensemble-takeaway" aria-pressed="false">Show the two predictions</button>
-            <button id="bag-back-desk" class="button secondary" type="button" aria-controls="bag-desk-stage">Back to the inbox</button>
+            <button id="bag-hook-reveal" class="button primary" type="button" aria-controls="bag-hook-trees bag-hook-plots bag-ensemble-takeaway" aria-pressed="false">Trace the email through both trees</button>
           </div>
-          <details class="teaching-note"><summary>How to read the plots</summary><p>Read dollar-sign frequency along the horizontal axis and exclamation-mark frequency up the vertical axis. The plus sign marks the same held-out email in both plots. A vertical cut asks about dollar signs. A horizontal cut asks about exclamation marks.</p></details>
+          <p id="bag-hook-result" class="bag-hook-result" aria-live="polite"></p>
+          <details class="teaching-note"><summary>See the same tree cutoffs on a plot</summary><div class="bag-legend"><span class="bag-mark auto">● Legitimate</span><span class="bag-mark review">◆ Spam</span><span>⊕ Held-out email</span></div><p class="small">Filled marks are past emails drawn by that tree. Outlined marks are past emails it missed. A vertical cut asks about dollar signs. A horizontal cut asks about exclamation marks.</p><div class="bag-pair" id="bag-hook-plots"></div></details>
         </div>
         <div id="bag-ensemble-takeaway" hidden>
           <div id="bag-opening-paths" class="bag-worked"></div>
@@ -224,7 +218,7 @@ tree.predict(email)</code></pre>
         <figcaption>A row describes one whole email. A feature is one column, such as dollar-sign or exclamation-mark frequency.</figcaption>
       </figure>
       <ol class="bag-steps">
-        <li><strong>Which emails does this tree learn from?</strong> The bootstrap draw picks rows for the whole tree. A repeated email contributes its class twice.</li>
+        <li><strong>Which emails does this tree learn from?</strong> The bootstrap draw picks rows for the whole tree. Each copy of a row adds one count to its class.</li>
         <li><strong>Which features can this node use?</strong> A feature draw chooses candidate columns. The draw at the next node is fresh.</li>
         <li><strong>What is the best available split?</strong> Among its candidates, the tree picks the question that most reduces weighted Gini impurity for the rows at that node.</li>
       </ol>
@@ -331,6 +325,7 @@ test_predictions = forest.predict(X_test)</code></pre>
         <details class="teaching-note"><summary>Read the worked notebook results</summary><div id="bag-benchmark"></div>
           <p class="small">On a separate historical test split, the textbook reported error rates of 9.3% for one pruned tree, 5.4% for bagging and 4.88% for a random forest. The table above reports this notebook’s own test accuracy and balanced accuracy. <a href="https://course.ccs.neu.edu/ds4420sp20/readings/ESLII.pdf">Published results, Table 9.3 and Figure 15.1</a></p>
         </details>
+        <details class="teaching-note"><summary>What clues did the textbook spam tree learn?</summary><p>Hastie, Tibshirani, and Friedman’s textbook shows a separate tree trained on Spambase. After a dollar-sign split, one branch checks the word <code>hp</code>. Here HP means Hewlett-Packard, the workplace that supplied some of the legitimate email. In this dataset, frequent mentions of HP helped that branch identify company mail. Our opening trees use only dollar signs and exclamation marks. <a href="https://web.math.ku.dk/~richard/courses/stat_learn/allpdf/figures9.pdf">The Elements of Statistical Learning, Figure 9.5</a></p></details>
         <details class="teaching-note"><summary>Read the per-class report</summary>
           <p>Rows are the recorded classes of the held-out emails. Columns are the tuned forest’s predictions. A false positive sends legitimate mail to Spam. A false negative lets spam through.</p>
           <div id="bag-test-report"></div>

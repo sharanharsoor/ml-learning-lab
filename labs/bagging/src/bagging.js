@@ -19,9 +19,9 @@
   const emailTableRows = (records, predict) => records.map(({ id, x, z, label }) =>
     `<tr><th scope="row">${id}</th><td>${frequency(x)}</td><td>${frequency(z)}</td>
       <td>${badge(label)}</td>${predict ? '<td>' + badge(Number(x > 0)) + '</td>' : ''}</tr>`).join('');
-  const treeMarkup = (tree, tracedPaths) => TreeLabDiagram.render(tree,
+  const treeMarkup = (tree, tracedPaths, formatCondition = question) => TreeLabDiagram.render(tree,
     { criterion: 'gini', tracedPaths, interactive: false, showScore: false,
-      classLabels, sampleNoun: 'draw', formatCondition: question });
+      classLabels, sampleNoun: 'draw', formatCondition });
   const traces = samples.map(({ tree }) => TreeLab.trace(tree, email));
   const probabilities = traces.map(({ leaf }) => leaf.review / leaf.n);
   const drawCounts = ids => {
@@ -86,20 +86,16 @@
 
     function jump(index) {
       if (index < 0 || index >= chapters.length || index === active) return;
-      history.pushState(null, '', '#' + chapters[index].id);
+      const hash = '#' + chapters[index].id;
+      if (location.protocol === 'file:') location.hash = hash;
+      else history.pushState(null, '', hash);
       goTo(index);
     }
 
     const hashIndex = () => chapters.findIndex(chapter => '#' + chapter.id === location.hash);
     menu.addEventListener('change', () => jump(chapters.findIndex(chapter => chapter.id === menu.value)));
-    previous.addEventListener('click', () => {
-      if (chapters[active].id === 'ensemble' && !get('model-stage').hidden) get('back-desk').click();
-      else jump(active - 1);
-    });
-    next.addEventListener('click', () => {
-      if (chapters[active].id === 'ensemble' && get('model-stage').hidden) get('meet-trees').click();
-      else jump(active + 1);
-    });
+    previous.addEventListener('click', () => jump(active - 1));
+    next.addEventListener('click', () => jump(active + 1));
     links.forEach((link, i) => link.addEventListener('click', event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
@@ -165,13 +161,12 @@
   function setupRule() {
     const control = get('test-rule');
     const result = get('rule-result');
-    const legit = rows.filter(row => row.label === 0).sort((a, b) => b.x - a.x)[0];
-    const spam = rows.filter(row => row.label === 1).sort((a, b) => a.x - b.x)[0];
+    const legit = rows.find(row => row.label === 0 && row.x > 0);
+    const spam = rows.find(row => row.label === 1 && row.x === 0);
     get('desk-examples').innerHTML = emailTableRows([legit, spam], true);
-    const mismatches = [legit, spam].filter(row => Number(row.x > 0) !== row.label);
-    get('rule-takeaway').textContent = 'The dollar-sign rule misclassifies ' +
-      mismatches.map(row => row.id).join(' and ') + '. The recorded labels let us check that mistake. ' +
-      'A tree can learn to ask a follow-up question, such as how common exclamation marks are.';
+    get('rule-takeaway').textContent = 'This rule flags legitimate email ' + legit.id +
+      ' because it has a dollar sign. It misses spam email ' + spam.id + ' because it has none. ' +
+      'The labels let us spot both errors.';
     control.addEventListener('click', () => {
       const open = result.hidden;
       result.hidden = !open;
@@ -182,20 +177,11 @@
 
   function setupHook() {
     const reveal = get('hook-reveal');
-    const desk = get('desk-stage');
-    const models = get('model-stage');
-    const chapter = desk.closest('.chapter');
-    function showStage(showModels) {
-      desk.hidden = showModels;
-      models.hidden = !showModels;
-      const heading = get(showModels ? 'model-title' : 'title');
-      chapter.setAttribute('aria-labelledby', heading.id);
-      if (!showModels) paint(false);
-      window.scrollTo({ top: 0, behavior: 'instant' });
+    get('jump-trees').addEventListener('click', () => {
+      const heading = get('model-title');
+      heading.scrollIntoView();
       heading.focus({ preventScroll: true });
-    }
-    get('meet-trees').addEventListener('click', () => showStage(true));
-    get('back-desk').addEventListener('click', () => showStage(false));
+    });
     get('model-id').textContent = email.id;
     get('model-dollar').textContent = frequency(email.x);
     get('model-exclaim').textContent = frequency(email.z);
@@ -210,19 +196,23 @@
       return `<p><strong>Tree ${index + 1}</strong> asks about ${featureName[feature].toLowerCase()}. ` +
         `The neighboring values in its tray are ${frequency(below)} and ${frequency(above)}. Their midpoint is ${frequency(threshold)}.</p>`;
     }).join('');
+    const shortQuestion = split => (split.feature === 'x' ? '$' : '!') + ' ≤ ' + frequency(split.threshold);
     function paint(shown) {
+      get('hook-trees').innerHTML = samples.slice(0, 2).map(({ tree }, i) =>
+        `<article class="bag-opening-tree"><h3>Tree ${i + 1}</h3>` +
+        treeMarkup(tree, shown ? traces[i].paths : [], shortQuestion) + '</article>').join('');
       get('hook-plots').innerHTML = samples.slice(0, 2).map((sample, i) => '<figure class="bag-plot-card"><figcaption><strong>Tree ' +
         (i + 1) + '</strong>' + (shown ? '<span class="bag-badge ' + tone(sample.prediction) + '">' +
         labelName(sample.prediction) + '</span>' : '') + '</figcaption>' + scatter(sample, shown) +
         '<p class="bag-plot-question"><strong>First question</strong> ' + question(sample.tree.split) + '?<br>' +
         sample.draws.length + ' draws · ' + new Set(sample.draws).size + ' distinct training emails</p></figure>').join('');
       reveal.setAttribute('aria-pressed', String(shown));
-      reveal.textContent = shown ? 'Hide the two predictions' : 'Show the two predictions';
+      reveal.textContent = shown ? 'Hide the highlighted paths' : 'Trace the email through both trees';
       get('ensemble-takeaway').hidden = !shown;
       get('hook-result').textContent = shown ?
         'Tree 1 says ' + labelName(samples[0].prediction) + '. Tree 2 says ' + labelName(samples[1].prediction) +
         '. How could we combine their answers?' :
-        'Find the held-out email. Which side of each cut does it fall on?';
+        'Can you tell where this email ends in each tree?';
     }
     reveal.addEventListener('click', () => paint(reveal.getAttribute('aria-pressed') === 'false'));
     paint(false);
@@ -429,11 +419,11 @@
       const correct = training.filter(row => TreeLab.predict(tree, row) === row.label).length;
       return { tree, correct, n: training.length };
     };
-    const shallow = fit(samples[2], 1);
-    const deeper = fit(samples[2], 2);
-    get('depth-worked').innerHTML = '<p><strong>Try it.</strong> At depth 1, Tree 3 classifies ' + shallow.correct +
+    const shallow = fit(samples[2], 2);
+    const deeper = fit(samples[2], 4);
+    get('depth-worked').innerHTML = '<p><strong>Try it.</strong> At depth 2, Tree 3 classifies ' + shallow.correct +
       '/' + shallow.n + ' training draws correctly and predicts <strong>' + labelName(TreeLab.predict(shallow.tree, email)) +
-      '</strong> for ' + email.id + '. At depth 2, it classifies ' + deeper.correct + '/' + deeper.n +
+      '</strong> for ' + email.id + '. At depth 4, it classifies ' + deeper.correct + '/' + deeper.n +
       ' correctly and predicts <strong>' + labelName(TreeLab.predict(deeper.tree, email)) +
       '</strong> for that same email. Test on more unseen emails to judge whether more depth helps.</p>';
     function paint() {
