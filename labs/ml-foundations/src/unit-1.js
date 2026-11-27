@@ -6,6 +6,8 @@
   const morning = bike.rows.find(row => row.hour === 8);
   const nextHour = bike.rows.find(row => row.hour === 9);
   const { train_group_count: trainingCount, train_group_total: trainingTotal } = morning;
+  const matchesForecast = row => row.hour === unitOne.forecast.hour &&
+    row.workingday === unitOne.forecast.workingday;
   const difference = morning.actual - morning.predicted;
   const signed = number => number > 0 ? '+' + number : String(number).replace('-', '−');
   const code = `total_rentals = ${trainingTotal}
@@ -18,11 +20,16 @@ print(forecast)`;
   let stage = 0;
 
   get('first-history').innerHTML = unitOne.history.map(row => `
-    <tr><th scope="row">${row.row_id}</th><td>${row.date}</td><td>${String(row.hour).padStart(2, '0')}:00</td>
-    <td>${row.workingday ? 'Yes' : 'No'}</td><td>${number(row.rentals)}</td></tr>`).join('');
-  const matching = unitOne.history.filter(row => row.workingday).length;
+    <tr class="${matchesForecast(row) ? 'first-match' : ''}">
+    <th scope="row">${row.row_id}</th><td>${row.date}</td><td>${String(row.hour).padStart(2, '0')}:00</td>
+    <td>${row.workingday ? 'Yes' : 'No'}</td><td>${number(row.rentals)}</td>
+    <td>${matchesForecast(row) ? '<strong>Yes</strong>' : 'No, non-workday'}</td></tr>`).join('');
+  const matchingCounts = unitOne.history.filter(matchesForecast).map(row => row.rentals);
+  const excerptTotal = matchingCounts.reduce((sum, count) => sum + count, 0);
   get('first-history-note').textContent =
-    `These six rows are a small window into the historical data. ${matching} of them match hour and workday status. The forecast uses all ${number(trainingCount)} matching hours through October 31, 2012.`;
+    `All six rows are at 08:00. The ${matchingCounts.length} highlighted workdays also match the day type. Add their recorded counts, then divide by the number of matching rows.`;
+  get('first-history-calculation').textContent =
+    `${matchingCounts.map(number).join(' + ')} = ${number(excerptTotal)} rentals. ${number(excerptTotal)} ÷ ${matchingCounts.length} = ${number(excerptTotal / matchingCounts.length)} rentals per hour in this excerpt.`;
   get('first-practice-prompt').textContent =
     `Past 09:00 workday hours recorded ${number(nextHour.train_group_total)} rentals across ${number(nextHour.train_group_count)} hours. The next hour in the test data recorded ${number(nextHour.actual)} rentals. Calculate the rounded forecast and the residual. Did the forecast run high or low?`;
   get('first-practice-answer').textContent =
@@ -45,7 +52,7 @@ print(forecast)`;
       <div><dt>Residual</dt><dd>${signed(difference)} rentals</dd></div>
     </dl>
     <p class="formula">Actual − prediction = ${morning.actual} − ${morning.predicted} = ${difference} rentals</p>
-    <p>The forecast was <strong>${difference} rentals too low</strong>. A residual is the signed difference for one example. We’ll measure how the model performs across many hours in Unit 4.</p>` : '';
+    <p>Source row ${unitOne.forecast.row_id} records the observed count for 08:00–08:59. That count is the ground truth for this evaluation. The forecast was <strong>${difference} rentals too low</strong>. A residual is the signed difference for one example. We’ll measure how the model performs across many hours in Unit 4.</p>` : '';
     get('first-result').innerHTML = forecast + actual;
   }
 

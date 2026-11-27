@@ -29,6 +29,12 @@
         <option value="unit-4">4 · Test on unseen data</option>
         <option value="course">Course outline</option>
       </select>
+      <div class="lesson-jump">
+        <label for="lesson-jump" class="sr-only">Jump within unit</label>
+        <select id="lesson-jump">
+          <option value="">Jump within unit</option>
+        </select>
+      </div>
       <p id="course-position" class="small"></p>
       <div class="toolbar-buttons">
         <button class="button" type="button" id="previous-unit">Previous</button>
@@ -54,6 +60,7 @@
       <section class="course-page" id="course" aria-labelledby="course-title" hidden>
         <h2 id="course-title">Your first four units</h2>
         <p class="lede">Start with one prediction and build up to a fair comparison on unseen data. Each unit has a worked example, a classroom check, and a runnable Python notebook.</p>
+        <p>Use <strong>Jump within unit</strong> to find an example or quiz while teaching. Quiz questions are visible on the page. Reveal the options, correct answer, and explanation in order.</p>
         <ol class="course-outline">
           <li><a href="#unit-1">Make a first prediction</a><p>Read one real bike-share record, estimate the rental count, and measure the miss.</p></li>
           <li><a href="#unit-2">Python and Colab</a><p>Run a cell, read a table, filter past hours, and reproduce the estimate.</p></li>

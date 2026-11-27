@@ -23,6 +23,7 @@
 #unit-1 .first-process { padding: 0; list-style: none; }
 #unit-1 .first-process li p { margin: .25rem 0 0; }
 #unit-1 .first-actions { margin-top: .85rem; }
+#unit-1 .first-match { background: var(--light); }
 #unit-1 #first-result { scroll-margin-block: 4rem .75rem; }
 #unit-1 .first-calculation { margin-block-start: .85rem; padding: .68rem .85rem; border-inline-start: 3px solid var(--teal); border-radius: .32rem; background: var(--light); }
 #unit-1 .first-calculation p { margin-block: .26rem; }

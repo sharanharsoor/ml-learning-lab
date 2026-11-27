@@ -11,12 +11,13 @@
   const pages = [...document.querySelectorAll('.course-page')];
   const railLinks = [...document.querySelectorAll('.course-rail a')];
   const selector = get('course-unit');
+  const jump = get('lesson-jump');
   const previous = [get('previous-unit'), get('bottom-previous')];
   const next = [get('next-unit'), get('bottom-next')];
   const teaching = get('teaching-view');
   let active = -1;
 
-  function show(index, focus = false) {
+  function show(index) {
     if (index === active) return;
     active = index;
     const current = pages[index];
@@ -26,38 +27,55 @@
       else link.removeAttribute('aria-current');
     }
     selector.value = current.id;
+    const headings = [...current.querySelectorAll('[data-lesson-jump]')];
+    jump.closest('.lesson-jump').hidden = headings.length === 0;
+    jump.replaceChildren(
+      new Option('Jump within unit', ''),
+      new Option('Top of unit', current.id),
+      ...headings.map(heading => new Option(heading.dataset.lessonJump, heading.id))
+    );
     for (const button of previous) button.disabled = index === 0;
     for (const button of next) {
       button.disabled = index === pages.length - 1;
       button.textContent = index === pages.length - 2 ? 'Course outline' : 'Next unit';
     }
     get('course-position').textContent = current.id === 'course' ? 'Course outline' : `Unit ${index + 1} of 4`;
-    if (focus) {
-      window.scrollTo(0, 0);
-      const heading = get(current.getAttribute('aria-labelledby'));
-      heading.tabIndex = -1;
-      heading.focus({ preventScroll: true });
-    }
   }
 
-  function select(index) {
-    const page = pages[index];
-    if (!page || index === active) return;
-    location.hash = page.id;
-    show(index, true);
+  function navigate(id) {
+    if (location.hash === '#' + id) readHash(true);
+    else location.hash = id;
   }
 
   function readHash(focus) {
-    const index = pages.findIndex(page => '#' + page.id === location.hash);
-    if (index !== -1) show(index, focus);
-    else if (active === -1) show(0);
+    const target = get(location.hash.slice(1));
+    const isSection = target?.hasAttribute('data-lesson-jump');
+    const page = isSection ? target.closest('.course-page') : target;
+    const index = pages.indexOf(page);
+    if (index === -1) {
+      if (active === -1 || !location.hash) show(0);
+      return;
+    }
+    show(index);
+    if (focus) {
+      const heading = isSection ? target : get(page.getAttribute('aria-labelledby'));
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+      if (isSection) heading.scrollIntoView({ block: 'start' });
+      else window.scrollTo(0, 0);
+    }
   }
 
-  for (const button of previous) button.addEventListener('click', () => select(active - 1));
-  for (const button of next) button.addEventListener('click', () => select(active + 1));
-  selector.addEventListener('change', () => select(pages.findIndex(page => page.id === selector.value)));
+  for (const button of previous) button.addEventListener('click', () => navigate(pages[active - 1].id));
+  for (const button of next) button.addEventListener('click', () => navigate(pages[active + 1].id));
+  selector.addEventListener('change', () => navigate(selector.value));
+  jump.addEventListener('change', () => {
+    const destination = jump.value;
+    jump.value = '';
+    if (destination) navigate(destination);
+  });
   window.addEventListener('hashchange', () => readHash(true));
-  readHash(false);
+  readHash(Boolean(location.hash));
 
   teaching.addEventListener('click', () => {
     const enabled = document.body.classList.toggle('teaching');

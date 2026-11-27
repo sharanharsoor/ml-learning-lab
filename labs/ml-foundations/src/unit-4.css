@@ -108,3 +108,4 @@
   #unit-4 .unit-4-timeline li { grid-template-columns: 1fr 1.2fr; align-items: baseline; }
   #unit-4 .unit-4-timeline small { grid-column: 2; }
 }
+[data-unit-4-previous] { margin-block-start: .7rem; }

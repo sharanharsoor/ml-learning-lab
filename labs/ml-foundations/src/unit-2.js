@@ -32,28 +32,39 @@
         (actual - forecast) + ' rentals means the model predicted too low.',
     },
   ];
+  const previous = get('previous-cell');
   const run = get('run-cell');
   const reset = get('reset-cell');
   let runs = 0;
+  let viewed = 0;
 
   function paintCell() {
-    const cell = cells[Math.max(0, runs - 1)];
+    const cell = cells[Math.max(0, viewed - 1)];
     get('code-label').textContent = cell.title;
     get('cell-code').textContent = cell.code;
-    get('cell-output').textContent = runs ? cell.output : 'Run the first cell to see its output.';
+    get('cell-output').textContent = viewed ? cell.output : 'Run the first cell to see its output.';
     get('cell-reading').textContent = cell.reading;
     get('cell-status').textContent = runs + ' of ' + cells.length + ' cells run.';
-    run.disabled = runs === cells.length;
-    run.textContent = run.disabled ? 'All cells run' : 'Run cell ' + (runs + 1);
+    previous.disabled = viewed < 2;
+    run.disabled = viewed === cells.length;
+    const nextAction = viewed < runs ? 'View cell ' : 'Run cell ';
+    run.textContent = run.disabled ? 'All cells run' : nextAction + (viewed + 1);
     reset.disabled = !runs;
   }
-  run.addEventListener('click', () => {
-    runs += 1;
+  previous.addEventListener('click', () => {
+    viewed -= 1;
     paintCell();
-    if (run.disabled) reset.focus();
+    if (previous.disabled) run.focus();
+  });
+  run.addEventListener('click', () => {
+    viewed += 1;
+    runs = Math.max(runs, viewed);
+    paintCell();
+    if (run.disabled) previous.focus();
   });
   reset.addEventListener('click', () => {
     runs = 0;
+    viewed = 0;
     paintCell();
     run.focus();
   });
@@ -63,18 +74,25 @@
   const workday = get('workday-filter');
   const past = get('past-filter');
   const preview = [...get('preview-rows').rows];
+  const format = count => count.toLocaleString('en-US');
   function filter() {
-    let visible = 0;
+    const counts = [];
     for (const row of preview) {
       const matches = (hour.value === 'all' || row.dataset.hour === hour.value) &&
         (workday.value === 'all' || row.dataset.workday === workday.value) &&
         (!past.checked || row.dataset.date < example.date);
       row.hidden = !matches;
-      if (matches) visible += 1;
+      if (matches) counts.push(Number(row.cells[3].textContent));
     }
+    const visible = counts.length;
     const status = visible === preview.length ? 'Showing all ' + visible + ' rows in the excerpt.'
       : 'Showing ' + visible + ' of ' + preview.length + ' rows in the excerpt.';
     get('filter-status').textContent = status + (visible ? '' : ' No rows match these filters.');
+    const totalRentals = counts.reduce((sum, count) => sum + count, 0);
+    const arithmetic = visible === 2 ? counts.map(format).join(' + ') + ' = ' : '';
+    const subtotal = get('filter-total');
+    subtotal.hidden = !visible;
+    subtotal.textContent = visible ? 'Visible rows total ' + arithmetic + format(totalRentals) + ' rentals.' : '';
   }
   for (const control of [hour, workday, past]) control.addEventListener('change', filter);
   filter();

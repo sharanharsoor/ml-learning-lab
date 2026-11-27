@@ -106,7 +106,8 @@
     const counts = rows.map((row) => row[1]);
     const { mean, median } = describe(counts);
     get("u3-group-reading").textContent = fmt(rows.length) + " recorded " + dayLabels[group] +
-      " hours · mean " + fmt(mean) + " rentals · median " + fmt(median) + " rentals.";
+      " hours · mean " + fmt(sum(counts)) + " ÷ " + fmt(rows.length) + " ≈ " + fmt(mean) +
+      " rentals · median " + fmt(median) + " rentals.";
     get("u3-points").innerHTML = rows.map((row) =>
       "<span class=\"u3-dot\" style=\"" + position(row).join(";") + "\"></span>").join("");
     const low = counts.indexOf(Math.min(...counts));
@@ -126,16 +127,19 @@
 
   const example = data.profile.find((row) => row.hour === 8);
   get("u3-example-row").innerHTML = "<tr><th scope=\"row\">" + dateLabel(example.date) +
-    "</th><td>" + hourLabel(example.hour) + "</td><td>Workday (1)</td><td>Mist or clouds (" + example.weather +
+    "</th><td>" + hourLabel(example.hour) + "</td><td>Workday (1)</td><td>Mist (" + example.weather +
     ")</td><td>" + fmt(example.temperature) + " °C</td><td>" + fmt(example.count) + " rentals</td></tr>";
 
   const { audit } = data;
   get("u3-audit-scope").textContent = "Audit the " + fmt(audit.rows) + " source rows from " +
     dateLabel(audit.start) + " through " + dateLabel(audit.end) + ".";
+  const recordedHours = audit.rows - audit.duplicateKeys;
   get("u3-audit").innerHTML = [
     ["Blank cells", fmt(audit.blankCells) + " blank CSV fields across the source rows."],
     ["Repeated hours", fmt(audit.duplicateKeys) + " extra rows with an already recorded date and hour. Two dates at 08:00 are distinct observations."],
-    ["Unrecorded hours", fmt(audit.absentHours) + " of " + fmt(audit.expectedHours) + " expected date-hour keys have no row. Check collection notes before interpreting an absence as zero."],
+    ["Unrecorded hours", fmt(audit.expectedHours / 24) + " dates × 24 hours = " + fmt(audit.expectedHours) +
+      " expected date-hour keys. " + fmt(audit.expectedHours) + " expected − " + fmt(recordedHours) + " recorded = " +
+      fmt(audit.absentHours) + " missing hours. Check collection notes before interpreting an absence as zero."],
   ].map(([label, detail]) => "<div><strong>" + label + "</strong><p>" + detail + "</p></div>").join("");
 
   function busiestRange(group) {

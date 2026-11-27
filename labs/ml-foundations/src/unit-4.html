@@ -2,7 +2,7 @@
 <p class="unit-4-lede">We forecast 470 rentals for 8 a.m. on November 1, 2012. Capital Bikeshare recorded 680. Our forecast missed by 210 rentals. Would the same method work across many future hours?</p>
 
 <section class="panel unit-4-panel" aria-labelledby="unit-4-workflow-title">
-  <h3 id="unit-4-workflow-title">Learn from the past, then test on later hours</h3>
+  <h3 id="unit-4-workflow-title" data-lesson-jump="Train, validate, refit, test">Learn from the past, then test on later hours</h3>
   <p><strong>Generalization</strong> means making useful predictions on new rows outside the training set. We keep the order of the calendar because the job is to predict future rentals.</p>
   <ol class="unit-4-timeline" aria-label="Three periods in calendar order">
     <li data-unit-4-period="train" aria-current="step">
@@ -24,7 +24,7 @@
   <div class="unit-4-stage" data-unit-4-stage="train">
     <h4>Fit two candidate rules</h4>
     <ul class="unit-4-rules">
-      <li><strong>Overall mean baseline</strong> gives every hour the same forecast. It rounds the average of all training counts.</li>
+      <li><strong>Overall mean baseline</strong> gives every October hour the same forecast. Using all counts through September, round(2,817,461 ÷ 15,211) = <strong data-unit-4-training-baseline></strong> rentals.</li>
       <li><strong>Calendar model</strong> groups training rows by hour and workday status. It rounds the average within the matching group.</li>
     </ul>
     <p>A baseline sets a reference point. We can ask how much prediction error the calendar model saves over a rule that ignores the hour.</p>
@@ -32,7 +32,8 @@
   </div>
   <div class="unit-4-stage" data-unit-4-stage="validation" hidden>
     <h4>Choose using validation error</h4>
-    <p>Forecast October using the rules fitted through September. For each hour, take the absolute difference between prediction and actual. Divide the total miss by the number of hours to get mean absolute error, or MAE. Lower is better.</p>
+    <p>Forecast October using the rules fitted through September. <strong>Mean absolute error (MAE)</strong> is the average size of the misses. The absolute value bars make each miss a distance, whether the forecast was too high or too low.</p>
+    <p><strong>MAE = (∑ |actual − prediction|) ÷ number of scored hours.</strong> Add one absolute error per hour. Lower MAE means a smaller average miss, measured here in rentals.</p>
     <div class="table-wrap">
       <table class="unit-4-results">
         <caption>October validation results · Bars use a 0 to 200 rental scale</caption>
@@ -45,7 +46,7 @@
   </div>
   <div class="unit-4-stage" data-unit-4-stage="locked" hidden>
     <h4>The rule is locked</h4>
-    <p>The calendar model was selected using October. Its group averages now use January 2011 through October 31, 2012. The baseline uses the same rows and forecasts 189 rentals for every test hour.</p>
+    <p><strong>Lock</strong> means keep the calendar rule that won in October. <strong>Refit</strong> means recalculate its group averages using January 2011 through October 31, 2012. On those same rows, the baseline becomes round(3,016,302 ÷ 15,919) = <strong data-unit-4-refit-baseline></strong> rentals for every test hour.</p>
     <p>At 08:00 on November 1 we know it is a workday. The calendar forecast is <strong>round(214,195 ÷ 456) = 470</strong> rentals. Every count in that average comes from before November 1.</p>
     <button class="button primary" type="button" data-unit-4-next="test">Reveal November and December test results</button>
   </div>
@@ -60,12 +61,22 @@
       </table>
     </div>
     <p>The calendar model misses by about <strong>63.52 rentals per hour on average</strong> over this test period. Compare that with the 210-rental miss we saw at 8 a.m. A single miss and an average miss answer different questions.</p>
+    <details class="teaching-note">
+      <summary>How do individual misses become the 63.52?</summary>
+      <p>Take two examples from our November 1 forecast case. At 08:00 the miss was |680 − 470| = 210 rentals. At 09:00 it was |331 − 238| = 93 rentals. For just these two hours, MAE is (210 + 93) ÷ 2 = 151.5 rentals.</p>
+      <p>Use that same calculation across all 1,460 scored test hours. Their absolute errors sum to 92,733 rentals, so the full calendar model test MAE is 92,733 ÷ 1,460 ≈ 63.52 rentals.</p>
+    </details>
     <button class="button secondary" type="button" data-unit-4-next="train">Replay the evaluation</button>
   </div>
+  <button class="button" type="button" data-unit-4-previous hidden>Previous evaluation step</button>
   <p class="unit-4-status" data-unit-4-status role="status"></p>
   <details class="teaching-note">
     <summary>Why can we train again on October after choosing?</summary>
     <p>October had two jobs in sequence. First its labels checked the candidates fitted through September. Once the calendar rule won, October became extra historical training data for estimating the group averages. November and December still stayed outside both steps.</p>
+  </details>
+  <details class="teaching-note">
+    <summary>What do we do if the final test goes badly?</summary>
+    <p>Report the score and investigate where errors are large. If that investigation influences a model change, use a fresh set of later hours to measure the changed model. The original test helped guide the revision.</p>
   </details>
   <details class="teaching-note">
     <summary>Why can October have a higher error than the test months?</summary>
@@ -73,8 +84,29 @@
   </details>
 </section>
 
+<section class="lab-quiz">
+  <h3 id="unit-4-selection-quiz" data-lesson-jump="Quiz 5 · Model selection">Which evidence should choose the rule?</h3>
+  <p>You fit both rules using data through September. Which period should decide which rule you lock?</p>
+  <details>
+    <summary>Show options</summary>
+    <ol type="A">
+      <li>January 2011 through September 2012, used to fit both rules</li>
+      <li>October 2012, set aside for comparison</li>
+      <li>November and December 2012, reserved for the final check</li>
+    </ol>
+    <details>
+      <summary>What is the right answer?</summary>
+      <p><strong>B. October 2012.</strong></p>
+      <details>
+        <summary>Show explanation</summary>
+        <p>October measures each candidate on unseen hours while we are still allowed to change the rule. November and December check the decision once it is locked.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
 <section class="panel unit-4-panel" aria-labelledby="unit-4-splits-title">
-  <h3 id="unit-4-splits-title">Choose a split that matches how predictions will be used</h3>
+  <h3 id="unit-4-splits-title" data-lesson-jump="Split strategies">Choose a split that matches how predictions will be used</h3>
   <p>Decide what must be new at test time. Select a scenario to see what should be kept apart.</p>
   <div class="unit-4-split-controls" role="group" aria-label="Compare splitting strategies">
     <button class="button" type="button" data-unit-4-split="chronological" aria-pressed="true">Later hours</button>
@@ -89,12 +121,16 @@
   </div>
   <details class="teaching-note">
     <summary>Can two split requirements apply together?</summary>
-    <p>Yes. Repeated emails from the same campaign might need to stay together while each split still contains enough spam to measure recall. Group integrity comes first. With a forecasting task, the final test must remain later in time even if class proportions change.</p>
+    <p>Yes. Repeated emails from the same campaign might need to stay together while each split contains enough Spam emails to measure recall. Keeping whole campaigns together comes first. With a forecasting task, the final test must remain later in time even if class proportions change.</p>
+  </details>
+  <details class="teaching-note">
+    <summary>How large should each split be?</summary>
+    <p>Choose enough training rows to fit your models, enough validation rows to compare them, and enough test rows to judge performance in the situation that matters. Here we use whole months in calendar order so test hours come after model selection. A fixed percentage is a starting choice for some datasets, and the time, group, and class requirements determine whether it fits yours.</p>
   </details>
 </section>
 
 <section class="panel unit-4-panel" aria-labelledby="unit-4-leakage-title">
-  <h3 id="unit-4-leakage-title">Would this information be available at 7:59 a.m.?</h3>
+  <h3 id="unit-4-leakage-title" data-lesson-jump="Data leakage">Would this information be available at 7:59 a.m.?</h3>
   <p><strong>Data leakage</strong> happens when unavailable information slips into training, prediction, or model selection. Use the same recorded hour to test a shortcut.</p>
   <div class="unit-4-split-controls" role="group" aria-label="Choose the inputs to examine">
     <button class="button" type="button" data-unit-4-input="calendar" aria-pressed="true">Use the calendar</button>
@@ -120,8 +156,29 @@
   </details>
 </section>
 
+<section class="lab-quiz">
+  <h3 id="unit-4-leakage-quiz" data-lesson-jump="Quiz 6 · Leakage">Would you trust this zero error?</h3>
+  <p>A colleague uses casual rentals plus registered rentals as the 8 a.m. forecast. What explains the zero error?</p>
+  <details>
+    <summary>Show options</summary>
+    <ol type="A">
+      <li>The model learned a better relationship from additional months.</li>
+      <li>The two counts together reveal the target after the hour.</li>
+      <li>The chronological split creates a perfect forecast by itself.</li>
+    </ol>
+    <details>
+      <summary>What is the right answer?</summary>
+      <p><strong>B. The two counts together reveal the target after the hour.</strong></p>
+      <details>
+        <summary>Show explanation</summary>
+        <p>During the 08:00 rental hour, 12 casual and 668 registered rentals were recorded. Their sum is 680, and it becomes available after the hour ends.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
 <section class="panel unit-4-panel" aria-labelledby="unit-4-code-title">
-  <h3 id="unit-4-code-title">Reproduce the decision in Python</h3>
+  <h3 id="unit-4-code-title" data-lesson-jump="Evaluation in Python">Reproduce the decision in Python</h3>
   <p>The notebook reads all 17,379 records, fits both rules, and runs this sequence. Each mean uses the rows passed to <code>fit_rules</code>.</p>
   <pre><code>candidates = fit_rules(train)
 validation_errors = evaluate(candidates, validation)
@@ -136,50 +193,8 @@ test_errors = evaluate(
   <a class="button" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/ml-foundations/notebooks/04-testing-on-unseen-data.ipynb" target="_blank" rel="noopener">Open Unit 4 in Colab</a>
 </section>
 
-<section class="lab-quiz">
-  <h3>Which evidence should choose the rule?</h3>
-  <p>You fit both rules using data through September. Which period should decide which rule you lock?</p>
-  <details>
-    <summary>Show options</summary>
-    <ol type="A">
-      <li>January 2011 through September 2012, used to fit both rules</li>
-      <li>October 2012, set aside for comparison</li>
-      <li>November and December 2012, reserved for the final check</li>
-    </ol>
-    <details>
-      <summary>What is the right answer?</summary>
-      <p><strong>B. October 2012.</strong></p>
-      <details>
-        <summary>Show explanation</summary>
-        <p>October measures each candidate on unseen hours while we are still allowed to change the rule. November and December check the decision once it is locked.</p>
-      </details>
-    </details>
-  </details>
-</section>
-
-<section class="lab-quiz">
-  <h3>Would you trust this zero error?</h3>
-  <p>A colleague uses casual rentals plus registered rentals as the 8 a.m. forecast. What explains the zero error?</p>
-  <details>
-    <summary>Show options</summary>
-    <ol type="A">
-      <li>The model learned a better relationship from additional months.</li>
-      <li>The two counts together reveal the target after the hour.</li>
-      <li>The chronological split creates a perfect forecast by itself.</li>
-    </ol>
-    <details>
-      <summary>What is the right answer?</summary>
-      <p><strong>B. The two counts together reveal the target after the hour.</strong></p>
-      <details>
-        <summary>Show explanation</summary>
-        <p>At 8 a.m. the recorded counts were 12 casual and 668 registered rentals. The total is 680. Those counts only become known after the prediction deadline.</p>
-      </details>
-    </details>
-  </details>
-</section>
-
 <section class="exercise" aria-labelledby="unit-4-practice-title">
-  <h3 id="unit-4-practice-title">Try the procedure without the screen</h3>
+  <h3 id="unit-4-practice-title" data-lesson-jump="Practice the evaluation">Try the evaluation yourself</h3>
   <p>At 9 a.m. on November 1, the model forecast 238 rentals and 331 were recorded. Calculate the absolute error. Then explain why this hour belongs in the final test and where you would compare a new rule before using that test.</p>
   <details class="teaching-note">
     <summary>Check your work</summary>

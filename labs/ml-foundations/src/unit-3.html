@@ -2,7 +2,7 @@
 <p class="lede">The workday forecast came from averaging older 08:00 counts. Look at those rows first. How much do the counts vary, and is it useful to group workdays and non-workdays separately?</p>
 
 <section class="panel" aria-labelledby="u3-row-title">
-  <h3 id="u3-row-title">Read a real row</h3>
+  <h3 id="u3-row-title" data-lesson-jump="Read a data row">Read a real row</h3>
   <p>The dataset records rental counts in one-hour intervals. This training example describes 08:00 to 08:59 on Thursday, October 25, 2012. It comes one week before the forecast case.</p>
   <div class="table-wrap">
     <table class="u3-reading-table">
@@ -13,16 +13,26 @@
   </div>
   <div class="u3-explain-grid">
     <div><strong>Numerical measurements</strong><p>Temperature is measured in °C. Rentals are a count. The gap between 300 and 400 rentals is 100 rentals.</p></div>
-    <div><strong>Categorical values</strong><p>Workday status and weather describe groups. A workday is a weekday outside the holiday calendar. Weather code 2 means mist or clouds.</p></div>
+    <div><strong>Categorical values</strong><p>Workday status and weather describe groups. A workday is a weekday outside the holiday calendar. Weather code 2 means mist, with or without clouds.</p></div>
     <div><strong>Recorded outcome</strong><p>The total rental count is the target. Date and hour together identify the observation. Choose inputs available at the time you make a forecast.</p></div>
   </div>
   <details>
-    <summary>What does the temperature number mean?</summary>
-    <p>UCI stores temperature divided by 41. A stored value of 0.52 corresponds to 0.52 × 41 = 21.32 °C. The source figure was already normalized, so this conversion gives the approximate temperature represented by the stored value.</p>
+    <summary>How do these values appear in the source CSV?</summary>
+    <p>Use the original column names below to find record 15,796 in the source CSV.</p>
+    <dl>
+      <div><dt><code>dteday = 2012-10-25</code> and <code>hr = 8</code></dt><dd>Together they identify the 08:00 hour on October 25.</dd></div>
+      <div><dt><code>workingday = 1</code> and <code>weathersit = 2</code></dt><dd>The date is a workday and the source assigned its mist weather code.</dd></div>
+      <div><dt><code>temp = 0.52</code></dt><dd>UCI stores temperature divided by 41. Convert this value back with 0.52 × 41 = 21.32 °C. The stored decimal gives an approximate temperature.</dd></div>
+      <div><dt><code>cnt = 779</code></dt><dd>Capital Bikeshare recorded 779 total rentals in the hour. This is the outcome we want to predict.</dd></div>
+    </dl>
   </details>
-  <aside class="lab-quiz">
-    <p><strong>What should you do with the weather code?</strong></p>
-    <p>The archive stores clear conditions as 1 and mist or clouds as 2. What does the difference of 1 measure?</p>
+  <details>
+    <summary>How would a model use a weather category?</summary>
+    <p>We can make a yes-or-no feature for each group. For the observed code 2, a <code>weather_group_2</code> column is 1 and a <code>weather_group_1</code> column is 0. This is called <strong>indicator encoding</strong>. Use weather information that would be available when the forecast is made.</p>
+  </details>
+  <aside class="lab-quiz" aria-labelledby="u3-weather-quiz">
+    <h4 id="u3-weather-quiz" data-lesson-jump="Quiz 3 · Weather codes">What should you do with the weather code?</h4>
+    <p>The archive uses 1 for clear or partly cloudy conditions and 2 for mist, with or without clouds. What does the difference of 1 measure?</p>
     <details><summary>Show options</summary>
       <ol type="A"><li>A one-degree temperature increase.</li><li>A change between two named weather groups.</li><li>One extra rental per hour.</li></ol>
       <details><summary>What is the right answer?</summary>
@@ -36,7 +46,7 @@
 </section>
 
 <section class="panel" aria-labelledby="u3-stats-title">
-  <h3 id="u3-stats-title">Describe the center and spread</h3>
+  <h3 id="u3-stats-title" data-lesson-jump="Center and spread">Describe the center and spread</h3>
   <p>Work with five real hours on October 25. Ask what a typical count might be, then ask how far the counts tend to be from that center.</p>
   <label class="u3-switch"><input type="checkbox" id="u3-unusual"> Try a what-if where the 08:00 count is 2,500</label>
   <p class="u3-scenario" id="u3-scenario"></p>
@@ -49,6 +59,17 @@
   </div>
   <div class="u3-stat-grid" id="u3-statistics" aria-live="polite"></div>
   <details>
+    <summary>How do we calculate each statistic?</summary>
+    <p>Let <var>n</var> be the number of counts, <var>xᵢ</var> one count, and <var>x̄</var> the mean. The symbol ∑ tells us to add across all <var>n</var> counts.</p>
+    <ul>
+      <li><strong>Mean</strong> describes the result of sharing the total evenly. <var>x̄</var> = (∑ <var>xᵢ</var>) ÷ <var>n</var>.</li>
+      <li><strong>Median</strong> is the middle of the sorted counts. With an even number of counts, average the two middle values.</li>
+      <li><strong>Variance</strong> is the mean squared distance from the mean. Variance = [∑ (<var>xᵢ</var> − <var>x̄</var>)²] ÷ <var>n</var>. Signed distances sum to zero, so squaring keeps them from canceling and gives larger distances more weight.</li>
+      <li><strong>Standard deviation</strong> = √variance. The square root brings the unit back from rentals² to rentals, so the spread can be read on the same scale as the counts.</li>
+    </ul>
+    <p>In the measured table, the 08:00 count is 779. Its distance from the mean is 779 − 416 = 363 rentals. Its contribution to the sum above is 363² = 131,769 rentals².</p>
+  </details>
+  <details>
     <summary>Why divide the variance by five here?</summary>
     <p>We describe the spread of these exact five hours, so we average their five squared distances. In a statistics lesson that estimates a wider population’s variance from a random sample, the usual sample variance uses <var>n</var> − 1. These five consecutive hours are a descriptive slice of one morning.</p>
   </details>
@@ -59,7 +80,7 @@
 </section>
 
 <section class="panel" aria-labelledby="u3-eda-title">
-  <h3 id="u3-eda-title">Look for patterns across many days</h3>
+  <h3 id="u3-eda-title" data-lesson-jump="Histograms and scatterplots">Look for patterns across many days</h3>
   <p>Keep the hour at 08:00 and switch the day type. The histogram groups rental counts into ranges. The scatterplot pairs each hour’s recorded temperature with its rental count. Both use earlier records from January 2011 through October 2012.</p>
   <div class="u3-field-row">
     <label for="u3-group">08:00 group</label>
@@ -121,7 +142,7 @@ eight_am.groupby("workingday")["cnt"].agg(["size", "mean", "median"])</code></pr
 </section>
 
 <section class="panel" aria-labelledby="u3-quality-title">
-  <h3 id="u3-quality-title">Check what the dataset recorded</h3>
+  <h3 id="u3-quality-title" data-lesson-jump="Missing and unusual data">Check what the dataset recorded</h3>
   <p id="u3-audit-scope"></p>
   <div id="u3-audit" class="u3-explain-grid"></div>
   <p>An unusually high or low count is a clue to investigate. Compare it with similar hours, check the source, and record your decision before modeling. Rush hour can make a high count entirely plausible.</p>
@@ -129,8 +150,8 @@ eight_am.groupby("workingday")["cnt"].agg(["size", "mean", "median"])</code></pr
     <summary>What do I do if I find a data problem?</summary>
     <p>Confirm what the field or row represents. If a measured target is missing, look for a source that can supply it before using that observation as a labeled training example. For missing inputs, a simple starting point is to fill numerical values with the training median and record which values were missing. For repeats, confirm the real unit of observation before deduplicating. Document the reason for any correction.</p>
   </details>
-  <aside class="lab-quiz">
-    <p><strong>Can you distinguish missing values from missing rows?</strong></p>
+  <aside class="lab-quiz" aria-labelledby="u3-missing-quiz">
+    <h4 id="u3-missing-quiz" data-lesson-jump="Quiz 4 · Missing hours">Can you distinguish missing values from missing rows?</h4>
     <p>The training file has zero blank cells. Does it contain a record for every date and hour in its calendar span?</p>
     <details><summary>Show options</summary>
       <ol type="A"><li>Yes, zero blank cells proves every hour has a record.</li><li>No, an absent hour leaves no blank cell to count.</li><li>Yes, if rental counts are integers.</li></ol>
@@ -143,7 +164,7 @@ eight_am.groupby("workingday")["cnt"].agg(["size", "mean", "median"])</code></pr
     </details>
   </aside>
   <div class="exercise">
-    <h4>Try it yourself</h4>
+    <h4 id="u3-exercise" data-lesson-jump="Compare the histogram peaks">Try it yourself</h4>
     <p>With 100-rental bins, compare workdays and non-workdays. Which range contains the most hours in each group? Use the chart to explain in one sentence why day type is a reasonable feature to try. Check your answer in Python.</p>
     <details>
       <summary>Check the reasoning</summary>

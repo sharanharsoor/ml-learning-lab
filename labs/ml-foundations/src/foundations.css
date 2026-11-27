@@ -54,8 +54,11 @@ figcaption, .small { color: var(--muted); font-size: .9em; }
 .toolbar { position: sticky; z-index: 4; top: 0; background: var(--paper); }
 .toolbar-inner { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding-block: .48rem; }
 .toolbar-buttons, .actions, .bottom-navigation { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
-.toolbar select { width: min(100%, 18rem); border: 1px solid var(--line); background: var(--surface); border-radius: .4rem; padding: .48rem .6rem; min-height: 2.7rem; }
+.toolbar select { min-width: 0; border: 1px solid var(--line); background: var(--surface); border-radius: .4rem; padding: .48rem .6rem; min-height: 2.7rem; }
+#course-unit, .lesson-jump { flex: 0 1 17rem; min-width: 0; }
+.lesson-jump select { width: 100%; }
 #course-position { margin: 0 auto 0 .3rem; white-space: nowrap; }
+.toolbar-buttons { margin-inline-start: auto; flex-shrink: 0; }
 .button {
   display: inline-flex;
   min-height: 2.55rem;
@@ -84,6 +87,7 @@ figcaption, .small { color: var(--muted); font-size: .9em; }
 .course-page { scroll-margin-top: 4.6rem; }
 .course-page > :is(h2,h3) { scroll-margin-top: 5rem; }
 .course-page > :is(h2,h3):focus { outline: none; }
+.course-page [data-lesson-jump] { scroll-margin-top: 5rem; }
 .eyebrow { margin: 0 0 .5rem; color: var(--teal); font-size: .75rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .lede { color: var(--muted); font-size: clamp(1.05rem, 1.4vw, 1.22rem); max-width: 48rem; }
 .panel, .exercise {
@@ -115,17 +119,22 @@ figcaption, .small { color: var(--muted); font-size: .9em; }
 .teaching .course-layout { grid-template-columns: minmax(0, 1fr); }
 .teaching .course-rail { display: none; }
 .teaching .course-main { max-width: 68rem; width: 100%; margin-inline: auto; }
+@media (max-width: 62rem) {
+  #course-position { display: none; }
+}
 @media (max-width: 58rem) {
   .course-rail { display: none; }
   .course-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 45rem) {
+  .toolbar-inner { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar-buttons { grid-column: 1 / -1; margin: 0; justify-content: space-between; }
+  .course-page [data-lesson-jump] { scroll-margin-top: 8rem; }
 }
 @media (max-width: 38rem) {
   .shell { width: calc(100% - 1.25rem); }
   .masthead-inner { flex-wrap: wrap; gap: .45rem .65rem; padding-block: .5rem; }
   .masthead h1 { order: 3; width: 100%; padding-inline-start: 0; border: 0; }
-  #course-position { display: none; }
-  .toolbar-inner { flex-wrap: wrap; }
-  .toolbar select { flex-grow: 1; }
   .columns { grid-template-columns: minmax(0, 1fr); }
   .course-layout { padding-block-start: 1.25rem; }
 }

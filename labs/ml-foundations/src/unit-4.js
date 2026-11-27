@@ -18,9 +18,13 @@
   for (const [period, n] of Object.entries(periodSizes)) {
     unit.querySelector(`[data-unit-4-count="${period}"]`).textContent = `${format(n)} recorded hours`;
   }
+  write("training-baseline", format(details.validation_baseline));
+  write("refit-baseline", format(bike.baseline));
 
   const stages = [...unit.querySelectorAll("[data-unit-4-stage]")];
   const periodMarkers = [...unit.querySelectorAll("[data-unit-4-period]")];
+  const previous = find("previous");
+  let activeStage = 0;
   const stageStatus = {
     train: "The evaluation restarts at training.",
     validation: "October validation scores are now visible.",
@@ -29,8 +33,10 @@
   };
 
   function setStage(name) {
-    const active = stages.find(stage => stage.getAttribute("data-unit-4-stage") === name);
+    activeStage = stages.findIndex(stage => stage.getAttribute("data-unit-4-stage") === name);
+    const active = stages[activeStage];
     for (const stage of stages) stage.hidden = stage !== active;
+    previous.hidden = activeStage === 0;
     const period = name === "locked" ? "validation" : name;
     for (const marker of periodMarkers) {
       if (marker.getAttribute("data-unit-4-period") === period) marker.setAttribute("aria-current", "step");
@@ -45,6 +51,7 @@
   for (const button of unit.querySelectorAll("[data-unit-4-next]")) {
     button.addEventListener("click", () => setStage(button.getAttribute("data-unit-4-next")));
   }
+  previous.addEventListener("click", () => setStage(stages[activeStage - 1].getAttribute("data-unit-4-stage")));
 
   const resultGroups = {
     validation: details.validation_results,
@@ -92,7 +99,7 @@
     },
     stratified: {
       name: "Stratified split",
-      reason: "In a classification task where spam is rare, preserve the approximate spam share across randomly sampled splits. There need to be enough positive examples to measure recall.",
+      reason: "When spam is rare, preserve the approximate Spam share across randomly sampled splits. Recall is the share of actual Spam emails the model catches, so each split needs enough examples of that class.",
       flow: ["Separate rows by label", "Randomly draw from each label", "Keep the approximate class mix"]
     },
     grouped: {
