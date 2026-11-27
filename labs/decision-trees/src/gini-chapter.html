@@ -5,26 +5,26 @@
 
       <div class="panel gini-lab">
         <div class="panel-heading">
-          <div><h3>Draw two labels, with replacement</h3><p>Draw one parcel, return it to the node, then draw again. Each draw uses the same label probabilities.</p></div>
+          <div><h3>Draw two labels, with replacement</h3><p>Draw one email, return it to the node, then draw again. Each draw uses the same label probabilities.</p></div>
         </div>
-        <p class="small">The parcel root has four Review labels out of eight. A cut halfway between 3 and 4 kg sends P4 through P8 to the heavier branch. Four of those five rows are Review. Use these presets or move the slider to try other mixes.</p>
+        <p class="small">The opening root has four Spam labels out of eight. A cut halfway between capitals runs of 3 and 4 sends E4 through E8 to the same branch. Four of those five rows are Spam. Use these presets or move the slider to try other mixes.</p>
         <div class="gini-controls">
-          <label class="control-label" for="gini-review-share">Review share <output id="gini-review-output" for="gini-review-share">50%</output></label>
+          <label class="control-label" for="gini-review-share">Spam share <output id="gini-review-output" for="gini-review-share">50%</output></label>
           <input id="gini-review-share" type="range" min="0" max="100" value="50">
           <div class="gini-presets" aria-label="Example label mixes" role="group">
-            <button type="button" class="button secondary" data-gini-preset="0" aria-pressed="false">Pure Auto</button>
-            <button type="button" class="button secondary" data-gini-preset="50" aria-pressed="true">Parcel root</button>
-            <button type="button" class="button secondary" data-gini-preset="80" aria-pressed="false">Heavy branch</button>
+            <button type="button" class="button secondary" data-gini-preset="0" aria-pressed="false">Pure Legitimate</button>
+            <button type="button" class="button secondary" data-gini-preset="50" aria-pressed="true">Opening root</button>
+            <button type="button" class="button secondary" data-gini-preset="80" aria-pressed="false">Higher X branch</button>
           </div>
         </div>
         <div class="gini-grid">
           <div>
             <table class="gini-outcomes">
               <caption class="sr-only">Probability of each pair of labels</caption>
-              <thead><tr><th scope="col">First draw</th><th scope="col">Then Auto</th><th scope="col">Then Review</th></tr></thead>
+              <thead><tr><th scope="col">First draw</th><th scope="col">Then Legitimate</th><th scope="col">Then Spam</th></tr></thead>
               <tbody>
-                <tr><th scope="row">Auto <span class="gini-share" id="gini-auto-share"></span></th><td><strong id="gini-aa">25%</strong><span>Match</span></td><td class="gini-mismatch"><strong id="gini-ar">25%</strong><span>Different</span></td></tr>
-                <tr><th scope="row">Review <span class="gini-share" id="gini-review-label-share"></span></th><td class="gini-mismatch"><strong id="gini-ra">25%</strong><span>Different</span></td><td><strong id="gini-rr">25%</strong><span>Match</span></td></tr>
+                <tr><th scope="row">Legitimate <span class="gini-share" id="gini-auto-share"></span></th><td><strong id="gini-aa">25%</strong><span>Match</span></td><td class="gini-mismatch"><strong id="gini-ar">25%</strong><span>Different</span></td></tr>
+                <tr><th scope="row">Spam <span class="gini-share" id="gini-review-label-share"></span></th><td class="gini-mismatch"><strong id="gini-ra">25%</strong><span>Different</span></td><td><strong id="gini-rr">25%</strong><span>Match</span></td></tr>
               </tbody>
             </table>
             <p class="gini-calculation" id="gini-calculation" aria-live="polite"></p>
@@ -56,21 +56,21 @@
           <div><h3>Score the same two questions</h3><p>Both criteria use the same rows and child weights. Compare gains within each column.</p></div>
         </div>
         <div class="table-wrap"><table>
-          <caption class="sr-only">Gini and entropy gains of two questions at the parcel root</caption>
+          <caption class="sr-only">Gini and entropy gains of two questions at the email root</caption>
           <thead><tr><th scope="col">Question</th><th scope="col">Gini gain</th><th scope="col">Entropy gain</th></tr></thead>
           <tbody id="gini-parcel-ranks"></tbody>
         </table></div>
         <p class="gini-note">Both scores prefer <strong>X ≤ 3.5</strong> here. They can disagree because they value changes in class proportions differently.</p>
         <details class="rank-details gini-counterexample">
           <summary>See two cuts that rank differently</summary>
-          <p>Consider a separate toy parent with <strong>8 Auto and 2 Review</strong>. Counts are shown as (Auto, Review). Both criteria weight each child by its share of the 10 rows.</p>
+          <p>Consider a separate toy parent with <strong>8 Legitimate and 2 Spam</strong>. Counts are shown as (Legitimate, Spam). Both criteria weight each child by its share of the 10 rows.</p>
           <div class="table-wrap"><table>
-            <caption class="sr-only">Candidate splits of a ten-parcel parent that Gini and entropy rank differently</caption>
+            <caption class="sr-only">Candidate splits of a ten-email parent that Gini and entropy rank differently</caption>
             <thead><tr><th scope="col">Candidate and child counts</th><th scope="col">Gini gain</th><th scope="col">Entropy gain</th></tr></thead>
             <tbody id="gini-toy-ranks"></tbody>
           </table></div>
           <p class="small" id="gini-toy-worked"></p>
-          <p>Split A isolates one Review parcel and earns more Gini gain. Split B creates a larger pure Auto child and earns more entropy gain. Two impurity formulas can pick different questions even when the rows, weights, and candidate splits are identical.</p>
+          <p>Split A isolates one Spam email and earns more Gini gain. Split B creates a larger pure Legitimate child and earns more entropy gain. Two impurity formulas can pick different questions even when the rows, weights, and candidate splits are identical.</p>
         </details>
       </div>
       <p class="transition">Use either score in the same <a href="#split">split search</a>. Reduce impurity in the children, then repeat at the next node.</p>

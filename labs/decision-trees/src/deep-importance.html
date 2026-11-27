@@ -1,7 +1,7 @@
     <section class="chapter" id="deep-importance" aria-labelledby="deep-importance-title">
       <p class="eyebrow">Add repeated split contributions</p>
       <h2 id="deep-importance-title">Feature importance in a deeper tree</h2>
-      <p class="lede">A new batch of 20 synthetic parcels uses weight <var>X</var> in kilograms, packaging <var>Y</var> (A for a rigid box, B for a padded mailer), and scan warning score <var>Z</var>. Higher scan scores warn of harder-to-read labels. This sample uses scores 2 to 4 on the scanner’s 0–10 scale.</p>
+      <p class="lede">A different set of 20 measured emails uses capitals run <var>X</var> and free indicator <var>Y</var>. To make the third feature easy to inspect, we bucket the recorded exclamation percentage. <var>Z</var> is 2 for none, 3 for more than 0% through 0.2%, or 4 for more than 0.2%.</p>
 
       <div class="panel importance-explorer">
         <div class="panel-heading importance-header">
@@ -14,9 +14,9 @@
           </label>
         </div>
         <div class="importance-feature-buttons" role="group" aria-label="Select a feature to total">
-          <button type="button" data-importance-feature="x" aria-pressed="true">Weight X <span></span></button>
-          <button type="button" data-importance-feature="y" aria-pressed="false">Packaging Y <span></span></button>
-          <button type="button" data-importance-feature="z" aria-pressed="false">Scan score Z <span></span></button>
+          <button type="button" data-importance-feature="x" aria-pressed="true">Capitals X <span></span></button>
+          <button type="button" data-importance-feature="y" aria-pressed="false">Free Y <span></span></button>
+          <button type="button" data-importance-feature="z" aria-pressed="false">Exclamation bucket Z <span></span></button>
         </div>
         <a class="importance-jump" href="#importance-calculations">Jump to the calculation</a>
         <div class="importance-explorer-layout">
@@ -35,12 +35,12 @@
         <details class="teaching-note">
           <summary>Show the 20 training rows</summary>
           <div class="table-wrap"><table>
-            <caption class="sr-only">Synthetic training parcels for the feature importance example</caption>
-            <thead><tr><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z (0–10)</th><th scope="col">Recorded route</th></tr></thead>
+            <caption class="sr-only">Selected UCI Spambase rows for the feature importance example</caption>
+            <thead><tr><th scope="col">UCI source line</th><th scope="col">Capitals X</th><th scope="col">Free Y</th><th scope="col">Exclamation bucket Z</th><th scope="col">Observed label</th></tr></thead>
             <tbody id="importance-training-rows"></tbody>
           </table></div>
         </details>
       </div>
-      <p>Try keeping <strong>Weight X</strong> selected while switching from depth 4 to depth 5. Its three splits keep the same combined credit. The scan split adds to the tree’s total credit, so Weight’s percentage gets smaller.</p>
+      <p>Try keeping <strong>Capitals X</strong> selected while switching from depth 4 to depth 5. Its three splits keep the same combined credit. The exclamation bucket split adds to the tree’s total credit, so X’s percentage gets smaller.</p>
       <p class="transition">Next, see how a tree changes when the target is a number.</p>
     </section>

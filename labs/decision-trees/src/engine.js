@@ -1,37 +1,6 @@
 (() => {
   'use strict';
 
-  const TRAIN = [
-    { id: 'P1', x: 1, y: 'A', label: 0, minutes: 2 },
-    { id: 'P2', x: 2, y: 'B', label: 0, minutes: 2 },
-    { id: 'P3', x: 3, y: 'B', label: 0, minutes: 2 },
-    { id: 'P4', x: 4, y: 'B', label: 1, minutes: 6 },
-    { id: 'P5', x: 5, y: 'B', label: 1, minutes: 8 },
-    { id: 'P6', x: 6, y: 'B', label: 1, minutes: 8 },
-    { id: 'P7', x: 7, y: 'A', label: 0, minutes: 4 },
-    { id: 'P8', x: 8, y: 'B', label: 1, minutes: 8 },
-  ];
-  const HOLDOUT = [
-    { id: 'H1', x: 2, y: 'A', label: 0 },
-    { id: 'H2', x: 3, y: 'B', label: 0 },
-    { id: 'H3', x: 5, y: 'B', label: 1 },
-    { id: 'H4', x: 8, y: 'B', label: 1 },
-    { id: 'H5', x: 6, y: 'A', label: 1 },
-    { id: 'H6', x: 7, y: 'B', label: 0 },
-  ];
-  const DEEP_TRAIN = [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]
-    .map((label, index) => ({ id: 'D' + (index + 1), x: index + 1, y: 'A', label }));
-  const importancePackaging = 'AABAABBBABAAABBAAAAA';
-  const importanceScanScores = '33242422224244223423';
-  const IMPORTANCE_TRAIN = Array.from('11100001011011101111', (label, index) => ({
-    x: index + 1,
-    y: importancePackaging[index],
-    z: Number(importanceScanScores[index]),
-    label: Number(label),
-  }));
-  const processingTimes = [19, 19, 19, 10, 10, 10, 10, 19, 12, 19, 14.5, 13, 15.5, 19, 19, 14, 9, 9, 9, 9];
-  const REGRESSION_TRAIN = IMPORTANCE_TRAIN.map((row, index) => ({ ...row, minutes: processingTimes[index] }));
-
   function entropy(p) {
     if (p === 0 || p === 1) return 0;
     return -p * Math.log2(p) - (1 - p) * Math.log2(1 - p);
@@ -48,13 +17,13 @@
     const n = rows.length;
     if (n === 0) return { n, auto: 0, review: 0, mean: null, score: 0, prediction: null };
 
-    const review = rows.reduce((sum, row) => sum + row.label, 0);
+    const review = rows.reduce((sum, row) => sum + Number(row.label === 1), 0);
     const auto = n - review;
-    const hasTimes = rows.every(row => Number.isFinite(row.minutes));
-    const mean = hasTimes ? rows.reduce((sum, row) => sum + row.minutes, 0) / n : null;
+    const hasTargets = rows.every(row => Number.isFinite(row.target));
+    const mean = hasTargets ? rows.reduce((sum, row) => sum + row.target, 0) / n : null;
     if (criterion === 'mse') {
-      if (!hasTimes) throw new TypeError('Mean squared error requires a time for every row.');
-      const score = rows.reduce((sum, row) => sum + (row.minutes - mean) ** 2, 0) / n;
+      if (!hasTargets) throw new TypeError('Mean squared error requires a numeric target for every row.');
+      const score = rows.reduce((sum, row) => sum + (row.target - mean) ** 2, 0) / n;
       return { n, auto, review, mean, score, prediction: mean };
     }
 
@@ -196,7 +165,6 @@
   }
 
   globalThis.TreeLab = {
-    TRAIN, HOLDOUT, DEEP_TRAIN, IMPORTANCE_TRAIN, REGRESSION_TRAIN,
     entropy, gini, stats, candidates, evaluate, rank, fit, predict, trace, confusion, importance,
   };
 })();

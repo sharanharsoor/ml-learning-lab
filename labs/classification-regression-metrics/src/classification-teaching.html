@@ -1,20 +1,21 @@
 <section id="classification-teaching" class="class-teach" aria-labelledby="class-teach-title">
  <header class="class-teach-opening">
   <div>
-   <h2 id="class-teach-title">When should we say “On track”?</h2>
-   <p>Asha’s delivery desk promises to deliver by <strong>12:40</strong>. At <strong>12:00</strong>, the courier leaves and the app sends an <strong>On track</strong> or <strong>Likely late</strong> message. Accepted orders continue to delivery after either message. When the order arrives, Asha can see whether that forecast was right.</p>
+   <h2 id="class-teach-title">Should this email go to spam?</h2>
+   <p>An email arrives. A filter can send it to the inbox or move it to a reviewable spam folder. A missed spam message clutters the inbox. A legitimate message in the spam folder might go unread. We need a way to count both mistakes.</p>
   </div>
   <!-- CLASSIFICATION_STORY_IMAGE -->
  </header>
- <ol class="class-teach-timeline" aria-label="Timeline of a delivery forecast">
-  <li><strong>Order accepted</strong><span>Set the 12:40 deadline.</span></li>
-  <li><strong>Courier dispatches</strong><span>A real model could use the address and current traffic to score the order. The app applies a cutoff to pick the message.</span></li>
-  <li><strong>Order arrives</strong><span>At or before 12:40 is on time. After 12:40 is late. That observed outcome supplies the label.</span></li>
+ <ol class="class-teach-timeline" aria-label="From incoming email to evaluation">
+  <li><strong>1. Read the email’s features</strong><span>Use measurements available on arrival, such as how often the word “free” occurs and the longest run of capital letters.</span></li>
+  <li><strong>2. Score it and choose a folder</strong><span>A fitted model gives a Spam score from 0 to 1. At or above our cutoff goes to the spam folder. Below it goes to the inbox.</span></li>
+  <li><strong>3. Check the recorded label</strong><span>For evaluation, open the dataset’s Spam or Legitimate label and compare it with the filter’s decision.</span></li>
  </ol>
- <p class="class-teach-context">We made up 20 delivery records for this lesson. Each row has an order ID, an assigned on-time score from 0 to 1, and an actual on-time or late label for that example. Address, traffic, and the clock times illustrate what a real desk might see. The teaching table starts with the score already assigned.</p>
- <p class="class-teach-context">A higher score ranks an order as more likely to arrive on time. To read 0.45 as a 45% chance, we would first check whether about 45% of orders with similar scores actually arrived on time.</p>
+ <p class="class-teach-context">The score comes from a logistic regression model trained on 3,433 labeled emails. Higher scores mean the model ranks the message as more likely to be Spam. We use four decimal places in every comparison. Check calibration on representative data before treating a score such as 0.5177 as a real-world 51.77% chance.</p>
+ <p class="class-teach-context">We’ll follow <strong>20 real, held-out Spambase emails</strong>, with 10 Spam and 10 Legitimate examples selected across their score ranges. Labels come from UCI’s data. <strong>E4130</strong> means row 4,130 in the source data. The folder policy is a teaching scenario. The complete test fold has its own results at the end.</p>
+ <details class="class-teach-note"><summary>Where the scores and labels come from</summary><p>Spambase records 57 measurements per email, including word and character frequencies and capital-letter run lengths. We split the 4,601 records into training and test emails, keeping identical feature rows together. We scale the measurements and fit logistic regression on the training rows. Then we score the held-out rows, round each Spam probability to four decimals, and use the published Spam or Legitimate label to evaluate the result. <a href="https://doi.org/10.24432/C53G6X" target="_blank" rel="noopener noreferrer">Hopkins et al., Spambase, UCI (1999)</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></p></details>
  <nav class="class-teach-route" aria-label="Classification teaching sequence">
-  <button class="button" type="button" data-class-lesson-stage="one" aria-controls="class-teach-one" aria-pressed="true">Follow one order</button>
+  <button class="button" type="button" data-class-lesson-stage="one" aria-controls="class-teach-one" aria-pressed="true">Follow one email</button>
   <button class="button" type="button" data-class-lesson-stage="python" aria-controls="class-teach-python" aria-pressed="false">Run the code</button>
   <button class="button" type="button" data-class-lesson-stage="rates" aria-controls="class-teach-rates" aria-pressed="false">Read matrix and rates</button>
   <button class="button" type="button" data-class-lesson-stage="policies" aria-controls="class-teach-policies" aria-pressed="false">Compare two cutoffs</button>
@@ -22,53 +23,108 @@
  </nav>
  <section class="class-teach-panel" id="class-teach-one" aria-labelledby="class-teach-one-title">
   <div class="class-teach-heading">
-   <div><h3 id="class-teach-one-title">Follow an order into the matrix</h3><p>Choose one of the 20 past orders. At dispatch, use the assigned score to forecast. After arrival, compare with the recorded outcome. We start at <strong>0.25</strong> so the example shows all four kinds of outcome. A score of 0.25 or higher gives <strong>On track</strong>. A lower score gives <strong>Likely late</strong>. P (positive) means on time. N (negative) means late.</p></div>
-   <label for="class-teach-order">Past order ID <select id="class-teach-order"></select></label>
+   <div><h3 id="class-teach-one-title">Follow an email into the matrix</h3><p>At cutoff <strong>0.50</strong>, a score of 0.50 or higher predicts <strong>Spam</strong> and sends the email to the spam folder. A smaller score predicts <strong>Legitimate</strong> and sends it to the inbox. Spam is the positive class (P). Legitimate is the negative class (N).</p></div>
+   <label for="class-teach-order">Test email ID <select id="class-teach-order"></select></label>
   </div>
   <div id="class-teach-replay" aria-live="polite"></div>
   <div class="button-row class-teach-actions">
-   <button class="button primary" type="button" id="class-teach-reveal">Show dispatch forecast</button>
-   <button class="button" type="button" id="class-teach-reset" hidden>Restart order</button>
+   <button class="button primary" type="button" id="class-teach-reveal">Show filter decision</button>
+   <button class="button" type="button" id="class-teach-reset" hidden>Restart email</button>
   </div>
+  <aside class="lab-quiz">
+   <h4>Name the mistake</h4>
+   <p>E2003 scores 0.0476. The cutoff is 0.50 and its recorded label is Legitimate. Which matrix cell gets this email?</p>
+   <details><summary>Show options</summary><ol type="A"><li>True positive</li><li>False positive</li><li>False negative</li><li>True negative</li></ol>
+    <details><summary>What is the right answer?</summary><p><strong>D. True negative.</strong></p>
+     <details><summary>Show explanation</summary><p>The score is below 0.50, so the filter predicts Legitimate (N). The prediction matches the recorded negative label, so it is a true negative.</p></details>
+    </details>
+   </details>
+  </aside>
  </section>
  <section class="class-teach-panel" id="class-teach-python" aria-labelledby="class-teach-python-title" hidden>
   <h3 id="class-teach-python-title">Build the decision rule in Python</h3>
-  <p>The first two lists contain the assigned scores and recorded outcomes for D14 and D19. Each position refers to the same order in both lists. Use 1 for on time and 0 for late. Read <code>scores</code> to make the forecasts. Read <code>actual</code> later to count correct forecasts.</p>
+  <p>Apply the same cutoff you just used in the replay to E4130 and E35. The first position in each list describes E4130 and the second describes E35. Use 1 for Spam and 0 for Legitimate. First use <code>scores</code> to make predictions. Then open <code>actual</code> to check whether they were right.</p>
   <pre class="class-teach-code"><code id="class-teach-code-example"></code></pre>
   <p id="class-teach-code-output"></p>
-  <p>In Colab, apply the same rule to all 20 orders and change the cutoff to 0.10. Read what changes for D19, whose score is exactly 0.10.</p>
+  <p>In Colab, run the same rule across all 20 emails. Try the cutoff <strong>0.5177</strong>. E4130 still goes to the spam folder because the comparison includes equality. Try 0.5178 to see it move to the inbox.</p>
   <div class="button-row"><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/classification-regression-metrics/notebooks/classification-metrics-teaching.ipynb" target="_blank" rel="noopener noreferrer">Open Classification Metrics in Colab</a></div>
  </section>
  <section class="class-teach-panel" id="class-teach-rates" aria-labelledby="class-teach-rates-title" hidden>
-  <h3 id="class-teach-rates-title">From 20 forecasts to four counts</h3>
-  <p>Use the same original cutoff of 0.25 for every past order. Each order adds one count where its <strong>actual row</strong> meets its <strong>forecast column</strong>. P means on time and N means late. The same two orders from the replay are shown beside the totals.</p>
+  <h3 id="class-teach-rates-title">From 20 filter decisions to four counts</h3>
+  <p>At 0.50, each email adds one count where its <strong>actual row</strong> meets its <strong>prediction column</strong>. Use the same 20 emails throughout. E4130 and E35 show how a Legitimate email can land in the spam folder and how Spam can stay in the inbox.</p>
   <div class="class-teach-compare" id="class-teach-rate-evidence"></div>
+  <p id="class-teach-rate-highlight" class="class-teach-context" aria-live="polite">Use the metric buttons to highlight each denominator in the matrix.</p>
   <div class="class-teach-rate-cards">
-   <article><h4>Precision</h4><p>Of the orders we called On track, how many arrived on time? Count the left column. It contains 15 correct forecasts and D14, the false positive.</p><p class="class-teach-equation">15 ÷ (15 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="precision">Highlight predicted positives</button></article>
-   <article><h4>Recall</h4><p>Of the orders that actually arrived on time, how many did we call On track? Count the top row. It contains the same 15 correct forecasts and D19, the false negative.</p><p class="class-teach-equation">15 ÷ (15 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="recall">Highlight actual positives</button></article>
-   <article><h4>Accuracy</h4><p>How many forecasts were correct overall? Add the two correct cells and divide by all 20 orders.</p><p class="class-teach-equation">(15 + 3) ÷ 20 = 90%</p></article>
-   <article><h4>F1</h4><p>F1 is the harmonic mean of precision and recall. You can calculate it from the counts as twice the true positives divided by twice the true positives plus both kinds of mistake.</p><p class="class-teach-equation">(2 × 15) ÷ (2 × 15 + 1 + 1) = 93.75%</p><button class="button small" type="button" data-class-focus="f1">Read the F1 calculation</button></article>
+   <article><h4>Precision</h4><p>When the filter raises a Spam flag, how often is it right? Read down the Spam prediction column. Of 11 messages flagged, 9 really are Spam and 2 are Legitimate.</p><p class="class-teach-equation">TP ÷ (TP + FP) = 9 ÷ 11 ≈ 81.82%</p><button class="button small" type="button" data-class-focus="precision" aria-pressed="false">Highlight predicted positives</button></article>
+   <article><h4>Recall</h4><p>How much of the Spam did the filter catch? Read across the actual Spam row. Of 10 actual Spam messages, 9 are caught and E35 reaches the inbox.</p><p class="class-teach-equation">TP ÷ (TP + FN) = 9 ÷ 10 = 90%</p><button class="button small" type="button" data-class-focus="recall" aria-pressed="false">Highlight actual positives</button></article>
+   <article><h4>Accuracy</h4><p>How many emails went to the correct folder overall? Add the two correct cells and divide by all 20 emails. Always predicting the same label would get 10 of 20 right in this balanced selection.</p><p class="class-teach-equation">(TP + TN) ÷ 20 = (9 + 8) ÷ 20 = 85%</p></article>
+   <article><h4>F1</h4><p>F1 combines precision and recall into one number. It uses their harmonic mean, which is pulled toward the smaller rate. To calculate it from the matrix, count each true positive twice and each kind of mistake once in the denominator.</p><p class="class-teach-equation">2TP ÷ (2TP + FP + FN) = 18 ÷ 21 ≈ 85.71%</p><button class="button small" type="button" data-class-focus="f1" aria-pressed="false">Highlight F1 cells</button></article>
   </div>
+  <p>Precision and recall share the same 9 caught Spam emails. Precision also counts the 2 false alarms in their prediction column. Recall also counts the 1 missed Spam email in their actual row. If FP and FN happen to match, the two rates match even though the groups answer different questions.</p>
+  <details class="class-teach-note"><summary>Why use the harmonic mean in F1?</summary><p>The harmonic mean of precision and recall is <strong>2 × precision × recall ÷ (precision + recall)</strong>. When precision is 100% and recall is 25%, the arithmetic average is 62.5% and F1 is 40%. F1 rewards a policy that does well at both catching Spam and keeping legitimate mail visible.</p></details>
+  <aside class="lab-quiz">
+   <h4>Choose the denominator</h4>
+   <p>At 0.50, we flagged 11 of 20 emails. Ten emails actually are Spam, and we caught nine. What is recall?</p>
+   <details><summary>Show options</summary><ol type="A"><li>9/11</li><li>9/10</li><li>9/20</li><li>17/20</li></ol>
+    <details><summary>What is the right answer?</summary><p><strong>B. 9/10.</strong></p>
+     <details><summary>Show explanation</summary><p>Recall starts from all 10 actual Spam emails. Nine of those were caught. Precision starts from all 11 flagged emails.</p></details>
+    </details>
+   </details>
+  </aside>
  </section>
  <section class="class-teach-panel" id="class-teach-policies" aria-labelledby="class-teach-policies-title" hidden>
   <div class="class-teach-heading">
-   <div><h3 id="class-teach-policies-title">Change the cutoff, keep the scores</h3><p>Keep the same 20 orders and their recorded outcomes. Compare cutoff 0.25 with a second policy. The forecast message is the only thing the cutoff changes. A cutoff of 0.10 includes an order scoring exactly 0.10.</p></div>
-   <label for="class-teach-comparison">Second cutoff <select id="class-teach-comparison"><option value="0.10">0.10</option><option value="0.50">0.50</option><option value="0.00">0.00</option><option value="1.01">1.01</option></select></label>
+   <div><h3 id="class-teach-policies-title">Change the cutoff, keep the scores</h3><p>Keep the same 20 emails and recorded labels. A stricter cutoff can keep more legitimate mail in the inbox and also miss more Spam. Compare the two matrices. The highlighted counts change as emails move between prediction columns in their original rows.</p></div>
+   <div class="class-teach-controls">
+    <label for="class-teach-comparison">Second cutoff <select id="class-teach-comparison"><option value="0.75">0.75</option><option value="0.20">0.20</option><option value="0.00">0.00</option><option value="1.01">1.01</option><option value="custom">Custom</option></select></label>
+    <label for="class-teach-custom" hidden>Custom cutoff <input id="class-teach-custom" type="number" min="0" max="1.01" step="0.0001" value="0.5177"></label>
+   </div>
   </div>
   <div id="class-teach-comparison-result" aria-live="polite"></div>
-  <div class="button-row class-teach-actions"><button class="button primary" id="class-teach-use-cutoff" type="button">Use second cutoff in playground</button></div>
-  <details class="class-teach-note"><summary>Why try these cutoffs?</summary><p>0.10 includes D19, which scores exactly 0.10. 0.50 is a stricter rule that gives fewer On track messages. Every score reaches 0.00. The largest score is 0.98, so 1.01 makes every forecast Likely late. The two extreme settings show what happens when everyone gets the same message.</p></details>
-  <details class="class-teach-note"><summary>How could the desk choose a cutoff?</summary><p>For this calculation, suppose the desk assigns 10 penalty points to a false On track message (FP) and 1 to an unnecessary Likely late warning (FN). These weights are an assumption for the example. Add <strong>10 × FP + FN</strong> using the counts for each policy.</p><p>At 0.25, the total is <strong>10 × 1 + 1 = 11</strong>. At 0.10, it is <strong>10 × 3 + 0 = 30</strong>. A real desk would agree on its own error costs or constraints, choose the cutoff on validation data, and evaluate that choice on separate test orders.</p></details>
+  <details class="class-teach-note"><summary>Show all 20 emails at these cutoffs</summary><div class="class-teach-scroll" id="class-teach-register"></div></details>
+  <details class="class-teach-note"><summary>Why try these cutoffs?</summary><p>0.75 gives the inbox two more emails than at 0.50. In this example the service gets one of those decisions right and one wrong. At 0.20, E4447 crosses into the Spam prediction column because its score is 0.2220. The recorded label is Legitimate, so it changes from TN to FP.</p><p>Every score reaches 0.00. The largest displayed score is 1.0000, so 1.01 leaves every email in the inbox. The extremes show what happens when the filter makes the same decision for everyone.</p></details>
+  <details class="class-teach-note"><summary>How could a mail team choose a cutoff?</summary><p>Suppose a legitimate message buried in the spam folder costs 10 penalty points, and a missed Spam message costs 1. That is an assumption for this exercise. Use <strong>10 × FP + FN</strong>. In the 20 teaching cases, 0.50 costs <strong>10 × 2 + 1 = 21</strong> and 0.75 costs <strong>10 × 1 + 2 = 12</strong>. Both cutoffs have 85% accuracy.</p><p>A mail team can pick a cutoff on validation data to meet a product requirement or minimize estimated costs. Measure the chosen policy on a separate test set using real class frequencies and error costs.</p></details>
+  <aside class="lab-quiz">
+   <h4>Track a moved email</h4>
+   <p>When the cutoff rises from 0.50 to 0.75, E1809 (score 0.5359, actual Spam) moves from the spam folder to the inbox. How does its matrix cell change?</p>
+   <details><summary>Show options</summary><ol type="A"><li>TP to FN</li><li>FP to TN</li><li>FN to TP</li><li>TN to FP</li></ol>
+    <details><summary>What is the right answer?</summary><p><strong>A. TP to FN.</strong></p>
+     <details><summary>Show explanation</summary><p>The model used to catch this Spam email. The higher cutoff sends it to the inbox, so it becomes a missed positive.</p></details>
+    </details>
+   </details>
+  </aside>
  </section>
  <section class="class-teach-panel" id="class-teach-ranking" aria-labelledby="class-teach-ranking-title" hidden>
   <h3 id="class-teach-ranking-title">One cutoff gives one ROC point</h3>
-  <p>Use the confusion counts at 0.25. Of the 4 actual late orders, 1 was forecast On track. That gives the <strong>false-positive rate</strong> of <strong>1/4</strong>, the horizontal coordinate. Of the 16 actual on-time orders, 15 were forecast On track. That gives <strong>recall</strong>, or true-positive rate, of <strong>15/16</strong>, the vertical coordinate.</p>
-  <p>To build the curve, start above every score so the point is (0, 0). Lower the cutoff to 0.98 and D01, an actual on-time order, enters the On track group. The point moves up by 1/16. At 0.45, D14, an actual late order, enters and the point moves right by 1/4. Orders with tied scores enter together.</p>
-  <div class="button-row class-teach-actions"><button class="button small" type="button" data-class-focus="roc">Explore the ROC point</button></div>
+  <p>ROC stands for <strong>receiver operating characteristic</strong>. Use one confusion matrix to place one point. At the baseline cutoff of 0.50, <strong>FPR = FP ÷ (FP + TN) = 2/10 = 0.20</strong> on the horizontal axis and <strong>TPR = TP ÷ (TP + FN) = 9/10 = 0.90</strong> on the vertical axis. FPR asks how many legitimate emails were flagged. TPR is recall, the share of Spam we caught.</p>
+  <p>If you changed the cutoff in the comparison, the marker starts at that cutoff. Its starting coordinates come from the counts in the second matrix.</p>
+  <p>Start above every score to get (0, 0). Lower the cutoff to 1.0000 and two tied emails enter together. Spam E1772 moves the point up by 1/10 and Legitimate E4320 moves it right by 1/10. At 0.9998, E613 (Spam) moves the point up by another 1/10. Continue down every distinct score until everyone reaches the spam folder at (1, 1).</p>
+  <div class="class-teach-roc">
+   <label for="class-teach-roc-cutoff">ROC cutoff <output id="class-teach-roc-value" for="class-teach-roc-cutoff">0.5000</output></label>
+   <input id="class-teach-roc-cutoff" type="range" min="0" max="1.01" step="0.0001" value="0.50">
+   <div class="button-row" aria-label="ROC cutoff examples"><button class="button small" type="button" data-class-roc="1.01">Start above scores</button><button class="button small" type="button" data-class-roc="1">Include the first tie</button><button class="button small" type="button" data-class-roc="0.50">Use 0.50</button><button class="button small" type="button" data-class-roc="0.75">Use 0.75</button></div>
+   <p id="class-teach-roc-coordinates" aria-live="polite"></p>
+   <div id="class-teach-roc-chart"></div>
+  </div>
   <h4>Use the original scores to explain the area</h4>
-  <p>Pair each actual on-time order with each actual late order. The pair earns 1 when the on-time score is higher, ½ when the scores tie, and 0 when the late score is higher. For example, on-time D19 (0.10) earns 0 against late D14 (0.45) and earns 1 against late D20 (0.05).</p>
+  <p>AUC means area under the ROC curve. It is also the chance a randomly chosen Spam email outranks a randomly chosen Legitimate one, giving half credit for a tie. E1809 (Spam, 0.5359) beats E4130 (Legitimate, 0.5177). E35 (Spam, 0.0009) loses against E4130. E1772 and E4320 tie at 1.0000 after rounding.</p>
+  <div class="class-teach-controls">
+   <label for="class-teach-positive">Choose actual Spam <select id="class-teach-positive"></select></label>
+   <label for="class-teach-negative">Choose actual Legitimate <select id="class-teach-negative"></select></label>
+  </div>
+  <p id="class-teach-pair" class="class-teach-equation" aria-live="polite"></p>
   <div id="class-teach-auc-evidence"></div>
-  <p>Moving only the cutoff changes the ROC point. The recorded outcomes, scores, and comparisons stay the same, so the area under the curve (AUC) stays the same.</p>
+  <p>Moving the cutoff picks another point on the same curve. It leaves all the scores and their ranking in place, so AUC stays the same.</p>
+  <aside class="lab-quiz">
+   <h4>Move the cutoff</h4>
+   <p>You move the cutoff from 0.50 to 0.75 on the same 20 emails. What happens to the ROC point and AUC?</p>
+   <details><summary>Show options</summary><ol type="A"><li>The point changes and AUC falls.</li><li>The point stays and AUC rises.</li><li>The point changes and AUC stays the same.</li><li>The point and AUC both stay the same.</li></ol>
+    <details><summary>What is the right answer?</summary><p><strong>C. The point changes and AUC stays the same.</strong></p>
+     <details><summary>Show explanation</summary><p>Fewer emails are flagged at 0.75, so FPR and TPR both fall here. The entire ranked list of scores remains fixed, so the full curve and its area stay the same.</p></details>
+    </details>
+   </details>
+  </aside>
+  <details class="class-teach-note"><summary>Read the complete held-out fold</summary><div id="class-teach-full-test"></div><p>Spambase was donated in 1999. For a current mail filter we would evaluate separately on recent, representative mail.</p></details>
  </section>
  <div class="button-row class-teach-actions" aria-label="Classification lesson navigation">
   <button class="button small" type="button" id="class-teach-previous" disabled>Previous step</button>

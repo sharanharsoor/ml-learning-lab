@@ -14,9 +14,9 @@ X &lt;= 3.5: weighted entropy = 0.451205, gain = 0.548795
 Y == A: weighted entropy = 0.688722, gain = 0.311278
 Held-out predictions: [0, 0, 1, 1, 0, 1]
 Confusion matrix (actual rows, predicted columns): [[2, 1], [1, 2]]
-Leaf means at X &lt;= 3.5: 2.0 and 6.8 minutes
-Weighted child MSE: 1.600000 minutes squared
-MSE reduction: 5.400000 minutes squared</pre>
+Leaf means at hour &lt;= 3.5: 2.0 and 6.8 rentals
+Weighted child MSE: 1.600000 rentals squared
+MSE reduction: 5.400000 rentals squared</pre>
   </details>
   <details class="demo-source" id="demo-source">
     <summary>Read the runnable Python</summary>
@@ -24,15 +24,17 @@ MSE reduction: 5.400000 minutes squared</pre>
 from math import log2
 from statistics import mean
 
-<span id="demo-data"># X, Y, class (0 = Auto, 1 = Review), processing time in minutes
+<span id="demo-data"># Spambase features X and Y, and class (0 = Legitimate, 1 = Spam)
 train = [
-    (1, "A", 0, 2), (2, "B", 0, 2), (3, "B", 0, 2), (4, "B", 1, 6),
-    (5, "B", 1, 8), (6, "B", 1, 8), (7, "A", 0, 4), (8, "B", 1, 8),
+    (1, "A", 0), (2, "B", 0), (3, "B", 0), (4, "B", 1),
+    (5, "B", 1), (6, "B", 1), (7, "A", 0), (8, "B", 1),
 ]
 held_out = [
     (2, "A", 0), (3, "B", 0), (5, "B", 1),
     (8, "B", 1), (6, "A", 1), (7, "B", 0),
 ]
+# UCI Bike Sharing, clock hour and observed hourly count.
+bikes = list(enumerate([2, 2, 2, 6, 8, 8, 4, 8], 1))
 </span>
 
 def entropy(rows):
@@ -50,10 +52,10 @@ def weighted_score(children, score):
     total = sum(map(len, children))
     return sum(len(child) * score(child) for child in children) / total
 
-weight_cut = split(train, lambda row: row[0] &lt;= 3.5)
-package_cut = split(train, lambda row: row[1] == "A")
+capitals_cut = split(train, lambda row: row[0] &lt;= 3.5)
+free_cut = split(train, lambda row: row[1] == "A")
 print(f"Root entropy: {entropy(train):.6f} bits")
-for name, children in [("X &lt;= 3.5", weight_cut), ("Y == A", package_cut)]:
+for name, children in [("X &lt;= 3.5", capitals_cut), ("Y == A", free_cut)]:
     after = weighted_score(children, entropy)
     gain = entropy(train) - after
     print(f"{name}: weighted entropy = {after:.6f}, gain = {gain:.6f}")
@@ -71,21 +73,22 @@ print(f"Held-out predictions: {predictions}")
 print(f"Confusion matrix (actual rows, predicted columns): {matrix}")
 
 def leaf_mean(rows):
-    return mean(row[3] for row in rows)
+    return mean(row[1] for row in rows)
 
 def mse(rows):
     center = leaf_mean(rows)
-    return mean((row[3] - center) ** 2 for row in rows)
+    return mean((row[1] - center) ** 2 for row in rows)
 
-left_mean, right_mean = map(leaf_mean, weight_cut)
-print(f"Leaf means at X &lt;= 3.5: {left_mean:.1f} and {right_mean:.1f} minutes")
-after = weighted_score(weight_cut, mse)
-print(f"Weighted child MSE: {after:.6f} minutes squared")
-print(f"MSE reduction: {mse(train) - after:.6f} minutes squared")</code></pre>
+hour_cut = split(bikes, lambda row: row[0] &lt;= 3.5)
+left_mean, right_mean = map(leaf_mean, hour_cut)
+print(f"Leaf means at hour &lt;= 3.5: {left_mean:.1f} and {right_mean:.1f} rentals")
+after = weighted_score(hour_cut, mse)
+print(f"Weighted child MSE: {after:.6f} rentals squared")
+print(f"MSE reduction: {mse(bikes) - after:.6f} rentals squared")</code></pre>
   </details>
   <details class="demo-equivalent">
     <summary>Try the scikit-learn equivalent</summary>
-    <p>Fit both trees with the same parcels. The second input column is a 0/1 indicator for packaging B. The first scikit-learn run also downloads its packages.</p>
+    <p>Fit the classifier on the two Spambase features. Its second input is 1 when the word free appears. Fit the regression stump on the clock hour and count from the bike records. The first scikit-learn run also downloads its packages.</p>
     <div class="demo-actions">
       <button id="demo-sklearn-run" type="button" aria-controls="demo-sklearn-output">Run scikit-learn</button>
     </div>
@@ -94,7 +97,7 @@ print(f"MSE reduction: {mse(train) - after:.6f} minutes squared")</code></pre>
     <details class="demo-reference" id="demo-sklearn-reference">
       <summary>Reference output from the lesson data</summary>
       <pre class="demo-output">Confusion matrix (actual rows, predicted columns): [[2, 1], [1, 2]]
-Regression leaf means: 2.0 and 6.8 minutes</pre>
+Regression leaf means: 2.0 and 6.8 rentals</pre>
     </details>
     <pre class="demo-code"><code id="demo-sklearn-code">from sklearn.metrics import confusion_matrix
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -113,8 +116,8 @@ print(f"Confusion matrix (actual rows, predicted columns): {matrix.tolist()}")
 
 regressor = DecisionTreeRegressor(
     criterion="squared_error", max_depth=1, random_state=0
-).fit(inputs, [row[3] for row in train])
-low, high = regressor.predict(features([(1, "A"), (5, "B")]))
-print(f"Regression leaf means: {low:.1f} and {high:.1f} minutes")</code></pre>
+).fit([[hour] for hour, count in bikes], [count for hour, count in bikes])
+low, high = regressor.predict([[1], [5]])
+print(f"Regression leaf means: {low:.1f} and {high:.1f} rentals")</code></pre>
   </details>
 </div>

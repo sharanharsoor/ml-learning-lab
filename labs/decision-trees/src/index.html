@@ -17,6 +17,7 @@
 {{GINI_CSS}}
 {{BOUNDARY_CSS}}
 {{COURSE_CSS}}
+{{QUIZ_CSS}}
 </style>
 </head>
 <body>
@@ -32,7 +33,7 @@
     <nav aria-label="Lesson chapters">
       <p class="eyebrow">Decision trees</p>
       <ol class="chapters">
-        <li><a href="#parcel" aria-current="location">The parcel desk</a></li>
+        <li><a href="#parcel" aria-current="location">The spam filter</a></li>
         <li><a href="#draw-splits">Draw the splits</a></li>
         <li><a href="#entropy">Surprise and entropy</a></li>
         <li><a href="#gini">Gini vs. entropy</a></li>
@@ -53,7 +54,7 @@
   <div class="chapter-controls" aria-label="Chapter controls">
     <label for="chapter-select" class="sr-only">Go to a chapter</label>
     <select id="chapter-select">
-      <option value="parcel">The parcel desk</option>
+      <option value="parcel">The spam filter</option>
       <option value="draw-splits">Draw the splits</option>
       <option value="entropy">Surprise and entropy</option>
       <option value="gini">Gini vs. entropy</option>
@@ -74,20 +75,21 @@
     </div>
   </div>
   <main class="lesson" id="lesson">
-    <section class="chapter hero" id="parcel" aria-labelledby="parcel-title">
+    <section class="chapter hero" id="parcel" aria-labelledby="spam-title">
       <p class="eyebrow">Classification &amp; regression</p>
-      <h1 id="parcel-title">Decision trees</h1>
-      <p class="lede">A parcel arrives at the sorting desk. A worker weighs it and records its packaging. It can go straight to dispatch or get a closer check. Can past decisions help us predict its route?</p>
+      <h1 id="spam-title">Decision trees</h1>
+      <p class="lede">The email subject says <strong>“FREE seats available”</strong>. It could be an invitation from a friend or a mass advertisement. Can the features of emails we've already labeled help us decide what to do with a new message?</p>
       {{COURSE_IMAGE}}
       <div class="course-story">
-        <div><h3>Auto</h3><p>The parcel can continue through the automated line.</p></div>
-        <div><h3>Review</h3><p>A worker checks the parcel before it continues, for example after spotting a loose seal.</p></div>
+        <div><h3>Inbox</h3><p>A legitimate email gets through. A false alarm could hide an important message.</p></div>
+        <div><h3>Spam folder</h3><p>A spam prediction sends the message for review away from the inbox. A missed spam message still reaches the user.</p></div>
       </div>
-      <ol class="course-data-flow" aria-label="From past records to a new prediction">
-        <li><strong>Past parcels</strong><span>Each synthetic record gives a weight in kilograms (X), a packaging type (Y), and an example of the route staff recorded.</span></li>
-        <li><strong>Fit the tree</strong><span>Use the recorded routes to learn which questions separate Auto from Review.</span></li>
-        <li><strong>Predict a new route</strong><span>Give the fitted tree only the new parcel’s weight and packaging. The route is its prediction.</span></li>
+      <ol class="course-data-flow" aria-label="From labeled emails to a new prediction">
+        <li><strong>Measure the email</strong><span>X counts letters in the longest consecutive uppercase run. For <strong>FREE</strong>, that's four. Y records whether the word <strong>free</strong> appears anywhere.</span></li>
+        <li><strong>Fit the tree</strong><span>Use the two features and observed Spam or Legitimate labels from UCI Spambase to learn questions.</span></li>
+        <li><strong>Classify a new email</strong><span>At prediction time the fitted tree sees X and Y. Follow the branch answers until a leaf returns the predicted label.</span></li>
       </ol>
+      <p class="small">Spambase contains measurements and labels for 4,601 historical emails. The subject above is an invented example. The eight training emails below are selected source rows. The selection makes the split arithmetic easy to follow. <a href="https://archive.ics.uci.edu/dataset/94/spambase">UCI Spambase documentation</a></p>
       <nav class="course-route" aria-label="Teaching agenda">
         <h2>From one cut to a fitted tree</h2>
         <ol>
@@ -95,45 +97,45 @@
           <li><a href="#entropy">Score</a><span>Compare the label mix before and after a cut.</span></li>
           <li><a href="#evaluate">Check</a><span>Trace mistakes and choose a depth.</span></li>
           <li><a href="#importance">Explain</a><span>Give each split its share of credit.</span></li>
-          <li><a href="#regression">Predict</a><span>Use the same idea to estimate minutes.</span></li>
+          <li><a href="#regression">Predict</a><span>Use trees to forecast hourly rentals.</span></li>
         </ol>
       </nav>
       <div class="parcel-board">
         <div class="panel-heading">
-          <div><h2>Eight training parcels</h2><p>Position shows weight <var>X</var> in kg. Packaging <var>Y</var> is A for a rigid box or B for a padded mailer. The shape shows the recorded route.</p></div>
-          <div class="legend" aria-label="Parcel labels"><span><i class="key auto" aria-hidden="true"></i>Auto</span><span><i class="key review" aria-hidden="true"></i>Review</span></div>
+          <div><h2>Eight training emails</h2><p>Position shows the longest uppercase run, <var>X</var>. The <var>Y</var> lanes read A (free absent) or B (free present). Shape shows the observed class.</p></div>
+          <div class="legend" aria-label="Email labels"><span><i class="key auto" aria-hidden="true"></i>Legitimate</span><span><i class="key review" aria-hidden="true"></i>Spam</span></div>
         </div>
         <div id="training-plot"></div>
         <details class="data-details">
           <summary>Show the training rows</summary>
-          <p class="small">The route records the staff decision. Processing time measures how many minutes passed from intake until the parcel was cleared to dispatch. We predict that time in the regression example.</p>
+          <p class="small">The UCI source line is one-based in <code>spambase.data</code>. The lab derives Y by checking whether UCI’s <code>word_freq_free</code> is greater than zero. Spambase provides feature summaries and labels.</p>
           <div class="table-wrap"><table>
-            <caption class="sr-only">Synthetic training parcels</caption>
-            <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Route label</th><th scope="col">Processing time (min)</th></tr></thead>
+            <caption class="sr-only">Selected UCI Spambase rows</caption>
+            <thead><tr><th scope="col">Email</th><th scope="col">Capital run X</th><th scope="col">Free Y</th><th scope="col">Observed label</th><th scope="col">UCI source line</th></tr></thead>
             <tbody id="training-rows"></tbody>
           </table></div>
         </details>
       </div>
       <div class="prediction-prompt">
-        <div><h2>Try a first rule</h2><p>Suppose a new 7 kg parcel arrives in a rigid box (A). It has the same inputs as P7. Look at three past parcels near that weight, then make a prediction.</p></div>
+        <div><h2>Try a first rule</h2><p>Suppose a new email has a longest uppercase run of 7 and never uses the word free (Y = A). E7 has those same two inputs. Compare the three nearby examples, then make a prediction.</p></div>
         <div class="table-wrap course-records"><table>
-          <caption>Past routes and the new parcel’s inputs</caption>
-          <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th></tr></thead>
+          <caption>Observed labels and the new email’s inputs</caption>
+          <thead><tr><th scope="col">Email</th><th scope="col">Capital run X</th><th scope="col">Free Y</th><th scope="col">Observed label</th></tr></thead>
           <tbody id="preview-records"></tbody>
         </table></div>
-        <div class="segmented" aria-label="Choose a route">
-          <button type="button" data-guess="0" aria-pressed="false">Auto</button>
-          <button type="button" data-guess="1" aria-pressed="false">Review</button>
+        <div class="segmented" aria-label="Choose a label">
+          <button type="button" data-guess="0" aria-pressed="false">Legitimate</button>
+          <button type="button" data-guess="1" aria-pressed="false">Spam</button>
         </div>
         <p class="prompt-result" id="guess-result" aria-live="polite"></p>
       </div>
       <details class="panel parcel-walkthrough" id="parcel-walkthrough">
         <summary>See the two questions the fitted tree asks</summary>
-        <p class="small">The fitted tree learned these two questions from the eight training rows. A worker can act on an extra observation such as a loose seal. The tree bases its prediction on weight and packaging.</p>
+        <p class="small">The fitted tree learned these two questions from the eight training rows. A leaf with one email can match all of its training examples. Here that is a sample count of one.</p>
         <div class="tree-diagram" id="preview-tree"></div>
         <div class="route-steps" id="preview-route"></div>
       </details>
-      <p class="transition">Each question divides the parcels that reach it. Next, draw cuts on a separate batch where both inputs are numbers.</p>
+      <p class="transition">Each question divides the emails that reach it. Next, draw cuts on another set of Spambase emails, using a second numeric feature.</p>
       <a class="button primary" href="#draw-splits">Draw a cut</a>
     </section>
 
@@ -142,7 +144,7 @@
     <section class="chapter" id="entropy" aria-labelledby="entropy-title">
       <p class="eyebrow">Score one node</p>
       <h2 id="entropy-title">From surprise to entropy</h2>
-      <p class="lede">Return to the eight training parcels from the opening desk. The root starts with four Auto and four Review. Picture drawing one row at random. How surprising would its label be?</p>
+      <p class="lede">Return to the eight training emails from the spam filter opener. The root starts with four Legitimate and four Spam. Picture drawing one email at random. How surprising would its label be?</p>
       <div class="explanation-grid">
         <div>
           <h3>Start with inverse probability</h3>
@@ -154,10 +156,10 @@
         </div>
       </div>
       <div class="panel entropy-panel">
-        <div class="panel-heading"><div><h3>Change the mix of labels</h3><p>The slider starts at the training root’s 50% Review. Moving it explores other label mixes.</p></div><button id="reset-entropy" class="button secondary" type="button">Reset to 50%</button></div>
+        <div class="panel-heading"><div><h3>Change the mix of labels</h3><p>The slider starts at the training root’s 50% Spam. Moving it explores other label mixes.</p></div><button id="reset-entropy" class="button secondary" type="button">Reset to 50%</button></div>
         <div class="entropy-layout">
           <div class="entropy-data">
-            <label class="control-label" for="review-probability">Review share <output id="review-percent" for="review-probability">50%</output></label>
+            <label class="control-label" for="review-probability">Spam share <output id="review-percent" for="review-probability">50%</output></label>
             <input id="review-probability" type="range" min="0" max="100" value="50">
             <div class="probability-bar" id="probability-bar" aria-hidden="true"><span></span></div>
             <div class="table-wrap"><table>
@@ -171,11 +173,18 @@
         </div>
       </div>
       <div class="course-worked">
-        <h3>Check the weighting at a 25% Review share</h3>
-        <p>Set the slider to 25%. Imagine a node with six Auto and two Review parcels. Auto has probability ¾, so its surprise is about 0.415 bits. Review has probability ¼, so its surprise is 2 bits. Multiply by the two shares and add. <span class="formula">¾ × 0.415 + ¼ × 2 ≈ 0.811</span> bits.</p>
+        <h3>Check the weighting at a 25% Spam share</h3>
+        <p>Set the slider to 25%. Imagine a node with six Legitimate and two Spam emails. Legitimate has probability ¾, so its surprise is about 0.415 bits. Spam has probability ¼, so its surprise is 2 bits. Multiply by the two shares and add. <span class="formula">¾ × 0.415 + ¼ × 2 ≈ 0.811</span> bits.</p>
         <p>The base of the logarithm sets the unit. Base 2 gives bits. The natural logarithm gives nats and rescales every entropy gain by the same positive constant.</p>
       </div>
       <p><strong>Entropy is the average surprise.</strong> If you averaged one surprise per row, a label that appears in four out of eight rows would show up four times. Grouping those rows gives <span class="formula">H = −Σ p(label) log₂ p(label)</span>. Sum over distinct labels. A label with probability zero contributes zero by the limit of <span class="formula">−p log₂ p</span>.</p>
+      <section class="lab-quiz"><h3>In a node with six Legitimate and two Spam emails, which calculation gives entropy?</h3>
+        <details><summary>Show options</summary><ol type="A"><li>(0.415 + 2)/2</li><li>0.75 × 0.415 + 0.25 × 2</li><li>0.25 × 0.415 + 0.75 × 2</li></ol>
+          <details><summary>What is the right answer?</summary><p><strong>B. 0.75 × 0.415 + 0.25 × 2</strong></p>
+            <details><summary>Show explanation</summary><p>A randomly drawn email is Legitimate with probability 6/8 and Spam with probability 2/8. Weight the surprise by how often each label occurs. The result is about 0.811 bits.</p></details>
+          </details>
+        </details>
+      </section>
       <p class="transition">A good question lowers the uncertainty that remains. There’s another way to measure the same label mix, using the chance of a mismatch.</p>
     </section>
 
@@ -185,6 +194,7 @@
       <p class="eyebrow">Compare candidate questions</p>
       <h2 id="split-title">Find the first split</h2>
       <p class="lede">A question puts each of the eight training rows into one child. Score each child, weight it by its share of this parent, then subtract the weighted score from the parent score.</p>
+      <p class="formula">Weighted child impurity = (n<sub>yes</sub>/n<sub>parent</sub>) × impurity(Yes) + (n<sub>no</sub>/n<sub>parent</sub>) × impurity(No)</p>
       <div class="panel">
         <div class="control-grid">
           <label>Impurity <select id="criterion"><option value="entropy">Entropy</option><option value="gini">Gini impurity</option></select></label>
@@ -209,67 +219,75 @@
       <div class="explanation-grid compact">
         <div>
           <h3>What stays the same</h3>
-          <p>Switch between <a href="#gini">entropy and Gini</a> while holding a candidate fixed. The same parcels take the same branches. Each criterion uses its own scale to score the label mix in those children.</p>
+          <p>Switch between <a href="#gini">entropy and Gini</a> while holding a candidate fixed. The same emails take the same branches. Each criterion uses its own scale to score the label mix in those children.</p>
         </div>
         <div>
           <h3>How thresholds become candidates</h3>
-          <p>Exact search tries a midpoint per gap between distinct weights. For example, 3 and 4 kg give 3.5 kg. The coarse demo groups the observed weights into 1–2, 3–4, 5–6, and 7–8 kg. It tests the boundaries between those groups, at 2.5, 4.5, and 6.5 kg, by counting labels on both sides. Packaging A versus B gives a candidate in either mode. With entropy, exact search finds 3.5 kg at about 0.549 bits of gain. With the coarse edges, 2.5 kg and packaging A tie at about 0.311 bits.</p>
+          <p>Exact search tries a midpoint per gap between distinct uppercase run lengths. For example, 3 and 4 give 3.5. The coarse demo groups the observed lengths into 1–2, 3–4, 5–6, and 7–8. It tests 2.5, 4.5, and 6.5 by counting labels on both sides. The presence of free gives a candidate in either mode. With entropy, exact search finds 3.5 at about 0.549 bits of gain. With coarse edges, 2.5 and the free indicator tie at about 0.311 bits.</p>
         </div>
       </div>
       <details class="teaching-note">
         <summary>What about categorical features and scaling?</summary>
-        <p>The feature <var>Y</var> has values A and B, so one yes-or-no question separates them. With more categories, a binary tree can test membership in a group of categories, or test one category at a time after one-hot encoding. Multiway trees can use more than two branches. Each branch still earns its weight from the same immediate parent.</p>
+        <p>The free indicator <var>Y</var> has values A and B, so one yes-or-no question separates them. With more categories, a binary tree can test membership in a group of categories, or test one category at a time after one-hot encoding. Multiway trees can use more than two branches. Each branch still earns its weight from the same immediate parent.</p>
         <p>For an exact numerical search, a strictly increasing rescaling preserves the ordering of the training values and therefore the candidate partitions. The cutoff itself changes units. A tree can also reuse a feature deeper down when a different cutoff still divides the rows.</p>
       </details>
       <div class="course-code-link"><a class="button secondary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb">Open the split calculation in Colab</a></div>
       <details class="panel multiway-demo">
-        <summary>Compare two or three branches on the same parcels</summary>
-        <p>This 12-parcel batch groups rigid boxes (A), padded mailers (B), and protective tubes (C). It also adds <strong>Hold</strong> as a possible route, for example while staff wait for a missing address. Branches use packaging. The label mix within each branch comes from the example routes in the table.</p>
+        <summary>Compare two or three branches on the same emails</summary>
+        <p>This invented 12-email example groups senders into known (A), first-time (B), and unknown (C). A moderator can label a message Legitimate, Spam, or Suspicious for further review. Sender group creates branches. The label mix comes from the moderator’s example labels in the table.</p>
         <div class="table-wrap course-records"><table>
-          <caption>Recorded routes in the 12-row batch</caption>
-          <thead><tr><th scope="col">Packaging</th><th scope="col">Auto</th><th scope="col">Review</th><th scope="col">Hold</th></tr></thead>
+          <caption>Example labels in the 12-row batch</caption>
+          <thead><tr><th scope="col">Sender group</th><th scope="col">Legitimate</th><th scope="col">Spam</th><th scope="col">Suspicious</th></tr></thead>
           <tbody id="multiway-records"></tbody>
         </table></div>
         <div class="multiway-controls">
           <label>Question <select id="multiway-structure">
-            <option value="A">Packaging A or other?</option>
-            <option value="B">Packaging B or other?</option>
-            <option value="C">Packaging C or other?</option>
-            <option value="all">One branch per packaging type</option>
+            <option value="A">Known sender (A) or other?</option>
+            <option value="B">First-time sender (B) or other?</option>
+            <option value="C">Unknown sender (C) or other?</option>
+            <option value="all">One branch per sender group</option>
           </select></label>
           <label>Node score <select id="multiway-criterion">
             <option value="entropy">Entropy</option>
             <option value="gini">Gini impurity</option>
           </select></label>
         </div>
-        <div class="legend multiway-legend"><span><i class="key auto" aria-hidden="true"></i>Auto</span><span><i class="key review" aria-hidden="true"></i>Review</span><span><i class="key hold" aria-hidden="true"></i>Hold</span></div>
+        <div class="legend multiway-legend"><span><i class="key auto" aria-hidden="true"></i>Legitimate</span><span><i class="key review" aria-hidden="true"></i>Spam</span><span><i class="key hold" aria-hidden="true"></i>Suspicious</span></div>
         <div id="multiway-branches" class="multiway-branches"></div>
         <div id="multiway-math" class="course-worked" aria-live="polite"></div>
         <p class="small">The three outcomes are target labels. The branch count comes from the question the algorithm allows. Scikit-learn uses binary splits. A multiway split can separate more groups in one step and needs its own stopping checks.</p>
       </details>
+      <details class="teaching-note"><summary>Why maximize the gain?</summary><p>The parent score stays fixed while we compare questions at this node. A question with greater gain leaves less weighted uncertainty. With entropy, the gain is how much learning the branch answer reduces our uncertainty about the class.</p></details>
       <p class="transition">A mixed child can become a new parent, with its own counts and candidate search. <a href="#tree">Grow the original eight-row tree</a> to see which question it asks next.</p>
     </section>
 
     <section class="chapter" id="tree" aria-labelledby="tree-title">
       <p class="eyebrow">Repeat the search locally</p>
       <h2 id="tree-title">Grow the classification tree</h2>
-      <p class="lede">Fit a tree on the original eight parcels. The <strong>root</strong> starts with all eight. A <strong>decision node</strong> asks a question, its labeled <strong>branches</strong> carry the answers, and a <strong>leaf</strong> returns the prediction. Select a node to see why it split or stopped.</p>
+      <p class="lede">Fit a tree on the original eight emails. The <strong>root</strong> starts with all eight. A <strong>decision node</strong> asks a question, its labeled <strong>branches</strong> carry the answers, and a <strong>leaf</strong> returns the prediction. Select a node to see why it split or stopped.</p>
       <div class="panel">
         <div class="control-grid tree-controls">
           <label>Maximum depth <select id="tree-depth"><option value="0">0 · Root only</option><option value="1">1 · One question</option><option value="2" selected>2 · Up to two questions</option><option value="3">3 · Up to three questions</option></select></label>
           <label>Minimum rows in a leaf <select id="min-leaf"><option value="1" selected>1 row</option><option value="2">2 rows</option><option value="3">3 rows</option><option value="4">4 rows</option></select></label>
-          <label>Trace a parcel <select id="trace-parcel"></select></label>
+          <label>Trace an email <select id="trace-parcel"></select></label>
         </div>
         <div class="tree-summary" id="tree-summary" aria-live="polite"></div>
         <div id="tree-diagram" class="tree-diagram"></div>
         <div class="trace-result">
           <h3>Follow the highlighted path</h3>
-          <p class="small">P7 starts with the same inputs as the opening parcel. The dropdown also lets you trace a separate evaluation record.</p>
+          <p class="small">E7 starts with the same inputs as the opening email. The dropdown also lets you trace a separate evaluation email.</p>
           <div class="route-steps" id="traced-route" aria-live="polite"></div>
         </div>
         <div class="tree-inspector" id="node-details" aria-live="polite"></div>
       </div>
       <p><strong>Each split uses its own rows.</strong> At a deeper node, the denominator is the number of training rows that reached that parent. This tree uses the criterion from the split explorer and searches exact midpoints. At a leaf, the displayed class shares come from its training rows. A 100% share in a one-row leaf is based on a single example.</p>
+      <section class="lab-quiz"><h3>A deep split has three rows on its Yes branch and four on its No branch. Which weights score this split?</h3>
+        <details><summary>Show options</summary><ol type="A"><li>3/7 and 4/7</li><li>3/16 and 4/16</li><li>1/2 and 1/2</li></ol>
+          <details><summary>What is the right answer?</summary><p><strong>A. 3/7 and 4/7</strong></p>
+            <details><summary>Show explanation</summary><p>All seven rows are in this parent. The other root rows took earlier branches. Root fractions are used later when assigning tree-wide feature credit.</p></details>
+          </details>
+        </details>
+      </section>
       <p class="transition">The same rule applies several levels down. Try it on a deeper tree and pick the parts that enter the calculation.</p>
     </section>
 
@@ -278,34 +296,34 @@
     <section class="chapter" id="evaluate" aria-labelledby="evaluate-title">
       <p class="eyebrow">Check unseen examples</p>
       <h2 id="evaluate-title">Read the confusion matrix</h2>
-      <p class="lede">Keep the tree fitted on the original eight training parcels. Give it only the inputs from six separate evaluation parcels. Then compare each prediction with the recorded route. <strong>Review</strong> is the positive class.</p>
+      <p class="lede">Keep the tree fitted on the original eight training emails. Give it only the inputs from six separate evaluation emails. Then compare each prediction with the observed label. <strong>Spam</strong> is the positive class.</p>
       <div class="panel">
         <p class="small" id="evaluation-model"></p>
         <div class="evaluation-grid">
           <div>
             <h3 id="matrix-label">Actual rows, predicted columns</h3>
             <table class="matrix" aria-labelledby="matrix-label">
-              <thead><tr><th scope="col"><span class="sr-only">Actual route</span></th><th scope="col">Auto</th><th scope="col">Review</th></tr></thead>
+              <thead><tr><th scope="col"><span class="sr-only">Actual label</span></th><th scope="col">Legitimate</th><th scope="col">Spam</th></tr></thead>
               <tbody>
-                <tr><th scope="row">Auto</th><td><button type="button" data-cell="tn" aria-pressed="false"><strong>0</strong><span>True negative</span></button></td><td><button type="button" data-cell="fp" aria-pressed="false"><strong>0</strong><span>False positive</span></button></td></tr>
-                <tr><th scope="row">Review</th><td><button type="button" data-cell="fn" aria-pressed="false"><strong>0</strong><span>False negative</span></button></td><td><button type="button" data-cell="tp" aria-pressed="false"><strong>0</strong><span>True positive</span></button></td></tr>
+                <tr><th scope="row">Legitimate</th><td><button type="button" data-cell="tn" aria-pressed="false"><strong>0</strong><span>True negative</span></button></td><td><button type="button" data-cell="fp" aria-pressed="false"><strong>0</strong><span>False positive</span></button></td></tr>
+                <tr><th scope="row">Spam</th><td><button type="button" data-cell="fn" aria-pressed="false"><strong>0</strong><span>False negative</span></button></td><td><button type="button" data-cell="tp" aria-pressed="false"><strong>0</strong><span>True positive</span></button></td></tr>
               </tbody>
             </table>
             <div id="evaluation-metrics" class="metric-grid"></div>
           </div>
           <div>
-            <div class="panel-heading heldout-heading"><h3 id="heldout-title">All held-out parcels</h3><button type="button" class="button secondary" id="show-all" hidden>Show all</button></div>
+            <div class="panel-heading heldout-heading"><h3 id="heldout-title">All held-out emails</h3><button type="button" class="button secondary" id="show-all" hidden>Show all</button></div>
             <div class="table-wrap"><table>
               <caption class="sr-only">Held-out predictions for the current tree</caption>
-              <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Recorded route</th><th scope="col">Prediction</th></tr></thead>
+              <thead><tr><th scope="col">Email</th><th scope="col">UCI source line</th><th scope="col">Capital run X</th><th scope="col">Free Y</th><th scope="col">Observed label</th><th scope="col">Prediction</th></tr></thead>
               <tbody id="heldout-rows"></tbody>
             </table></div>
             <p class="small" id="heldout-note" aria-live="polite"></p>
           </div>
         </div>
       </div>
-      <p>A false positive sends an Auto parcel for unnecessary review. A false negative lets a parcel that needed review go straight through. Select an error cell, then use a parcel’s <strong>Trace</strong> link to see the decision that led there. Some evaluation parcels share measurements with training parcels. They represent separate records in this toy example.</p>
-      <p>For more practice with precision and recall, <a href="../classification-regression-metrics/#classification">open the classification metrics lesson</a>. Its example defines its own positive class.</p>
+      <p>A false positive sends a legitimate email to spam. A false negative lets spam reach the inbox. Select an error cell, then use an email’s <strong>Trace</strong> link to see the decision that led there. Some evaluation emails share the same two feature values with training emails. They are distinct UCI records.</p>
+      <p>For more practice with precision and recall, <a href="../classification-regression-metrics/#classification">open the classification metrics lesson</a>. That lesson uses Spam as the positive class, too.</p>
       <p class="transition">Try one question and then two. A tree can get better on its training rows and worse on new rows.</p>
     </section>
 
@@ -315,7 +333,7 @@
       <p class="lede">Add questions when they help on unseen data. A tree <strong>underfits</strong> when it misses useful patterns. It can <strong>overfit</strong> when extra questions capture details specific to the training rows.</p>
       <div class="panel depth-comparison">
         <div class="panel-heading">
-          <div><h3>Compare depths on the same parcels</h3><p>Select a depth to update the tree and confusion matrix.</p></div>
+          <div><h3>Compare depths on the same emails</h3><p>Select a depth to update the tree and confusion matrix.</p></div>
           <label class="regression-control">Minimum leaf size
             <select id="stop-min-leaf"><option value="1">1 row</option><option value="2">2 rows</option><option value="3">3 rows</option><option value="4">4 rows</option></select>
           </label>
@@ -325,11 +343,11 @@
       </div>
       <div class="explanation-grid">
         <div><h3>When growth stops at a node</h3><p>A pure node can stop. A mixed node can also stop if it reaches the depth limit, can’t give both children the required number of rows, or has no eligible split with enough gain. These rules limit growth during fitting.</p></div>
-        <div><h3>How to choose the limit</h3><p>Compare depth and leaf-size settings using validation data or cross-validation. Keep an independent test set for the final estimate. When you use the six held-out parcels here to choose depth, they serve as validation data.</p></div>
+        <div><h3>How to choose the limit</h3><p>Compare depth and leaf-size settings using validation data or cross-validation. Keep an independent test set for the final estimate. When you use the six held-out emails here to choose depth, they serve as validation data.</p></div>
       </div>
       <details class="teaching-note">
         <summary>Compare the same tree before and after pruning</summary>
-        <p>Cost-complexity pruning compares <span class="formula">weighted leaf impurity + α × leaf count</span>. The parcel tree has three pure leaves and 0 remaining entropy. Removing the packaging question leaves two leaves and 0.4512 bits. Keeping just the root leaves one leaf and 1 bit.</p>
+        <p>Cost-complexity pruning compares <span class="formula">weighted leaf impurity + α × leaf count</span>. The email tree has three pure leaves and 0 remaining entropy. Removing the free-indicator question leaves two leaves and 0.4512 bits. Keeping just the root leaves one leaf and 1 bit.</p>
         <div class="table-wrap"><table>
           <caption>Cost under two leaf penalties</caption>
           <thead><tr><th scope="col">Penalty</th><th scope="col">Three leaves</th><th scope="col">Two leaves</th><th scope="col">Root only</th></tr></thead>
@@ -337,13 +355,20 @@
         </table></div>
         <p>The lowest cost shifts to the two-leaf tree at 0.47. A depth limit constrains growth while fitting. Pruning chooses a subtree from a larger fitted tree. Use validation scores to choose the penalty.</p>
       </details>
+      <section class="lab-quiz"><h3>Depth 2 fits all eight training emails and classifies four of six evaluation emails correctly. Depth 1 gets five of six on evaluation. Which result favors depth 1?</h3>
+        <details><summary>Show options</summary><ol type="A"><li>Its training accuracy</li><li>Its selected feature count</li><li>Its performance on the six unseen examples</li></ol>
+          <details><summary>What is the right answer?</summary><p><strong>C. Its performance on the six unseen examples</strong></p>
+            <details><summary>Show explanation</summary><p>Held-out accuracy is 5/6 at depth 1 versus 4/6 at depth 2. That is a reason to prefer depth 1 in this small example. An independent evaluation on more emails is needed for a broader claim.</p></details>
+          </details>
+        </details>
+      </section>
       <p class="transition">Now look back at the fitted tree and ask how much each feature contributed to the reduction in training impurity.</p>
     </section>
 
     <section class="chapter" id="importance" aria-labelledby="importance-title">
       <p class="eyebrow">Attribute the reduction</p>
       <h2 id="importance-title">Give each feature credit</h2>
-      <p class="lede">Use the routing tree fitted on the original eight training parcels. A feature earns credit each time that tree uses it. Multiply local gain by the share of <strong>all training rows</strong> that reached the node, then add the credits by feature.</p>
+      <p class="lede">Use the spam classifier fitted on the original eight training emails. A feature earns credit each time that tree uses it. Multiply local gain by the share of <strong>all training rows</strong> that reached the node, then add the credits by feature.</p>
       <div class="explanation-grid">
         <div><h3>Why multiply by the root share?</h3><p>Pick one training row at random. It reaches a node of size <var>n</var> with probability <span class="formula">n/N</span>, where <var>N</var> is the root size. The split improves the label mix by its local gain for the rows that reach it. Averaged over all rows, its contribution is <span class="formula">(n/N) × local gain</span>.</p></div>
         <div><h3>What do all those credits add up to?</h3><p>Each split replaces the parent’s impurity contribution with its children’s contributions. When you add the reductions, internal nodes cancel. What remains is the <strong>root impurity minus the weighted impurity of the final leaves</strong>.</p></div>
@@ -359,10 +384,11 @@
         <div id="importance-math" class="calc-lines" aria-live="polite"></div>
         <p id="importance-note" class="small" aria-live="polite"></p>
       </div>
+      <div class="course-worked"><h3>Check what the percentage divides by</h3><p>In the depth-2 entropy tree, X gets (8/8) × 0.5488 and Y gets (5/8) × 0.7219. Their credits are 0.5488 and 0.4512 bits. Root entropy was 1 bit and the leaves are pure. X’s share is 0.5488 ÷ (0.5488 + 0.4512) ≈ 54.88%.</p></div>
       <p>Divide each feature’s credit by the total credit to report its share. One strong split near the root can earn more than several small splits. This score describes how <em>this fitted tree</em> reduced impurity on its training data.</p>
       <details class="teaching-note">
         <summary>What if two features measure nearly the same thing?</summary>
-        <p>A split credits the feature the tree actually chose. If weight and another measurement are interchangeable, either one can get most of the credit while the other earns little. Importance describes the fitted model, so it can move when the data, features, or depth change.</p>
+        <p>A split credits the feature the tree actually chose. If capital-run length and another measurement are interchangeable, either one can get most of the credit while the other earns little. Importance describes the fitted model, so it can move when the data, features, or depth change.</p>
         <p>Permutation importance asks a different question. After fitting, shuffle one feature across validation rows and check how much the score drops. A feature with a close substitute can have a small drop. Neither calculation establishes that changing a feature would cause the real-world outcome to change.</p>
       </details>
       <p class="transition">Now follow a feature that <a href="#deep-importance">appears three times in a deeper tree</a> and add up its contributions.</p>
@@ -371,32 +397,42 @@
     {{IMPORTANCE_EXAMPLE}}
 
     <section class="chapter" id="regression" aria-labelledby="regression-title">
-      <p class="eyebrow">Use the same inputs, change the target</p>
-      <h2 id="regression-title">Predict processing time</h2>
-      <p class="lede">Return to the original eight training parcels and predict how many minutes pass from intake to clearance for dispatch. Staff measure that duration after processing. The tree gets weight and packaging before processing. Each leaf predicts the mean of its training times, and its MSE is the average squared distance from that mean.</p>
+      <p class="eyebrow">Change the target from a class to a count</p>
+      <h2 id="regression-title">Predict hourly bike rentals</h2>
+      <p class="lede">How many rentals should a bike-share operations team expect during the next hour? We use eight deliberately selected rows from UCI’s Capital Bikeshare records. Each row contains a clock hour and the number of bikes rented during that hour across the system. The clock hour is known before prediction. The rental count is measured afterward.</p>
       <div class="explanation-grid compact">
-        <div><h3>Classification</h3><p class="formula">Gini = 1 − Σ p(class)²</p><p>Score label mix. The leaf predicts its majority class.</p></div>
-        <div><h3>Squared-error regression</h3><p class="formula">MSE = (1/n) Σ (time − mean)²</p><p>Score spread around a mean. The leaf predicts that mean.</p></div>
+        <div><h3>Classification</h3><p class="formula">Gini = 1 − Σ p(class)²</p><p>Score the mix of observed labels, then predict the leaf’s majority class.</p></div>
+        <div><h3>Squared-error regression</h3><p class="formula">MSE = (1/n) Σ (count − mean)²</p><p>Score the spread of the counts, then predict the leaf’s mean count.</p></div>
       </div>
       <div class="panel regression-panel">
         <div class="panel-heading">
-          <div><h3>Compare time predictions</h3><p>At this root, all eight training parcels average 5 minutes. The orange dots show their observed times. Each teal segment shows the mean prediction for that side of the cut.</p></div>
-          <label class="regression-control">Weight cutoff <select id="regression-cutoff"></select></label>
+          <div><h3>Compare count predictions</h3><p>The eight hours average 5 rentals. Orange dots show observed counts. Each teal segment shows the predicted mean for its side of the cut.</p></div>
+          <label class="regression-control">Hour cutoff <select id="regression-cutoff"></select></label>
         </div>
         <div id="regression-plot"></div>
+        <div id="regression-tree" class="tree-diagram"></div>
+        <figure id="regression-weighted" class="weighted-visual"></figure>
         <div id="regression-calculation" aria-live="polite"></div>
-        <details class="teaching-note">
-          <summary>See this cutoff as a regression tree</summary>
-          <div id="regression-tree" class="tree-diagram"></div>
+        <details class="teaching-note" id="bike-records"><summary>See the eight observed hours</summary>
+          <div class="table-wrap"><table><caption>Selected rows from UCI Bike Sharing hour.csv</caption><thead><tr><th scope="col">UCI record</th><th scope="col">Date</th><th scope="col">Hour</th><th scope="col">Rentals</th></tr></thead><tbody id="bike-training-rows"></tbody></table></div>
+          <p class="small">These records are across different dates. The sample demonstrates the arithmetic. Model evaluation in the notebook trains on earlier records and tests on later ones. <a href="https://archive.ics.uci.edu/dataset/275/bike-sharing-dataset">UCI Bike Sharing documentation</a></p>
         </details>
       </div>
-      <p>The cutoff search compares weighted child scores using the rows in the immediate parent. Each child gets its own mean and MSE. A fitted regression tree predicts one constant per leaf.</p>
-      <p>Use <strong>MSE</strong> to compare candidate cuts. Its units are minutes squared. After the tree predicts new timed parcels, take the square root of their average squared error to report <strong>RMSE</strong> in minutes.</p>
-      <details class="teaching-note">
-        <summary>Why does the mean minimize squared error?</summary>
-        <p>For any constant prediction <var>c</var>, the average squared error equals <span class="formula">MSE at the mean + (c − mean)²</span>. That extra square is smallest at zero, which is exactly when <var>c</var> equals the mean. The tree uses that best constant separately in each child while choosing a split.</p>
+      <details class="teaching-note"><summary>Why is the leaf mean the best constant for squared loss?</summary><p>For any prediction <var>c</var>, the average squared error equals <span class="formula">MSE at the mean + (c − mean)²</span>. At <var>c</var> equal to the mean, the extra square is zero. Using absolute error instead would make a median an optimal constant.</p></details>
+      <details class="teaching-note"><summary>How did the tree compare with a calendar baseline?</summary>
+        <p>The notebook trains on 15,919 hours before November 1, 2012 and evaluates on 1,460 later hours. Both models use clock hour and the working-day flag. The lookup predicts the training mean for each hour and day-type pair.</p>
+        <div class="table-wrap"><table><caption>Errors on the 1,460 later Capital Bikeshare hours</caption><thead><tr><th scope="col">Model</th><th scope="col">MAE (rentals)</th><th scope="col">RMSE (rentals)</th></tr></thead><tbody><tr><th scope="row">Hour and workday lookup</th><td>63.53</td><td>98.05</td></tr><tr><th scope="row">Depth-five tree</th><td>74.27</td><td>112.05</td></tr></tbody></table></div>
+        <p>The lookup had lower errors in this comparison. We score unrounded predictions here. The Regression Metrics lesson rounds the lookup to whole rentals before scoring, which gives MAE 63.516 and RMSE 98.038 on the same later hours.</p>
       </details>
-      <p class="transition">See how those same calculations work <a href="#deep-regression">several levels down a regression tree</a>.</p>
+      <p>A prediction of 6.8 is an expected count for similar hours. The system will record a whole number after the hour. Split scoring uses MSE in rentals². On later, observed hours you can report its square root, RMSE, in rentals. <a href="../classification-regression-metrics/#regression">Explore regression metrics</a></p>
+      <section class="lab-quiz"><h3>The leaf contains rental counts 6, 8, 8, 4, and 8. What does the squared-error tree predict?</h3>
+        <details><summary>Show options</summary><ol type="A"><li>6 rentals</li><li>6.8 rentals</li><li>8 rentals</li></ol>
+          <details><summary>What is the right answer?</summary><p><strong>B. 6.8 rentals</strong></p>
+            <details><summary>Show explanation</summary><p>The mean is (6 + 8 + 8 + 4 + 8)/5 = 34/5 = 6.8. The leaf predicts this mean for any hour that reaches it.</p></details>
+          </details>
+        </details>
+      </section>
+      <p class="transition">Now add two more inputs and trace one forecast deeper into a tree.</p>
     </section>
 
     {{REGRESSION_EXAMPLE}}
@@ -404,13 +440,13 @@
     <section class="chapter" id="python" aria-labelledby="python-title">
       <p class="eyebrow">Reproduce the numbers</p>
       <h2 id="python-title">Verify in Python</h2>
-      <p>Both browser examples return to the original eight training parcels. The first script checks the fixed 3.5 and packaging A cuts, the two-question routing rule, and the two regression leaf means. The scikit-learn example fits those models from the rows. Explorer settings stay independent of these reference examples.</p>
+      <p>Both browser examples use the selected Spambase and Bike Sharing rows. The first script checks the 3.5 classification cut, the free-indicator cut, and the regression leaf means for the 03:30 boundary. The scikit-learn example fits those trees from the displayed rows. Explorer settings stay independent of the reference examples.</p>
       <div class="course-code-link"><a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb">Open the teaching notebook in Colab</a></div>
       <p>Run the notebook from the top before teaching. Jump to the split calculation for a short live run, then use the tree trace, depth comparison, and numerical prediction sections when you return.</p>
       {{PYTHON_PANEL}}
     </section>
     <footer class="lesson-footer">
-      <p>All parcel rows are synthetic and created for this lesson.</p>
+      <p>The email examples use selected UCI Spambase rows. Both bike forecasts use selected UCI Bike Sharing records. The separate three-label extension uses invented counts. <a href="https://github.com/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/INSTRUCTOR_GUIDE.md#data-and-attribution">Data and attribution</a></p>
       <a href="https://github.com/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/INSTRUCTOR_GUIDE.md">Instructor guide</a>
       <a href="../">See all learning labs</a>
     </footer>
@@ -418,6 +454,7 @@
 </div>
 <noscript><p class="shell">Enable JavaScript to use the interactive calculations.</p></noscript>
 <script>
+{{DATASETS}}
 {{ENGINE}}
 </script>
 <script>

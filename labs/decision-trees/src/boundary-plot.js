@@ -11,7 +11,7 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   })[character]);
   const round = value => Number(value.toFixed(3));
-  const route = label => label === 1 ? 'Review' : 'Auto';
+  const route = label => label === 1 ? 'Spam' : 'Legitimate';
   const className = label => route(label).toLowerCase();
   const ticks = (min, max) =>
     Array.from({ length: Math.floor(max) - Math.ceil(min) + 1 }, (_, index) => Math.ceil(min) + index);
@@ -108,7 +108,7 @@
     return rows.map(row => {
       const x = pointX(row.x, bounds);
       const y = pointY(row.z, bounds);
-      const title = '<title>' + escape(row.id) + ', weight ' + row.x + ', scan score ' + row.z + ', ' +
+      const title = '<title>' + escape(row.id) + ', capitals run ' + row.x + ', scan score ' + row.z + ', ' +
         route(row.label) + '</title>';
       const mismatch = logistic && Number(logistic.intercept + logistic.weight * row.x + logistic.scan * row.z >= 0) !== row.label;
       const outline = mismatch ? '<circle class="boundary-chart__logistic-miss" cx="' + round(x) +
@@ -150,10 +150,10 @@
       ? splitLine(selected, draft, bounds, 'boundary-chart__draft', ' data-boundary-draft')
       : '';
     const overlay = logistic ? logisticBoundary(logistic, bounds) : '';
-    const description = 'Weight by scan score for ' + rows.length + ' labeled parcels. ' +
+    const description = 'Longest capitals run by exclamation rate for ' + rows.length + ' labeled emails. ' +
       (leaves.length ? leaves.length + ' prediction regions. ' : 'No cut applied. ') +
-      'Circles are Auto. Diamonds are Review.' +
-      (overlay ? ' The logistic regression line marks a 50% predicted probability of Review.' : '');
+      'Circles are Legitimate. Diamonds are Spam.' +
+      (overlay ? ' The logistic regression line marks a 50% predicted probability of Spam.' : '');
     return '<svg class="boundary-chart" viewBox="0 0 ' + viewWidth + ' ' + viewHeight +
       '" data-boundary-chart role="img" aria-label="' + description +
       '" data-x-min="' + bounds.xMin + '" data-x-max="' + bounds.xMax +
@@ -162,9 +162,9 @@
       rect(chartRect, 'boundary-chart__frame') + selection(selected, bounds) +
       splits(tree, bounds, selectedPath) + preview + overlay + regionLabels(leaves, bounds) + marks(rows, bounds, logistic) + labels +
       '<text class="boundary-chart__axis-title" text-anchor="middle" x="' + (box.left + width / 2) +
-      '" y="357">Weight X (kg)</text>' +
+      '" y="357">Longest capitals run X</text>' +
       '<text class="boundary-chart__axis-title" text-anchor="middle" transform="translate(18 ' +
-      (box.top + height / 2) + ') rotate(-90)">Scan score Z</text></svg>';
+      (box.top + height / 2) + ') rotate(-90)">Exclamations Z per 1,000 characters</text></svg>';
   }
 
   function pointAt(svg, event) {

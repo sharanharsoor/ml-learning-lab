@@ -1,51 +1,29 @@
 # ML Learning Lab
 
-Interactive playgrounds for understanding machine learning through visible calculations, experiments, and Python.
+Interactive lessons with worked calculations, annotated examples, quizzes, and runnable Python.
 
-**[Explore the learning labs](https://sharanharsoor.github.io/ml-learning-lab/)** · **[Open Classification & Regression Metrics](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/)** · **[Open Decision Trees](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/)**
+[Open the learning labs](https://sharanharsoor.github.io/ml-learning-lab/)
 
-## Available labs
+## Available lessons
 
-### Classification & Regression Metrics
+- **Classification Metrics.** Score real Spambase emails, trace the four confusion-matrix outcomes, change the cutoff, and work out precision, recall, F1, accuracy, and ROC-AUC. [Open the lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification)
+- **Regression Metrics.** Forecast hourly Capital Bikeshare rentals using historical calendar groups. Compare the real counts with forecasts, then work through residuals, MAE, MSE, RMSE, and R². [Open the lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#regression)
+- **Decision Trees.** Draw decisions on real email measurements, compare impurity criteria, trace deeper trees, and use squared error for rental-count predictions. [Open the lesson](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/)
+- **Bagging and Random Forests.** Follow a held-out Spambase email through several trees, bootstrap new training samples, explore feature subsampling and variance, then tune and evaluate a forest. [Open the lesson](https://sharanharsoor.github.io/ml-learning-lab/bagging/)
 
-An interactive lesson connecting predictions, outcomes, error measures, and model evaluation.
+Each quiz shows its question first. Open the choices, correct answer, and explanation as the class reaches each step.
 
-- Change a classification cutoff and inspect the confusion matrix, precision, recall, F1, and accuracy.
-- Explore ROC operating points and select individual score pairs to understand ROC-AUC.
-- Compare MAE, MSE, RMSE, and R² using the same delivery-duration examples.
-- Use the drawing board and classroom questions to explain the ideas with learners.
-- Run the accompanying notebooks to verify the calculations in Python.
+## Run the website and notebooks
 
-[Classification Metrics lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification) · [Regression Metrics lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#regression) · [Python notebooks](labs/classification-regression-metrics/notebooks/) · [Instructor guide](labs/classification-regression-metrics/INSTRUCTOR_GUIDE.md)
-
-![Classification and regression metrics playground](docs/assets/classification-regression-metrics.jpg)
-
-The classification and delivery examples are synthetic teaching data. Scores illustrate rankings and are not demonstrated calibrated probabilities. The optional trained-model notebook uses the attributed UCI Wine Quality dataset.
-
-### Decision Trees
-
-Teach a full decision-tree lesson with one fictional parcel-sorting dataset. Follow the guided chapters or turn on Teaching view to use larger text and chapter controls while screen-sharing.
-
-- Build entropy from average surprise, compare it with Gini’s label mismatch probability, and explore a case where the criteria disagree.
-- Rank exact and binned split candidates, trace parcels through the labeled tree, and connect their paths to the held-out confusion matrix.
-- Attribute split gains to features and switch to mean squared error for a numerical target.
-- Run Python in the browser to verify the calculations.
-
-[Open the playground](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) · [Python notebooks](labs/decision-trees/notebooks/) · [Instructor guide](labs/decision-trees/INSTRUCTOR_GUIDE.md)
-
-## Run the website locally
-
-The committed website needs no package installation, account, API key, or backend.
+The published website is static. To serve the committed site locally, run this from the repository root and open the local page.
 
 ```bash
 python3 -m http.server 8000 --directory docs
 ```
 
-Open [http://localhost:8000/](http://localhost:8000/). The lab can also save a self-contained offline HTML copy and export its notebooks and datasets.
+[Open the local site](http://localhost:8000/)
 
-## Run the Python examples
-
-From the repository root:
+Use the **Colab** link in each lesson or open the notebook from an installed Jupyter environment. The metrics lab's **Reference & downloads** view provides an offline HTML copy, a ZIP, selected data as CSV, and a combined Python script.
 
 ```bash
 python3 -m venv .venv
@@ -54,11 +32,9 @@ python -m pip install -r labs/classification-regression-metrics/requirements.txt
 python -m jupyterlab
 ```
 
-On Windows, activate with `.venv\Scripts\activate` instead. Open `labs/classification-regression-metrics/notebooks/metrics_core.ipynb` and run it from the beginning. `metrics_public_data.ipynb` is an optional exercise using fitted models and the bundled public dataset.
+On Windows, activate with `.venv\Scripts\activate`. The guided notebooks use the same rows as the lessons. The metrics lab also has a reproducible exercise that refits models from the original public datasets.
 
 ## Build and verify
-
-Python 3 builds the static pages using only the standard library. Node.js 18 or newer runs the metrics checks without npm packages.
 
 ```bash
 python3 scripts/build_site.py
@@ -67,16 +43,8 @@ node labs/decision-trees/tests/check_tree.mjs
 python3 scripts/build_site.py --check
 ```
 
-The checks cover 106 classification cutoffs, confusion-matrix highlights, all 64 AUC score pairs, pair selection, a separate tie fixture, and five regression examples with live formulas and input bounds. The decision-tree checks independently verify split candidates, impurity, stopping rules, held-out predictions, and feature importance.
+GitHub Pages publishes the generated `docs/` directory from `main`. Follow the teaching and verification conventions when adding a chapter. [Contributing](CONTRIBUTING.md)
 
-GitHub Pages publishes the committed `docs/` directory from `main`. After changing a lab, rebuild, run its checks, and commit the generated pages with the source changes.
+## Data and attribution
 
-## Add another concept
-
-Each lab lives in `labs/<concept-slug>/` and is published at `/<concept-slug>/` within the collection. The homepage is generated from the lab manifests, so a new topic does not require renaming the repository or replacing another playground.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the folder layout and build interface.
-
-## License and attribution
-
-Original application code, documentation, and synthetic teaching examples are available under the [MIT License](LICENSE). Third-party datasets retain their own licenses. The UCI Wine Quality files are CC BY 4.0; see the lab's [third-party notices](labs/classification-regression-metrics/THIRD_PARTY_NOTICES.md).
+The source code and original lesson materials are MIT licensed. Spambase and Bike Sharing observations are CC BY 4.0. Lessons distinguish selected teaching rows, hypothetical changes, and complete held-out evaluations. [Repository license](LICENSE) · [Dataset notices](labs/classification-regression-metrics/THIRD_PARTY_NOTICES.md)

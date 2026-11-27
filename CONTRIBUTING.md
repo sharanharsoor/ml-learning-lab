@@ -1,6 +1,6 @@
 # Contributing a learning lab
 
-A lab should explain one coherent concept through experiments that connect inputs, calculations, and interpretation. Keep the learner interface factual and put facilitator scripts in a separate instructor guide.
+A lab should explain one coherent concept through experiments that connect inputs, calculations, and interpretation. Put the teaching sequence, definitions, and worked steps in the learner interface. Keep rehearsal logistics and private platform reminders in the presenter notes.
 
 ## Collection layout
 
@@ -66,9 +66,11 @@ The existing metrics lab demonstrates this interface. Its notebooks are editable
 
 ## Content and verification
 
-- Use synthetic or properly attributed public data. Include dataset licenses separately from the code license.
-- Define labels, units, score meaning, and evaluation assumptions explicitly.
-- Verify formulas against independently calculated examples. Include boundary cases that affect the explanation.
-- Keep notebooks free of saved execution outputs, local filesystem paths, credentials, and machine-specific kernel names.
-- Use relative paths for collection navigation and static assets. An offline HTML copy should retain its learning functionality.
-- Document which metric answers which question and what it leaves out.
+- Start with a real decision a learner can picture. Review how trustworthy teaching sources motivate it, then use attributable data with a clear outcome and a practical reason to predict it.
+- Follow the same identifiable observations, units, and model outputs from the first visual through the formulas, code, downloads, and presenter notes. Label any what-if edits or small illustrations where they appear.
+- Show the steps in order. Establish what the model knows at prediction time, what becomes known afterward, which quantities enter the formula, and what the result means in the original problem. Put likely follow-up questions in clearly titled disclosures beside the relevant visual.
+- Keep the formula, numeric substitution, and interpretation on screen for each key calculation. Define the denominator, boundaries, units, and calculation scope where a learner first needs them.
+- Put each quiz at the point where it becomes answerable. Show the full question, then use nested disclosures labeled **Show options**, **What is the right answer?**, and **Show explanation**. Use the same wording in the presenter notes so it can be copied into a classroom poll.
+- Attribute public datasets separately from the code license. Separate selected teaching cases from model results on a complete held-out set.
+- Verify formulas independently, including boundary cases that change the interpretation. Execute the notebooks using the same data as the browser lesson. Keep notebook sources free of saved execution outputs, credentials, and machine-specific paths.
+- Keep offline HTML copies functional. Check published lessons under the collection subpath and verify their navigation, controls, and quiz reveal order.

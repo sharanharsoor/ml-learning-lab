@@ -1,0 +1,85 @@
+{
+  "source": {
+    "citation": "Fanaee-T, H. (2013). Bike Sharing [Dataset]. UCI Machine Learning Repository.",
+    "doi": "https://doi.org/10.24432/C5W894",
+    "archive": "https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip",
+    "license": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  "train": {
+    "start": "2011-01-01",
+    "end": "2012-10-31",
+    "n": 15919
+  },
+  "test": {
+    "start": "2012-11-01",
+    "end": "2012-12-31",
+    "n": 1460
+  },
+  "rows": [
+    {
+      "case_id": "07:00",
+      "date": "2012-11-01",
+      "hour": 7,
+      "workingday": 1,
+      "actual": 420,
+      "predicted": 289,
+      "train_group_count": 456,
+      "train_group_total": 131628
+    },
+    {
+      "case_id": "08:00",
+      "date": "2012-11-01",
+      "hour": 8,
+      "workingday": 1,
+      "actual": 680,
+      "predicted": 470,
+      "train_group_count": 456,
+      "train_group_total": 214195
+    },
+    {
+      "case_id": "09:00",
+      "date": "2012-11-01",
+      "hour": 9,
+      "workingday": 1,
+      "actual": 331,
+      "predicted": 238,
+      "train_group_count": 456,
+      "train_group_total": 108510
+    },
+    {
+      "case_id": "10:00",
+      "date": "2012-11-01",
+      "hour": 10,
+      "workingday": 1,
+      "actual": 146,
+      "predicted": 134,
+      "train_group_count": 456,
+      "train_group_total": 61078
+    },
+    {
+      "case_id": "11:00",
+      "date": "2012-11-01",
+      "hour": 11,
+      "workingday": 1,
+      "actual": 170,
+      "predicted": 157,
+      "train_group_count": 456,
+      "train_group_total": 71432
+    }
+  ],
+  "baseline": 189,
+  "metric_full_test": {
+    "calendar_model": {
+      "mae": 63.51575342465753,
+      "mse": 9611.37602739726,
+      "rmse": 98.03762556996809,
+      "r2": 0.6841354141080669
+    },
+    "training_mean": {
+      "mae": 140.08424657534246,
+      "mse": 30428.876027397262,
+      "rmse": 174.43874577454764,
+      "r2": -2.944235400592632e-06
+    }
+  }
+}

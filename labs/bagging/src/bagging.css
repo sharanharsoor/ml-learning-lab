@@ -126,17 +126,6 @@
 .bag-opening-tree .dt-node-top, .bag-opening-tree .dt-mix, .bag-opening-tree .dt-node-path { display: none; }
 .bag-hook-result { margin-top: .75rem; font-weight: 650; }
 .teaching #bag-desk-stage { max-width: 62rem; margin-inline: auto; }
-.bag-quiz-cue {
-  display: inline-flex;
-  margin-top: 1rem;
-  padding: .25rem .75rem;
-  border-inline-start: .22rem solid var(--forest-focus);
-  border-radius: .22rem;
-  background: #ece6f4;
-  color: var(--forest-focus);
-  font-weight: 700;
-}
-
 .bag-pair, .bag-triptych {
   display: grid;
   gap: .85rem;

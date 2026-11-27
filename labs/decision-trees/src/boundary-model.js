@@ -2,20 +2,9 @@
   'use strict';
 
   const { stats, candidates, evaluate } = TreeLab;
-  const auto = [
-    [1.1, 1.6], [2.6, 2.9], [3.7, 4.2], [1.6, 5.5],
-    [3, 6.7], [2, 8.8], [4, 8.1], [3.6, 9.3],
-    [6, 2.4], [6.8, 3.7], [7.6, 1.4], [8.6, 4], [9.1, 2.6],
-  ];
-  const review = [
-    [6, 6.6], [6.4, 8.6], [7.1, 7.3], [7.7, 9.2],
-    [8.1, 6], [8.7, 7.9], [9, 6.9], [9.2, 8.9],
-  ];
-  const rows = [auto, review]
-    .flatMap((points, label) => points.map(([x, z]) => ({ x, z, label })))
-    .map((row, index) => ({ id: 'Parcel ' + (index + 1), ...row }));
+  const { BOUNDARY_TRAIN: rows } = TreeLabData;
   const bounds = { xMin: 0, xMax: 10, zMin: 0, zMax: 10 };
-  const demo = { first: { feature: 'x', threshold: 5 }, second: { path: 'rootr', feature: 'z', threshold: 5 } };
+  const demo = { first: { feature: 'x', threshold: 5 }, second: { path: 'rootr', feature: 'z', threshold: 5.02 } };
 
   function fitLogistic(rows, bounds) {
     const xScale = (bounds.xMax - bounds.xMin) / 2;

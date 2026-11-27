@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const { IMPORTANCE_TRAIN, evaluate, fit, importance } = TreeLab;
+  const { IMPORTANCE_TRAIN } = TreeLabData;
+  const { evaluate, fit, importance } = TreeLab;
   const scope = document.getElementById('deep-importance');
   const limit = scope.querySelector('#importance-depth');
   const graph = scope.querySelector('#importance-diagram');
@@ -9,7 +10,7 @@
   const creditList = scope.querySelector('#importance-split-credits');
   const featureTotal = scope.querySelector('#importance-feature-total');
   const featureButtons = [...scope.querySelectorAll('[data-importance-feature]')];
-  const names = { x: 'Weight X', y: 'Packaging Y', z: 'Scan score Z' };
+  const names = { x: 'Capitals X', y: 'Free Y', z: 'Exclamation bucket Z' };
   const rootCount = IMPORTANCE_TRAIN.length;
   const number = value => value.toFixed(4);
   const percent = (value, digits = 2) => (100 * value).toFixed(digits) + '%';
@@ -54,7 +55,7 @@
       '</span><strong>' + value + '</strong><small>' + detail + '</small></div>';
     selectedSplit.innerHTML = '<h3>Depth ' + depth + ' · ' + question(node.split) + '</h3>' +
       '<p class="small">Local gain uses the ' + n + ' rows at this node. Subtract its children’s weighted entropy from its own entropy.</p>' +
-      '<p class="small"><strong>Weights X of the rows reaching each child</strong><br>Yes · ' + weights(record.left) +
+      '<p class="small"><strong>Capital-run lengths X of the rows reaching each child</strong><br>Yes · ' + weights(record.left) +
       '<br>No · ' + weights(record.right) + '</p>' +
       '<p class="arithmetic">' + number(node.stats.score) + ' − [' + term(left) + ' + ' + term(right) + '] ≈ ' +
       number(node.gain) + ' bits</p>' +
@@ -115,8 +116,8 @@
   }
 
   scope.querySelector('#importance-training-rows').innerHTML = IMPORTANCE_TRAIN.map(row =>
-    '<tr><th scope="row">' + row.x + '</th><td>' + row.y + '</td><td>' + row.z +
-    '</td><td>' + (row.label ? 'Review' : 'Auto') + '</td></tr>').join('');
+    '<tr><th scope="row">' + row.sourceRow + '</th><td>' + row.x + '</td><td>' + row.y + '</td><td>' + row.z +
+    '</td><td>' + (row.label ? 'Spam' : 'Legitimate') + '</td></tr>').join('');
 
   limit.addEventListener('change', render);
   featureButtons.forEach(button => button.addEventListener('click', () => {

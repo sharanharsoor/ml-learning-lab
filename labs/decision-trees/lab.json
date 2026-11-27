@@ -1,7 +1,7 @@
 {
   "slug": "decision-trees",
   "title": "Decision Trees",
-  "description": "Build a parcel-sorting tree step by step. Explore surprise, entropy, Gini, thresholds, model evaluation, feature importance, and regression with one synthetic dataset.",
+  "description": "Build a spam classifier with selected UCI Spambase records, then inspect regression trees on observed hourly bike rentals.",
   "topics": [
     "Classification",
     "Regression",

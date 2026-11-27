@@ -1,19 +1,21 @@
 (() => {
   'use strict';
 
-  const { TRAIN, HOLDOUT, entropy, stats, candidates, evaluate, rank, fit, predict, trace: traceTree, confusion, importance } = TreeLab;
+  const { TRAIN, HOLDOUT, BIKE_TRAIN } = TreeLabData;
+  const { entropy, stats, candidates, evaluate, rank, fit, predict, trace: traceTree, confusion, importance } = TreeLab;
   const get = id => document.getElementById(id);
   const all = selector => [...document.querySelectorAll(selector)];
   const write = (id, html) => { get(id).innerHTML = html; };
   const number = (value, precision = 3) => Number(value.toFixed(precision)).toString();
   const percent = value => value == null ? 'Undefined' : number(value * 100, 1) + '%';
-  const route = label => label === 1 ? 'Review' : 'Auto';
+  const route = label => label === 1 ? 'Spam' : 'Legitimate';
+  const emailDiagram = { classLabels: ['Legitimate', 'Spam'], sampleNoun: 'email' };
   const name = criterion => ({ entropy: 'Entropy', gini: 'Gini', mse: 'MSE' })[criterion];
   const question = split => split.feature === 'x' ? 'X ≤ ' + split.threshold : 'Y = ' + split.threshold;
   const key = split => split.feature + ':' + split.threshold;
   const ratio = (numerator, denominator) => denominator ? numerator / denominator : null;
   const correctCount = (tree, rows) => rows.filter(row => predict(tree, row) === row.label).length;
-  const counts = group => group.auto + ' Auto · ' + group.review + ' Review';
+  const counts = group => group.auto + ' Legitimate · ' + group.review + ' Spam';
   const rowCount = n => n + (n === 1 ? ' row' : ' rows');
   const chips = (rows, feature) => '<div class="parcel-chips">' + rows.map(row => {
     const inputs = feature ? feature.toUpperCase() + ' ' + row[feature] : 'X ' + row.x + ' · Y ' + row.y;
@@ -100,28 +102,28 @@
     const marks = TRAIN.map(row => {
       const x = position(row.x);
       const y = row.y === 'A' ? 37 : 88;
-      const title = '<title>' + row.id + ', weight ' + row.x + ', packaging ' + row.y + ', ' + route(row.label) + '</title>';
+      const title = '<title>' + row.id + ', longest capitals run ' + row.x + ', free status ' + row.y + ', ' + route(row.label) + '</title>';
       const point = row.label
         ? '<rect class="review" x="' + (x - 7) + '" y="' + (y - 7) + '" width="14" height="14" rx="2">' + title + '</rect>'
         : '<circle class="auto" cx="' + x + '" cy="' + y + '" r="7">' + title + '</circle>';
       return point + '<text text-anchor="middle" x="' + x + '" y="' + (y - 13) + '">' + row.id + '</text>';
     }).join('');
-    write('training-plot', '<svg class="training-chart" viewBox="0 0 695 140" role="img" aria-label="Training parcels by weight in kilograms and packaging. Boxes A have Auto parcels at weights 1 and 7. Mailers B have Auto at 2 and 3 and Review at 4, 5, 6 and 8.">' +
+    write('training-plot', '<svg class="training-chart" viewBox="0 0 695 140" role="img" aria-label="Training emails by longest capitals run and the presence of the word free. The A lane has legitimate emails at runs 1 and 7. The B lane has legitimate at 2 and 3 and spam at 4, 5, 6 and 8.">' +
       '<text x="6" y="44">A</text><text x="6" y="95">B</text>' +
       '<path class="grid" d="M 49 37 H 660 M 49 88 H 660"></path>' + marks +
       TRAIN.map(row => '<text text-anchor="middle" x="' + position(row.x) + '" y="126">' + row.x + '</text>').join('') + '</svg>');
     write('training-rows', TRAIN.map(row => '<tr><th scope="row">' + row.id + '</th><td>' +
-      row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) + '</td><td>' + row.minutes + '</td></tr>').join(''));
+      row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) + '</td><td>' + row.sourceRow + '</td></tr>').join(''));
     const nearby = TRAIN.filter(row => Math.abs(row.x - previewParcel.x) <= 1);
     write('preview-records', nearby.map(row => '<tr><th scope="row">' + row.id + '</th><td>' +
       row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) + '</td></tr>').join('') +
-      '<tr class="preview-new-record"><th scope="row">New parcel</th><td>' + previewParcel.x +
+      '<tr class="preview-new-record"><th scope="row">New email</th><td>' + previewParcel.x +
       '</td><td>' + previewParcel.y + '</td><td>Unknown</td></tr>');
     all('[data-guess]').forEach(button => button.addEventListener('click', () => {
       all('[data-guess]').forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
       get('guess-result').textContent = button.dataset.guess === '0'
-        ? 'The fitted two-question tree also predicts Auto. Follow its path to see where packaging matters.'
-        : 'The first weight question puts this parcel in a mostly Review branch. The second question checks packaging and the fitted tree predicts Auto.';
+        ? 'The fitted two-question tree also predicts Legitimate. Follow its path to see where the word free matters.'
+        : 'The first capitals question puts this email in a mostly Spam branch. The second question checks whether it contains free and the fitted tree predicts Legitimate.';
       get('parcel-walkthrough').open = true;
     }));
   }
@@ -137,17 +139,17 @@
     const { steps, leaf } = traced;
     const routeMarkup = steps.length ? '<ol>' + steps.map(step => '<li>' + step + '</li>').join('') + '</ol>' :
       '<p>The root is also the leaf, so there are no questions to answer.</p>';
-    const labelMarkup = includeLabel ? ' · Recorded route <strong>' + route(row.label) + '</strong>' : '';
+    const labelMarkup = includeLabel ? ' · Observed label <strong>' + route(row.label) + '</strong>' : '';
     return routeMarkup + '<p>Predict <strong>' + route(leaf.prediction) + '</strong>' + labelMarkup +
       '</p><p class="small">Leaf label shares: ' + percent(leaf.auto / leaf.n) +
-      ' Auto · ' + percent(leaf.review / leaf.n) + ' Review (' + rowCount(leaf.n) + ').</p>';
+      ' Legitimate · ' + percent(leaf.review / leaf.n) + ' Spam (' + rowCount(leaf.n) + ').</p>';
   }
 
   function renderParcelPreview() {
     const tree = fit(TRAIN, 'entropy', 2);
     const traced = trace(tree, previewParcel);
     write('preview-tree', TreeLabDiagram.render(tree, {
-      criterion: 'entropy', selectedPath: null, tracedPaths: traced.paths, interactive: false,
+      ...emailDiagram, criterion: 'entropy', selectedPath: null, tracedPaths: traced.paths, interactive: false,
     }));
     write('preview-route', routeDetails(traced, previewParcel, false));
   }
@@ -162,9 +164,9 @@
       return number(x(share), 2) + ',' + number(y(entropy(share)), 2);
     }).join(' ');
     get('review-percent').textContent = percent(p);
-    probabilityInput.setAttribute('aria-valuetext', percent(p) + ' Review');
+    probabilityInput.setAttribute('aria-valuetext', percent(p) + ' Spam');
     get('probability-bar').firstElementChild.style.width = percent(p);
-    write('surprise-rows', [['Auto', 1 - p], ['Review', p]].map(([label, share]) => {
+    write('surprise-rows', [['Legitimate', 1 - p], ['Spam', p]].map(([label, share]) => {
       const surprise = share <= 0 ? null : -Math.log2(share);
       return '<tr><th scope="row">' + label + '</th><td>' + number(share) + '</td><td>' +
         (surprise === null ? '∞' : number(surprise)) + '</td><td>' +
@@ -173,7 +175,7 @@
     const entropyLabel = number(result) + (result === 1 ? ' bit' : ' bits');
     get('entropy-total').textContent = entropyLabel;
     write('entropy-plot', '<svg class="chart" viewBox="0 0 395 228" role="img" aria-label="Binary entropy, zero at 0 and 100 percent, highest at 50 percent. At ' +
-      percent(p) + ' Review the entropy is ' + entropyLabel + '.">' +
+      percent(p) + ' Spam the entropy is ' + entropyLabel + '.">' +
       '<text x="44" y="20">Entropy (bits)</text><path class="grid" d="M 44 38 H 359 M 44 111 H 359"></path>' +
       '<path class="axis" d="M 44 38 V 183 H 359" fill="none"></path>' +
       '<text x="34" y="43" text-anchor="end">1</text><text x="34" y="188" text-anchor="end">0</text>' +
@@ -181,7 +183,7 @@
       '<line class="cut" x1="' + x(p) + '" y1="' + y(result) + '" x2="' + x(p) + '" y2="183"></line>' +
       '<circle class="marker" cx="' + x(p) + '" cy="' + y(result) + '" r="6"></circle>' +
       '<text x="44" y="206" text-anchor="middle">0%</text><text x="202" y="206" text-anchor="middle">50%</text>' +
-      '<text x="359" y="206" text-anchor="middle">100%</text><text x="202" y="225" text-anchor="middle">Review share</text></svg>');
+      '<text x="359" y="206" text-anchor="middle">100%</text><text x="202" y="225" text-anchor="middle">Spam share</text></svg>');
   }
 
   function groupFormula(group, criterion) {
@@ -272,7 +274,7 @@
       '. No: ' + right.map(row => row.id).join(', ') + '.">' + regions +
       '<path class="grid" d="M 60 61 H 610 M 60 108 H 610"></path>' +
       text('A', 30, 66) + text('B', 30, 113) + marks +
-      TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Weight X (kg)', 335, 173) + '</svg>');
+      TRAIN.map(row => text(row.x, x(row.x), 151)).join('') + text('Longest capitals run X', 335, 173) + '</svg>');
   }
 
   function renderWeightedVisual(result, criterion, target = 'weighted-visual', precision = 3) {
@@ -280,7 +282,7 @@
     const regression = criterion === 'mse';
     const max = regression ? Math.max(result.parent.score, result.leftStats.score, result.rightStats.score) || 1 :
       criterion === 'entropy' ? 1 : 0.5;
-    const unit = regression ? ' min²' : '';
+    const unit = regression ? ' rentals²' : '';
     const scale = regression ? number(max, precision) + unit + ' for this split' : criterion === 'entropy' ? '1 bit' : '0.5 Gini';
     const total = result.parent.n;
     const bands = [['Yes', result.leftStats], ['No', result.rightStats]];
@@ -309,7 +311,7 @@
     const criterion = criterionInput.value;
     const correct = correctCount(currentTree, TRAIN);
     write('tree-summary', '<strong>' + name(criterion) + ' tree</strong> · ' + correct + '/' +
-      TRAIN.length + ' training parcels routed correctly');
+      TRAIN.length + ' training emails classified correctly');
     renderTree();
     renderEvaluation();
     renderDepthComparison();
@@ -333,7 +335,7 @@
 
     index(currentTree, TRAIN, 'root', 0);
     write('tree-diagram', TreeLabDiagram.render(currentTree, {
-      criterion, selectedPath: selected.node, tracedPaths: traced.paths,
+      ...emailDiagram, criterion, selectedPath: selected.node, tracedPaths: traced.paths,
     }));
     write('traced-route', routeDetails(traced, parcel, true));
 
@@ -344,7 +346,7 @@
       name(criterion) + ' ' + number(node.stats.score) + '</p>';
     const score = split ? '<div class="calc-lines node-calculation">' + calculation(split, criterion) + '</div>' :
       '<p class="small">' + leafReason(node, depth) +
-      (node.stats.auto === node.stats.review ? ' This lab resolves a class tie as Auto.' : '') + '</p>';
+      (node.stats.auto === node.stats.review ? ' This lab resolves a class tie as Legitimate.' : '') + '</p>';
     write('node-details', heading + chips(rows) + score);
   }
 
@@ -410,12 +412,12 @@
     write('evaluation-model', '<strong>Current tree</strong> · ' + name(criterionInput.value) +
       ' · Maximum depth ' + depthInput.value + ' · Minimum leaf size ' + minLeafInput.value +
       ' · <a href="#tree">Change the tree settings</a>');
-    get('heldout-title').textContent = selected.matrix ? matrixLabels[selected.matrix] + ' parcels' : 'All held-out parcels';
+    get('heldout-title').textContent = selected.matrix ? matrixLabels[selected.matrix] + ' emails' : 'All held-out emails';
     write('heldout-rows', filtered.length ? filtered.map(({ row, prediction }) => '<tr><th scope="row">' + row.id +
-      '<br><a href="#tree" data-trace="' + row.id + '" aria-label="Trace held-out parcel ' + row.id +
-      ' through the tree">Trace</a></th><td>' + row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) +
-      '</td><td>' + route(prediction) + '</td></tr>').join('') : '<tr><td colspan="5">No parcels in this cell.</td></tr>');
-    get('heldout-note').textContent = 'Showing ' + filtered.length + ' of ' + view.length + ' held-out parcels.';
+      '<br><a href="#tree" data-trace="' + row.id + '" aria-label="Trace held-out email ' + row.id +
+      ' through the tree">Trace</a></th><td>' + row.sourceRow + '</td><td>' + row.x + '</td><td>' + row.y + '</td><td>' + route(row.label) +
+      '</td><td>' + route(prediction) + '</td></tr>').join('') : '<tr><td colspan="6">No examples in this cell.</td></tr>');
+    get('heldout-note').textContent = 'Showing ' + filtered.length + ' of ' + view.length + ' held-out emails.';
   }
 
   function renderImportance() {
@@ -423,7 +425,7 @@
     write('importance-model', '<strong>Current tree</strong> · ' + name(criterionInput.value) +
       ' · Maximum depth ' + depthInput.value + ' · Minimum leaf size ' + minLeafInput.value +
       ' · <a href="#tree">Inspect its nodes</a>');
-    write('importance-bars', [['x', 'Weight X'], ['y', 'Packaging Y']].map(([feature, label]) => {
+    write('importance-bars', [['x', 'Capital run X'], ['y', 'Free indicator Y']].map(([feature, label]) => {
       const share = credit.total ? credit[feature] / credit.total : 0;
       return '<div class="importance-row"><span>' + label + '</span><div class="importance-meter" aria-hidden="true">' +
         '<span style="width:' + percent(share) + '"></span></div><strong>' + (credit.total ? percent(share) : 'None') + '</strong></div>';
@@ -440,7 +442,7 @@
       '(' + node.stats.n + '/' + TRAIN.length + ') × ' + number(node.gain) + ' ≈ ' +
       number(node.gain * node.stats.n / TRAIN.length) + '</td></tr>').join('') :
       '<tr><td colspan="4">The current tree has no splits to credit.</td></tr>');
-    const chosen = credit.y > 0 ? ['Packaging Y', credit.y] : ['Weight X', credit.x];
+    const chosen = credit.y > 0 ? ['Free indicator Y', credit.y] : ['Capital run X', credit.x];
     const share = credit.total ? '<p><strong>' + chosen[0] + ' share</strong> <span class="arithmetic">' +
       number(chosen[1]) + ' ÷ ' + number(credit.total) + ' ≈ ' + percent(chosen[1] / credit.total) + '</span></p>' : '';
     write('importance-math', '<p><strong>Root score − weighted leaf score</strong> <span class="arithmetic">' +
@@ -451,52 +453,54 @@
 
   function renderRegression() {
     const threshold = Number(regressionInput.value);
-    const result = evaluate(TRAIN, { feature: 'x', threshold }, 'mse');
-    const x = weight => 52 + (weight - 1) * 68;
-    const y = minutes => 224 - minutes * 20;
+    const result = evaluate(BIKE_TRAIN, { feature: 'x', threshold }, 'mse');
+    const x = hour => 52 + (hour - 1) * 68;
+    const y = rentals => 224 - rentals * 20;
     const cutoff = x(threshold);
     const { left, right, leftStats, rightStats, parent } = result;
     const step = 'M ' + x(1) + ' ' + y(leftStats.mean) + ' H ' + cutoff +
       ' M ' + cutoff + ' ' + y(rightStats.mean) + ' H ' + x(8);
-    const marks = TRAIN.map(row => {
+    const marks = BIKE_TRAIN.map(row => {
       const mean = row.x <= threshold ? leftStats.mean : rightStats.mean;
       return '<line class="residual" x1="' + x(row.x) + '" y1="' + y(mean) + '" x2="' + x(row.x) +
-        '" y2="' + y(row.minutes) + '"></line><circle class="observation" cx="' + x(row.x) +
-        '" cy="' + y(row.minutes) + '" r="5"><title>' + row.id + ' took ' + row.minutes + ' minutes</title></circle>';
+        '" y2="' + y(row.target) + '"></line><circle class="observation" cx="' + x(row.x) +
+        '" cy="' + y(row.target) + '" r="5"><title>' + row.id + ' recorded ' + row.target + ' rentals</title></circle>';
     }).join('');
     const grid = [0, 2, 4, 6, 8, 10].map(value => '<line class="grid" x1="52" y1="' + y(value) +
       '" x2="528" y2="' + y(value) + '"></line><text text-anchor="end" x="44" y="' + (y(value) + 4) +
       '">' + value + '</text>').join('');
-    write('regression-plot', '<svg class="chart" viewBox="0 0 570 275" role="img" aria-label="Actual processing times as points and predicted means as two horizontal lines. At cutoff ' +
-      threshold + ', the means are ' + number(leftStats.mean) + ' and ' + number(rightStats.mean) + ' minutes.">' +
-      '<text x="52" y="17">Minutes</text>' + grid + '<line class="cut" x1="' + cutoff + '" x2="' + cutoff +
+    write('regression-plot', '<svg class="chart" viewBox="0 0 570 275" role="img" aria-label="Observed hourly rental counts as points and predicted means as two horizontal lines. At cutoff ' +
+      threshold + ', the means are ' + number(leftStats.mean) + ' and ' + number(rightStats.mean) + ' rentals.">' +
+      '<text x="52" y="17">Rentals</text>' + grid + '<line class="cut" x1="' + cutoff + '" x2="' + cutoff +
       '" y1="25" y2="224"></line><path class="prediction" d="' + step + '"></path>' + marks +
-      TRAIN.map(row => '<text text-anchor="middle" x="' + x(row.x) + '" y="245">' + row.x + '</text>').join('') +
-      '<text text-anchor="middle" x="290" y="268">Weight X (kg)</text></svg>');
+      BIKE_TRAIN.map(row => '<text text-anchor="middle" x="' + x(row.x) + '" y="245">' + row.x + '</text>').join('') +
+      '<text text-anchor="middle" x="290" y="268">Clock hour X</text></svg>');
     function leaf(label, rows, group) {
       const mean = number(group.mean);
-      const times = rows.map(row => row.minutes);
-      const terms = rows.map(row => '(' + row.minutes + ' − ' + mean + ')²');
+      const times = rows.map(row => row.target);
+      const terms = rows.map(row => '(' + row.target + ' − ' + mean + ')²');
       return '<div class="child ' + label.toLowerCase() + '"><h3>' + label +
-        ' · Predict ' + mean + ' min</h3><p><strong>Times</strong> ' + rows.map(row => row.minutes).join(', ') +
+        ' · Predict ' + mean + ' rentals</h3><p><strong>Rental counts</strong> ' + rows.map(row => row.target).join(', ') +
         '</p><p class="arithmetic"><strong>Mean</strong> (' + times.join(' + ') + ') / ' + group.n + ' ≈ ' + mean +
-        ' min</p><p class="arithmetic"><strong>MSE</strong> [' + terms.join(' + ') + '] / ' + group.n +
-        ' ≈ ' + number(group.score) + ' min²</p></div>';
+        ' rentals</p><p class="arithmetic"><strong>MSE</strong> [' + terms.join(' + ') + '] / ' + group.n +
+        ' ≈ ' + number(group.score) + ' rentals²</p></div>';
     }
     write('regression-calculation', '<div class="split-children">' + leaf('Yes', left, leftStats) +
       leaf('No', right, rightStats) + '</div><div class="calc-lines">' +
       '<p><strong>Parent MSE</strong> <span class="arithmetic">[' +
-      TRAIN.map(row => '(' + row.minutes + ' − ' + number(parent.mean) + ')²').join(' + ') + '] / ' + parent.n +
-      ' ≈ ' + number(parent.score) + ' min²</span></p>' + calculation(result, 'mse') +
+      BIKE_TRAIN.map(row => '(' + row.target + ' − ' + number(parent.mean) + ')²').join(' + ') + '] / ' + parent.n +
+      ' ≈ ' + number(parent.score) + ' rentals²</span></p>' + calculation(result, 'mse') +
       '<p class="small">Vertical gaps are residuals. Calculations use the exact means before rounding.</p></div>');
     write('regression-tree', TreeLabDiagram.render({
       stats: result.parent,
       split: result.split,
       left: { stats: leftStats, split: null },
       right: { stats: rightStats, split: null },
-    }, { criterion: 'mse', interactive: false }));
+    }, { criterion: 'mse', interactive: false, sampleNoun: 'hour', regressionUnit: 'rentals' }));
   }
 
+  write('bike-training-rows', BIKE_TRAIN.map(row => '<tr><th scope="row">' + row.sourceRow +
+    '</th><td>' + row.date + '</td><td>' + row.x + ':00</td><td>' + row.target + '</td></tr>').join(''));
   setupNavigation();
   renderTraining();
   renderParcelPreview();
@@ -507,9 +511,9 @@
   traceInput.innerHTML = [[HOLDOUT, 'Held out'], [TRAIN, 'Training']].map(([rows, label]) =>
     '<optgroup label="' + label + '">' + rows.map(row => '<option value="' + row.id + '">' +
       row.id + ' · X ' + row.x + ', Y ' + row.y + '</option>').join('') + '</optgroup>').join('');
-  traceInput.value = 'P7';
+  traceInput.value = 'E7';
   rebuildTree();
-  regressionInput.innerHTML = candidates(TRAIN).filter(split => split.feature === 'x').map(split =>
+  regressionInput.innerHTML = candidates(BIKE_TRAIN).filter(split => split.feature === 'x').map(split =>
     '<option value="' + split.threshold + '">' + question(split) + '</option>').join('');
   regressionInput.value = '3.5';
   renderRegression();

@@ -1,25 +1,26 @@
     <section class="chapter" id="deep-regression" aria-labelledby="deep-regression-title">
       <p class="eyebrow">Follow a numerical prediction</p>
       <h2 id="deep-regression-title">Regression in a deeper tree</h2>
-      <p class="lede">Use the same 20 parcels from the feature-importance example. This time the target is the synthetic duration from intake to clearance for dispatch. Click a split to see the two means and how much the split reduces MSE. Trace a new parcel to see which leaf mean becomes its prediction.</p>
+      <p class="lede">Fit a tree on 20 selected Capital Bikeshare records from January 2011, one for each hour from 04:00 to 23:00. Trace a later hour, then click any split to see its two child means and MSE. For this practice forecast we use the recorded humidity in place of a weather forecast.</p>
 
       <div class="panel deep-regression-explorer">
         <div class="panel-heading deep-regression-header">
-          <div><h3>Trace a new parcel</h3><p>Start with an 11.5 kg parcel in a rigid box (A) with a scan warning score of 4. Change a reading and follow the purple path to see which time the model predicts.</p></div>
+          <div><h3>Trace a new hour</h3><p>Start with 11:00 on February 1, 2011 (record 699). It is a working day with 86% relative humidity. The February count is held out during training.</p></div>
           <label class="regression-control">Maximum tree depth
             <select id="deep-regression-depth"><option value="4">4</option><option value="5" selected>5</option></select>
           </label>
         </div>
         <form class="parcel-trace-form" id="deep-regression-form">
-          <label>Weight X (kg) <input name="x" type="number" min="0" step="any" required value="11.5"></label>
-          <label>Packaging Y <select name="y"><option value="A" selected>A</option><option value="B">B</option></select></label>
-          <label>Scan score Z (0–10) <input name="z" type="number" min="0" max="10" step="any" required value="4"></label>
-          <button type="submit" class="button primary">Trace parcel</button>
+          <label>Clock hour X <input name="x" type="number" min="0" max="23" step="1" required value="11"></label>
+          <label>Day type Y <select name="y"><option value="A" selected>A · Working day</option><option value="B">B · Weekend or holiday</option></select></label>
+          <label>Forecast humidity Z <select name="z"><option value="2">2 · Up to 60%</option><option value="3">3 · Above 60%, through 80%</option><option value="4" selected>4 · Above 80%</option></select></label>
+          <button type="submit" class="button primary">Trace hour</button>
         </form>
         <p class="small" id="deep-regression-input-status" role="status"></p>
         <div class="regression-route-result" id="deep-regression-prediction" aria-live="polite"></div>
+        <p class="small" id="deep-regression-observed" aria-live="polite"></p>
         <details class="teaching-note">
-          <summary>Read the decisions on this parcel’s path</summary>
+          <summary>Read the decisions on this hour’s path</summary>
           <ol class="regression-route-steps" id="deep-regression-route"></ol>
         </details>
         <a class="deep-regression-jump" href="#deep-regression-inspector">Jump to the split calculation</a>
@@ -31,14 +32,14 @@
           </div>
         </div>
         <details class="teaching-note">
-          <summary>Show the 20 training rows and their processing times</summary>
+          <summary>Show the 20 measured January rows</summary>
           <div class="table-wrap"><table>
-            <caption class="sr-only">Synthetic training parcels for the deeper regression tree</caption>
-            <thead><tr><th scope="col">Weight X (kg)</th><th scope="col">Packaging Y</th><th scope="col">Scan score Z (0–10)</th><th scope="col">Processing time (min)</th></tr></thead>
+            <caption class="sr-only">Selected measured UCI Bike Sharing rows</caption>
+            <thead><tr><th scope="col">UCI record</th><th scope="col">Date</th><th scope="col">Clock hour X</th><th scope="col">Day type Y</th><th scope="col">Relative humidity and bucket Z</th><th scope="col">Hourly rentals</th></tr></thead>
             <tbody id="deep-regression-training"></tbody>
           </table></div>
         </details>
       </div>
-      <p>With the starting parcel, depth 4 stops at the <strong>13.8-minute</strong> leaf. At depth 5, the extra scan-score question sends it to a leaf predicting <strong>15 minutes</strong>. Set the scan score to 2, then choose <strong>Trace parcel</strong> to reach the leaf that predicts <strong>13 minutes</strong>.</p>
-      <p class="transition">The Python chapter reproduces the arithmetic for the earlier, smaller parcel example.</p>
+      <p>With the starting hour, depth 4 ends at a leaf predicting <strong>31 rentals</strong>. At depth 5, the last humidity question leads to <strong>28 rentals</strong>. Change humidity to up to 60% and choose <strong>Trace hour</strong> to see an earlier humidity question send the hour to a different leaf.</p>
+      <p class="transition">The Python chapter reproduces the arithmetic for the earlier, measured Capital Bikeshare example.</p>
     </section>

@@ -27,7 +27,7 @@
   function drawCard(item, options, branch) {
     const { node, path } = item;
     const { criterion, selectedPath, traced, interactive, showScore,
-      classLabels, sampleNoun, formatCondition } = options;
+      classLabels, sampleNoun, formatCondition, regressionUnit } = options;
     const { n, auto, review, score, prediction } = node.stats;
     const root = path === 'root';
     const leaf = !node.split;
@@ -36,9 +36,9 @@
     const outcome = classLabels[prediction];
     const condition = node.split && formatCondition(node.split);
     const title = node.split ? condition + '?' : 'Predict ' +
-      (criterion === 'mse' ? rounded(prediction) + ' min' : outcome);
+      (criterion === 'mse' ? rounded(prediction) + ' ' + regressionUnit : outcome);
     const impurity = criterionNames[criterion] + ' ' + rounded(score) +
-      (criterion === 'entropy' ? (score === 1 ? ' bit' : ' bits') : (criterion === 'mse' ? ' min²' : ''));
+      (criterion === 'entropy' ? (score === 1 ? ' bit' : ' bits') : (criterion === 'mse' ? ' ' + regressionUnit + '²' : ''));
     const samples = n + ' ' + sampleNoun + (n === 1 ? '' : 's');
     const classes = ['dt-node', root && 'dt-node--root', leaf && 'dt-node--leaf',
       onPath && 'dt-node--traced'].filter(Boolean).join(' ');
@@ -85,11 +85,11 @@
 
   function render(tree, {
     criterion = 'entropy', selectedPath = 'root', tracedPaths = [], interactive = true, showScore = true,
-    classLabels = ['Auto', 'Review'], sampleNoun = 'parcel', formatCondition = defaultCondition,
+    classLabels = ['Auto', 'Review'], sampleNoun = 'parcel', formatCondition = defaultCondition, regressionUnit = 'min',
   } = {}) {
     const item = describeTree(tree);
     const options = { criterion, selectedPath, traced: new Set(tracedPaths), interactive, showScore,
-      classLabels, sampleNoun, formatCondition };
+      classLabels, sampleNoun, formatCondition, regressionUnit };
     return '<div class="dt-viewport"><div class="dt-graph' +
       (item.leaves > 4 ? ' dt-graph--dense' : '') +
       '" role="group" aria-label="Decision tree diagram">' +

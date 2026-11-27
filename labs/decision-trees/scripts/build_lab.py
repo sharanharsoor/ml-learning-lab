@@ -7,6 +7,8 @@ from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parents[1] / "src"
 FAVICON = SOURCE.parents[2] / "site/assets/favicon.png"
+QUIZ_CSS = SOURCE.parents[2] / "site/quiz.css"
+OPENER_IMAGE = SOURCE.parents[1] / "bagging/src/email-desk.jpg"
 PARTS = {
     "{{CSS}}": "lesson.css",
     "{{COURSE_CSS}}": "course.css",
@@ -25,6 +27,7 @@ PARTS = {
     "{{DEEP_EXAMPLE}}": "deep-example.html",
     "{{IMPORTANCE_EXAMPLE}}": "deep-importance.html",
     "{{REGRESSION_EXAMPLE}}": "deep-regression.html",
+    "{{DATASETS}}": "datasets.js",
     "{{ENGINE}}": "engine.js",
     "{{TREE_DIAGRAM_JS}}": "tree-diagram.js",
     "{{DEEP_GRAPH_JS}}": "deep-graph.js",
@@ -51,15 +54,14 @@ def main():
         if page.count(marker) != 1:
             raise SystemExit(f"Expected one occurrence of {marker} in index.html")
         page = page.replace(marker, (SOURCE / filename).read_text(encoding="utf-8"), 1)
+    page = page.replace("{{QUIZ_CSS}}", QUIZ_CSS.read_text(encoding="utf-8"), 1)
     if page.count("{{COURSE_IMAGE}}") != 1:
         raise SystemExit("Expected one course image slot")
-    image = SOURCE / "parcel-desk-teaching.jpg"
-    photo = base64.b64encode(image.read_bytes()).decode("ascii")
+    opener_data = base64.b64encode(OPENER_IMAGE.read_bytes()).decode("ascii")
     opener = (
-        f'<figure class="course-opener"><img src="data:image/jpeg;base64,{photo}" '
-        'alt="A parcel worker weighs and inspects a package beside two conveyor routes." '
-        'width="1440" height="810">'
-        '<figcaption>The desk first records what it can observe. A recorded route later supplies a label.</figcaption></figure>'
+        f'<figure class="course-opener"><img src="data:image/jpeg;base64,{opener_data}" '
+        'alt="A highlighted email on a monitor beside an inbox and spam tray." '
+        'width="1450" height="816"></figure>'
     )
     page = page.replace("{{COURSE_IMAGE}}", opener, 1)
     expected = page.encode("utf-8")

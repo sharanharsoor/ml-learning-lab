@@ -24,13 +24,13 @@
   let pointer = null;
 
   function regionName(path) {
-    if (path === 'root') return 'All parcels';
+    if (path === 'root') return 'All emails';
     return Array.from(path.slice(4), branch => branch === 'l' ? 'Yes' : 'No').join(', then ');
   }
 
   function regionOptions(node) {
     const name = regionName(node.path);
-    const option = '<option value="' + node.path + '">' + name + ' · ' + node.stats.n + ' parcels</option>';
+    const option = '<option value="' + node.path + '">' + name + ' · ' + node.stats.n + ' emails</option>';
     return node.split ? option + regionOptions(node.left) + regionOptions(node.right) : option;
   }
 
@@ -54,11 +54,11 @@
     applyButton.disabled = !draft;
     undo.disabled = history.length === 0;
     reset.disabled = history.length === 0 && !draft && direction.value === 'x';
-    diagram.innerHTML = TreeLabDiagram.render(tree, { selectedPath, showScore: false });
+    diagram.innerHTML = TreeLabDiagram.render(tree, { selectedPath, showScore: false, classLabels: ['Legitimate', 'Spam'], sampleNoun: 'email' });
     paintPlot();
 
     const { n, auto, review } = node.stats;
-    get('selection').textContent = regionName(node.path) + ' · ' + n + ' parcels (' + auto + ' Auto, ' + review + ' Review)';
+    get('selection').textContent = regionName(node.path) + ' · ' + n + ' emails (' + auto + ' Legitimate, ' + review + ' Spam)';
     const matches = leaves(tree).reduce((sum, leaf) => sum + Math.max(leaf.stats.auto, leaf.stats.review), 0);
     let next = 'Draw or choose a cutoff for this region.';
     if (history.length === maxCuts) next = 'Click a node to see its region, or undo a cut.';
@@ -114,15 +114,15 @@
     render();
   });
   cutoff.addEventListener('change', () => setDraft(cutoff.value));
-  const route = label => label === 1 ? 'Review' : 'Auto';
+  const route = label => label === 1 ? 'Spam' : 'Legitimate';
   document.getElementById('boundary-records').innerHTML = rows.map(row => '<tr><th scope="row">' + row.id +
-    '</th><td>' + row.x + '</td><td>' + row.z + '</td><td>' + route(row.label) + '</td></tr>').join('');
+    '</th><td>' + row.sourceRow + '</td><td>' + row.x + '</td><td>' + row.z + '</td><td>' + route(row.label) + '</td></tr>').join('');
   const misses = rows.filter(row => Number(logistic.intercept + logistic.weight * row.x + logistic.scan * row.z >= 0) !== row.label);
   const exampleMiss = misses[0];
-  logisticNote.textContent = 'The blue line marks a 50% predicted probability of Review. ' +
-    'The model predicts Review toward the upper right and matches ' + logistic.matches + ' of ' +
-    tree.stats.n + ' training labels.' + (exampleMiss ? ' Look for the outlined point at weight ' + exampleMiss.x +
-      ' and scan score ' + exampleMiss.z + '. The recorded route is ' + route(exampleMiss.label) +
+  logisticNote.textContent = 'The blue line marks a 50% predicted probability of Spam. ' +
+    'The model predicts Spam toward the upper right and matches ' + logistic.matches + ' of ' +
+    tree.stats.n + ' teaching rows.' + (exampleMiss ? ' Look for the outlined point with a capitals run of ' + exampleMiss.x +
+      ' and exclamation rate ' + exampleMiss.z + '. The observed label is ' + route(exampleMiss.label) +
       ', and the line puts it on the ' + route(1 - exampleMiss.label) + ' side.' : '');
   logisticToggle.addEventListener('change', paintPlot);
   form.addEventListener('submit', event => {

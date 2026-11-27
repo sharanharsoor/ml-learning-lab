@@ -1,38 +1,62 @@
 <section class="regression-teaching" id="regression-teaching" aria-labelledby="regression-teaching-title">
   <div class="rg-teaching-opening">
     <div>
-      <h2 id="regression-teaching-title">How far off was our arrival estimate?</h2>
-      <p>Order <strong>E01</strong> leaves at 12:00. Asha’s app gives the customer an estimated arrival time (ETA) of 12:25, which is a forecast of 25 minutes. The courier records delivery at 12:20. Asha can now subtract the dispatch time to get the actual duration of 20 minutes.</p>
-      <p class="rg-teaching-context">An ETA model could use the planned route distance and traffic known at dispatch. Here, we supply 25 minutes as an example forecast and start at the evaluation step.</p>
+      <p class="eyebrow">Capital Bikeshare · Washington, DC</p>
+      <h2 id="regression-teaching-title">How far off was our rental forecast?</h2>
+      <p>Before the morning rush, how many rentals should a bike-share operator expect across the system? The forecast can help staff plan their workload. The actual rental count becomes available after the hour ends.</p>
+      <p class="rg-teaching-context">We use real hourly counts from Capital Bikeshare’s 2011–2012 records. The forecasts come from a simple calendar model we fit for this lesson.</p>
+      <p class="rg-source">Fanaee-T (2013), <a href="https://doi.org/10.24432/C5W894">UCI Bike Sharing dataset</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
     </div>
-    <!-- REGRESSION_STORY_IMAGE -->
+    <figure class="rg-forecast-figure">
+      <figcaption><strong>Thursday’s morning forecast</strong><span>Expected system-wide rentals per hour · November 1, 2012</span></figcaption>
+      <ul id="rg-opening-forecast"></ul>
+    </figure>
   </div>
   <div class="rg-teaching-workbench">
     <nav class="rg-teaching-steps" aria-label="Regression lesson steps">
-      <button class="button" type="button" data-rg-step="residual" aria-controls="rg-residual-pane" aria-pressed="true">Trace one order</button>
-      <button class="button" type="button" data-rg-step="python" aria-controls="rg-python-pane" aria-pressed="false">Run Python</button>
-      <button class="button" type="button" data-rg-step="error" aria-controls="rg-error-pane" aria-pressed="false">Compare error size</button>
-      <button class="button" type="button" data-rg-step="reference" aria-controls="rg-reference-pane" aria-pressed="false">Read R²</button>
-      <button class="button" type="button" data-rg-step="choice" aria-controls="rg-choice-pane" aria-pressed="false">Choose a metric</button>
+      <button class="button" type="button" data-rg-step="residual" aria-controls="rg-residual-pane" aria-pressed="true">1 · Forecast one hour</button>
+      <button class="button" type="button" data-rg-step="python" aria-controls="rg-python-pane" aria-pressed="false">2 · Run Python</button>
+      <button class="button" type="button" data-rg-step="error" aria-controls="rg-error-pane" aria-pressed="false">3 · Compare errors</button>
+      <button class="button" type="button" data-rg-step="reference" aria-controls="rg-reference-pane" aria-pressed="false">4 · Read R²</button>
+      <button class="button" type="button" data-rg-step="choice" aria-controls="rg-choice-pane" aria-pressed="false">5 · Choose a metric</button>
     </nav>
     <div class="rg-teaching-pane" id="rg-residual-pane" data-rg-pane="residual">
-      <h3>Follow the forecast to the actual arrival</h3>
-      <p>Each of the five example rows (E01 to E05) pairs a forecast made at dispatch with the duration measured after arrival. Every value is in minutes since that order left. The classification lesson uses a different set of orders (D01 to D20) to ask whether a promised deadline was met.</p>
-      <p>Once the order arrives, compute <strong>residual = actual duration − predicted duration</strong>. A negative result means the app estimated too many minutes. A positive result means it estimated too few.</p>
-      <label for="rg-order">Delivery order</label>
-      <select id="rg-order"></select>
+      <h3>What did we know before the hour?</h3>
+      <p>Forecast a recorded hour on Thursday, November 1, 2012. A workday is any day other than a weekend or a holiday. The model averages earlier rental counts for the same hour and workday status, then rounds to the nearest rental. It sees the calendar in advance. The count it is trying to predict is the total number of rentals across the network during that hour.</p>
+      <p class="rg-training-period" id="rg-training-period"></p>
+      <div class="rg-hour-select">
+        <label for="rg-order">Forecast hour</label>
+        <select id="rg-order"></select>
+        <button class="button small" type="button" id="rg-reveal-actual" aria-pressed="false">Reveal actual count</button>
+      </div>
+      <div class="rg-forecast-cards" id="rg-forecast-cards"></div>
       <div id="rg-timeline"></div>
       <div id="rg-order-reading" class="rg-teaching-callout" aria-live="polite"></div>
+      <div class="lab-quiz">
+        <h4>Check your intuition</h4>
+        <p>For a residual defined as actual − prediction, what does a negative residual tell you?</p>
+        <details><summary>Show options</summary>
+          <ol type="A"><li>Fewer rentals happened than the model forecast.</li><li>More rentals happened than the model forecast.</li><li>The size of the miss is zero.</li></ol>
+          <details><summary>What is the right answer?</summary>
+            <p><strong>A. Fewer rentals happened than the model forecast.</strong></p>
+            <details><summary>Show explanation</summary><p>Actual − prediction is negative exactly when the actual count is smaller. The model overpredicted demand.</p></details>
+          </details>
+        </details>
+      </div>
     </div>
     <div class="rg-teaching-pane" id="rg-python-pane" data-rg-pane="python" hidden>
       <h3>Calculate the first miss in Python</h3>
-      <p>Pair each observed duration with its estimate for the same order. The first subtraction gives E01’s signed miss. The <strong>mean absolute error (MAE)</strong> averages the size of the five misses in minutes.</p>
+      <p>The arrays below use the five consecutive held-out hours beginning at 07:00. Each forecast is paired with the count recorded for the same hour. Start with the signed misses, then use their magnitudes or squares to summarize error.</p>
       <pre class="rg-python-example"><code id="rg-python-code"></code></pre>
-      <p class="rg-teaching-callout">In the Colab notebook, run <strong>A short Python run</strong>. Change E01’s estimate from 25 to 20 and see MAE fall from 5 to 4 minutes.</p>
+      <p class="rg-teaching-callout">Run <strong>Score the five displayed forecasts</strong> in Colab. It rebuilds the forecasts from the official hourly archive and verifies the displayed examples.</p>
     </div>
     <div class="rg-teaching-pane" id="rg-error-pane" data-rg-pane="error" hidden>
-      <h3>Same average miss, different consequences</h3>
-      <p>Keep the five observed durations fixed. We set up two example forecast patterns to see how the metrics respond. Each row shows the actual duration minus its estimate. The bar shows either the absolute size or the square of that residual.</p>
+      <h3>One formula can count a big miss differently</h3>
+      <p><strong>MAE</strong> treats each missed rental equally. <strong>MSE</strong> squares each miss before averaging, so an error ten times larger adds a hundred times as much to the total. <strong>RMSE</strong> brings that squared scale back to rentals. Switch between the actual forecasts and a controlled comparison to see what the metrics measure.</p>
+      <div class="button-row rg-error-modes" role="group" aria-label="Error dataset">
+        <button class="button small" type="button" data-rg-example="real" aria-pressed="true">Fitted forecast</button>
+        <button class="button small" type="button" data-rg-example="comparison" aria-pressed="false">Same MAE, different misses</button>
+      </div>
       <div class="button-row rg-error-modes" role="group" aria-label="Residual display">
         <button class="button small" type="button" data-rg-error="absolute" aria-pressed="true">Absolute error</button>
         <button class="button small" type="button" data-rg-error="squared" aria-pressed="false">Squared error</button>
@@ -40,36 +64,69 @@
       <div id="rg-error-bars" aria-live="polite"></div>
       <details class="rg-teaching-detail">
         <summary>Can positive and negative misses cancel?</summary>
-        <p>Use the same observed durations. Change the first two forecasts so one estimate is too short and one is too long. The other estimates are exact.</p>
+        <p>Keep the same five actual counts. Set the first forecast 10 rentals low and the second 10 high. The other three illustrative forecasts match their actual counts.</p>
         <div id="rg-cancelled"></div>
       </details>
+      <div class="lab-quiz">
+        <h4>Check your intuition</h4>
+        <p>Two forecast sets have absolute misses of [10, 10, 10, 10, 10] and [0, 0, 0, 0, 50]. Which statement is correct?</p>
+        <details><summary>Show options</summary>
+          <ol type="A"><li>The first set has more MAE.</li><li>Both sets have the same MAE and RMSE.</li><li>Both sets have the same MAE, and the second set has higher RMSE.</li></ol>
+          <details><summary>What is the right answer?</summary>
+            <p><strong>C. Both sets have the same MAE, and the second set has higher RMSE.</strong></p>
+            <details><summary>Show explanation</summary><p>MAE is 50 ÷ 5 = 10 rentals in both cases. RMSE is √(500 ÷ 5) = 10 rentals for the first set and √(2,500 ÷ 5) ≈ 22.36 rentals for the second.</p></details>
+          </details>
+        </details>
+      </div>
     </div>
     <div class="rg-teaching-pane" id="rg-reference-pane" data-rg-pane="reference" hidden>
-      <h3>Ask how much squared error the model saves</h3>
-      <p>Compare the <strong>sum of squared errors (SSE)</strong> from the selected estimates with the <strong>total sum of squares (SST)</strong> from using the mean observed duration for all five orders. Only the selected estimates change.</p>
-      <p>The mean gives the smallest squared error among constant guesses on these rows. R² builds its reference from the durations observed after delivery. To evaluate a constant predictor you could use at dispatch, choose its value from training data before scoring it here.</p>
+      <h3>How much squared error did the model save?</h3>
+      <p>For these five hours, compute the model’s <strong>sum of squared errors (SSE)</strong> and the <strong>total sum of squares (SST)</strong> against a constant equal to the mean actual count. The mean minimizes squared error among constant guesses on these rows, so it is the reference in the formula for R².</p>
+      <p>That reference uses the values observed afterward. A constant forecast you could issue beforehand would instead use a mean computed from the training data.</p>
       <label for="rg-reference">Prediction set</label>
       <select id="rg-reference"></select>
+      <details class="rg-teaching-detail">
+        <summary>Edit the five forecasts</summary>
+        <p>Change any estimate from 0 to 10,000 rentals. The observed counts stay fixed.</p>
+        <div class="rg-edit-grid" id="rg-reference-inputs"></div>
+      </details>
+      <div class="rg-reference-metrics" id="rg-reference-metrics" aria-label="Error metrics for the selected forecasts" aria-live="polite"></div>
       <div id="rg-reference-bars" aria-live="polite"></div>
       <details class="rg-teaching-detail">
-        <summary>What if every delivery takes the same amount of time?</summary>
-        <p>In a separate three-order example, actual durations are 40, 40, and 40 minutes and the forecasts are 35, 40, and 45. The mean actual duration is 40, so SST is zero. The usual R² formula divides by zero and gives no finite value. MAE is still (5 + 0 + 5) ÷ 3, about 3.33 minutes.</p>
+        <summary>What if every actual is the same?</summary>
+        <p>In a separate illustration, three hours have actual counts 40, 40, and 40 and forecasts of 35, 40, and 45. The mean is 40, so SST is zero. The usual R² formula has a zero denominator. MAE is still (5 + 0 + 5) ÷ 3 ≈ 3.33 rentals.</p>
       </details>
+      <div class="lab-quiz">
+        <h4>Check your intuition</h4>
+        <p>If a model has SSE 1,500 and the evaluation mean has SST 1,000, what is R²?</p>
+        <details><summary>Show options</summary>
+          <ol type="A"><li>−0.5</li><li>0.5</li><li>1.5</li></ol>
+          <details><summary>What is the right answer?</summary>
+            <p><strong>A. −0.5</strong></p>
+            <details><summary>Show explanation</summary><p>R² = 1 − 1,500 ÷ 1,000 = −0.5. The model produces 50% more squared error than the evaluation mean.</p></details>
+          </details>
+        </details>
+      </div>
     </div>
     <div class="rg-teaching-pane" id="rg-choice-pane" data-rg-pane="choice" hidden>
-      <h3>Pick the metric that answers your question</h3>
+      <h3>What happens across the full held-out period?</h3>
+      <p>The five-hour sample made the arithmetic visible. Evaluate both the calendar forecast and a constant forecast from the training mean on all recorded hours in November and December 2012.</p>
+      <div id="rg-full-results"></div>
       <dl class="rg-choice-list">
-        <div><dt>How far off were these estimates on average?</dt><dd><strong>MAE</strong> averages the absolute miss in minutes. Each missed minute adds the same amount.</dd></div>
-        <div><dt>Do big misses matter more?</dt><dd><strong>MSE</strong> averages squared misses in minutes². <strong>RMSE</strong> takes its square root and reports the result in minutes.</dd></div>
-        <div><dt>How much better is this than the mean reference?</dt><dd><strong>R²</strong> gives the relative reduction in squared error. Zero matches the reference and a negative value means worse. It is unitless.</dd></div>
-        <div><dt>Are our estimates systematically high or low?</dt><dd><strong>Mean residual</strong> shows average direction. Pair it with an error-size metric because positive and negative residuals can cancel.</dd></div>
+        <div><dt>How far off were we per hour?</dt><dd><strong>MAE</strong> reports the average absolute miss in rentals. Use it when an extra missed rental costs the same regardless of the miss so far.</dd></div>
+        <div><dt>Do big misses cause extra trouble?</dt><dd><strong>MSE</strong> penalizes large misses more heavily and uses rentals². <strong>RMSE</strong> applies the same penalty through MSE and reports the result in rentals.</dd></div>
+        <div><dt>How much squared error did we save?</dt><dd><strong>R²</strong> gives the relative reduction versus the evaluation mean. R² is unitless and depends on how much the observed counts vary.</dd></div>
+        <div><dt>Does the forecast run high or low?</dt><dd><strong>Mean residual</strong> shows average direction. Pair it with MAE or RMSE because opposite signs can cancel.</dd></div>
       </dl>
-      <p class="rg-teaching-callout">The evaluation-target mean is the mathematical reference for R². To compare against a deployable constant predictor, fit that predictor on training data and evaluate it on held-out deliveries.</p>
+      <p class="rg-teaching-callout">These are system-wide counts. A useful total forecast still leaves station-level planning open. A real planning team would evaluate the hours and stations its decisions affect.</p>
     </div>
   </div>
   <div class="rg-teaching-actions button-row">
-    <button class="button primary" id="rg-jump-to-explorer" type="button">Explore the full residual plot</button>
-    <a class="button" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/classification-regression-metrics/notebooks/regression-metrics-teaching.ipynb" target="_blank" rel="noopener noreferrer">Open the regression notebook in Colab</a>
+    <div class="button-row" aria-label="Regression lesson navigation">
+      <button class="button small" type="button" id="rg-previous" disabled>Previous step</button>
+      <button class="button small primary" type="button" id="rg-next">Next step</button>
+    </div>
+    <a class="button primary" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/classification-regression-metrics/notebooks/regression-metrics-teaching.ipynb" target="_blank" rel="noopener noreferrer">Open the regression notebook in Colab</a>
   </div>
   <script id="regression-teaching-fixture" type="application/json"><!-- REGRESSION_TEACHING_DATA --></script>
 </section>

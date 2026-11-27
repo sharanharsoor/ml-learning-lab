@@ -1,20 +1,20 @@
     <section class="chapter" id="draw-splits" aria-labelledby="boundary-title">
       <p class="eyebrow">Build a tree by hand</p>
       <h2 id="boundary-title">Draw the splits</h2>
-      <p class="lede">This sandbox uses 21 different parcels. The two inputs are weight X in kilograms and scan score Z. The scanner scores its first image of the shipping label from 0 to 10. A higher value warns of a harder-to-read label, for example because the image looks smudged.</p>
-      <p class="small">The sandbox uses invented measurements and routes so we can practice drawing cuts. Parcel 8 weighed 3.6 kg and went to Auto with a scan score of 9.3. The marker shows the example staff decision. Shading shows the model’s prediction.</p>
+      <p class="lede">Switch to 21 different measured Spambase emails. X is the longest uppercase run. Z is the number of exclamation marks per 1,000 characters, computed by multiplying UCI’s character percentage by 10. For instance, Z = 9.25 means 0.925% of the characters are exclamation marks.</p>
+      <p class="small">These rows were chosen to make a two-cut boundary visible. For example, M8 is Legitimate even with a capitals run of 4 and 9.25 exclamations per 1,000 characters. The marker shows the observed label. Shading shows the tree’s prediction.</p>
 
       <div class="panel boundary-lab">
         <form class="boundary-settings" id="boundary-settings">
           <label>Region <select id="boundary-region"></select></label>
           <label>Direction <select id="boundary-feature">
-            <option value="x">Vertical · Weight X (kg)</option>
-            <option value="z">Horizontal · Scan score Z (0–10)</option>
+            <option value="x">Vertical · Capital run X</option>
+            <option value="z">Horizontal · Exclamations Z per 1,000</option>
           </select></label>
           <label>Cutoff <select id="boundary-threshold" aria-describedby="boundary-instructions"></select></label>
           <button type="submit" class="button primary" id="boundary-apply">Apply cut</button>
         </form>
-        <p class="small boundary-instructions" id="boundary-instructions">Click or drag to preview a cut. The dashed line snaps to a midpoint between observed values in the selected region. Apply the cut to ask whether the measurement is at most that cutoff. Select a child region to make the next cut there.</p>
+        <p class="small boundary-instructions" id="boundary-instructions">Click or drag to preview a cut. The dashed line snaps to a midpoint between observed values in the selected region, rounded to two decimals here. Apply the cut to ask whether the measurement is at most that cutoff. Select a child region to make the next cut there.</p>
         <label class="boundary-logistic-toggle">
           <input type="checkbox" id="boundary-logistic" aria-controls="boundary-plot boundary-logistic-note">
           <span class="boundary-logistic-key" aria-hidden="true"></span>
@@ -24,10 +24,10 @@
         <div class="boundary-layout">
           <figure class="boundary-figure">
             <figcaption>
-              <h3>Parcel plot</h3>
-              <div class="legend boundary-legend" aria-label="Recorded parcel labels">
-                <span><i class="key auto" aria-hidden="true"></i>Auto</span>
-                <span><i class="key review" aria-hidden="true"></i>Review</span>
+              <h3>Email feature plot</h3>
+              <div class="legend boundary-legend" aria-label="Observed email labels">
+                <span><i class="key auto" aria-hidden="true"></i>Legitimate</span>
+                <span><i class="key review" aria-hidden="true"></i>Spam</span>
               </div>
             </figcaption>
             <div id="boundary-plot"></div>
@@ -53,17 +53,17 @@
         </div>
         <details class="teaching-note">
           <summary>Where do the two worked cutoffs come from?</summary>
-          <p>The worked example starts at 5 kg, halfway between 4 and 6 kg, the two observed weights on either side of the first cut. Among parcels heavier than 5 kg, the nearest observed scan scores on either side of the second cut are 4 and 6. The example uses their midpoint, 5, to divide that region.</p>
+          <p>The first cutoff is 5, halfway between the observed capitals runs of 4 and 6. Among emails on the higher side of that cut, the relevant observed exclamation rates are 3.75 and 6.28. Their midpoint is 5.015, shown as 5.02 on this chart.</p>
         </details>
         <details class="teaching-note">
-          <summary>See the 21 plotted parcel records</summary>
+          <summary>See the 21 plotted Spambase emails</summary>
           <div class="table-wrap"><table>
-            <caption class="sr-only">Recorded inputs and routes for the cut-drawing sandbox</caption>
-            <thead><tr><th scope="col">Parcel</th><th scope="col">Weight X (kg)</th><th scope="col">Scan score Z (0–10)</th><th scope="col">Recorded route</th></tr></thead>
+            <caption class="sr-only">Measured inputs and labels for the cut-drawing sandbox</caption>
+            <thead><tr><th scope="col">Email</th><th scope="col">UCI source line</th><th scope="col">Capital run X</th><th scope="col">Exclamations Z per 1,000</th><th scope="col">Observed label</th></tr></thead>
             <tbody id="boundary-records"></tbody>
           </table></div>
         </details>
       </div>
-      <p class="transition">Some cuts leave the labels more mixed than others. Next, return to the original eight parcels and measure that mix with entropy.</p>
+      <p class="transition">Some cuts leave the labels more mixed than others. Next, return to the original eight emails and measure that mix with entropy.</p>
       <p class="boundary-next"><a class="button primary" href="#entropy">Start with surprise</a></p>
     </section>

@@ -5,7 +5,7 @@
   const criterion = document.getElementById('multiway-criterion');
   const structure = document.getElementById('multiway-structure');
   const math = document.getElementById('multiway-math');
-  const labels = ['Auto', 'Review', 'Hold'];
+  const labels = ['Legitimate', 'Spam', 'Suspicious'];
   const packages = [
     { name: 'A', counts: [3, 1, 0] },
     { name: 'B', counts: [0, 3, 1] },
@@ -40,14 +40,14 @@
     const units = measure === 'entropy' ? ' bits' : '';
     const groups = selected === 'all' ? packages : [
       packages.find(group => group.name === selected),
-      { name: 'Other packaging', counts: combine(packages.filter(group => group.name !== selected)) },
+      { name: 'Other sender groups', counts: combine(packages.filter(group => group.name !== selected)) },
     ];
     const results = groups.map(group => ({
       ...group, n: sum(group.counts), score: score(group.counts, measure),
     }));
 
     branches.innerHTML = results.map(({ name: group, counts, n, score: impurity }) =>
-      '<article class="multiway-branch"><h4>' + (group.length === 1 ? 'Packaging ' : '') + group + '</h4>' +
+      '<article class="multiway-branch"><h4>' + (group.length === 1 ? 'Sender group ' : '') + group + '</h4>' +
       '<p>' + n + ' of ' + total + ' rows</p>' +
       '<div class="multiway-band" aria-hidden="true">' +
       counts.map(count => '<span style="width:' + 100 * count / n + '%"></span>').join('') +
@@ -68,7 +68,7 @@
   const row = (heading, counts) => '<tr><th scope="row">' + heading + '</th>' +
     counts.map(count => '<td>' + count + '</td>').join('') + '</tr>';
   document.getElementById('multiway-records').innerHTML = packages.map(group => row(group.name, group.counts)).join('') +
-    row('All parcels', parent);
+    row('All emails', parent);
   criterion.addEventListener('change', draw);
   structure.addEventListener('change', draw);
   draw();

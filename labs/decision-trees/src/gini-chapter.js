@@ -1,7 +1,8 @@
 (() => {
   "use strict";
 
-  const { TRAIN, entropy, gini, evaluate } = TreeLab;
+  const { TRAIN } = TreeLabData;
+  const { entropy, gini, evaluate } = TreeLab;
   const get = id => document.getElementById(id);
   const slider = get("gini-review-share");
   const presets = [...document.querySelectorAll("[data-gini-preset]")];
@@ -19,7 +20,7 @@
     }
     get("gini-curves").innerHTML =
       '<svg class="chart" viewBox="0 0 324 178" role="img" aria-label="At ' +
-      formatPercent(review) + ' Review, Gini is ' + formatScore(giniScore) +
+      formatPercent(review) + ' Spam, Gini is ' + formatScore(giniScore) +
       ' and entropy is ' + formatScore(entropyScore) + ' bits. Both curves peak at 50 percent.">' +
       '<path class="grid" d="M34 24H294 M34 77.5H294"/>' +
       '<path class="axis" d="M34 24V131H294" fill="none"/>' +
@@ -76,14 +77,14 @@
 
   function compareToyQuestions() {
     const total = 10;
-    const parentReviewShare = 2 / total;
+    const parentSpamShare = 2 / total;
     const splits = [
       { label: "Split A", yes: [0, 1], no: [8, 1] },
       { label: "Split B", yes: [2, 2], no: [6, 0] },
     ];
     function gain(split, score) {
       const contribution = ([auto, review]) => ((auto + review) / total) * score(review / (auto + review));
-      return score(parentReviewShare) - contribution(split.yes) - contribution(split.no);
+      return score(parentSpamShare) - contribution(split.yes) - contribution(split.no);
     }
     const giniGains = splits.map(split => gain(split, gini));
     const entropyGains = splits.map(split => gain(split, entropy));

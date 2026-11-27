@@ -15,7 +15,8 @@ FAVICON = LABS.parent / "site/assets/favicon.png"
 def build():
     variance, oob = (SOURCE / "later.html").read_text().split("<!-- BAGGING_IMPLEMENTATION -->")
     parts = {
-        "CSS": [TREE / "lesson.css", TREE / "tree-diagram.css", SOURCE / "bagging.css", SOURCE / "later.css"],
+        "CSS": [TREE / "lesson.css", TREE / "tree-diagram.css", SOURCE / "bagging.css", SOURCE / "later.css",
+                LABS.parent / "site/quiz.css"],
         "SHARED_JS": [TREE / "engine.js", TREE / "tree-diagram.js"],
         "LAB_JS": [SOURCE / "bagging.js", SOURCE / "later.js", SOURCE / "tuning.js"],
     }

@@ -8,7 +8,7 @@
 .class-teach-timeline li { background: var(--teal-light); padding: .65rem .85rem; border-radius: .42rem; }
 .class-teach-timeline span { display: block; color: var(--muted); }
 .class-teach-context { max-width: 50rem; color: var(--muted); }
-.class-teach-route { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .65rem; }
+.class-teach-route { margin-top: 1rem; display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .65rem; }
 .class-teach-panel { border: 1px solid var(--line); background: var(--white); border-radius: var(--radius); padding: clamp(.85rem, 2.5vw, 1.65rem); }
 .class-teach-panel p { max-width: 51rem; }
 .class-teach-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
@@ -24,7 +24,9 @@
 .class-teach-outcome :is(th, td) { padding: .5rem .55rem; vertical-align: top; border-block-end: 1px solid var(--line); }
 .class-teach-outcome small { display: block; overflow-wrap: anywhere; }
 .class-teach-outcome-active { border-radius: .4rem .4rem 0 0; background: var(--teal-light); box-shadow: inset 0 0 0 2px var(--teal); }
+.class-teach-outcome-change { color: var(--teal); font-weight: 650; margin-top: .2rem; }
 .class-teach-compare, .class-teach-rate-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.class-teach-matrix-pair { align-items: start; margin-bottom: 1rem; }
 .class-teach-rate-cards { margin-top: 1rem; }
 .class-teach-compare h4, .class-teach-rate-cards h4 { font-size: 1rem; margin: 0 0 .35rem; }
 .class-teach-changes { display: grid; gap: .35rem; list-style: none; padding: 0; margin: 0; }
@@ -45,4 +47,21 @@
   .class-teach-timeline, .class-teach-rate-cards { grid-template-columns: minmax(0, 1fr); }
   .class-teach-heading { flex-direction: column; gap: .25rem; }
   .class-teach-outcome :is(th, td) { padding: .35rem .25rem; overflow-wrap: anywhere; }
+}
+.class-teach-controls { display: flex; flex-wrap: wrap; gap: .75rem; align-items: start; }
+.class-teach-controls label { display: grid; gap: .25rem; }
+.class-teach-controls label[hidden] { display: none; }
+.class-teach-controls :is(select, input) { min-height: 42px; max-width: 100%; padding: .35rem .55rem; color: var(--ink); background: var(--white); border: 1px solid var(--line); border-radius: .32rem; }
+.class-teach-scroll { overflow-x: auto; }
+.class-teach-roc { margin: 1rem 0; padding: .85rem; background: var(--paper); border-radius: .5rem; }
+.class-teach-roc label { display: block; font-weight: 650; }
+.class-teach-roc output { font-variant-numeric: tabular-nums; margin-inline-start: .35rem; }
+.class-teach-roc input { width: min(100%, 31rem); accent-color: var(--teal); }
+.class-teach-roc svg { display: block; width: min(100%, 35rem); fill: var(--ink); font: 13px system-ui, sans-serif; }
+.class-teach-roc-axis, .class-teach-roc-reference { fill: none; stroke: var(--muted); }
+.class-teach-roc-reference { stroke-dasharray: 5 5; opacity: .55; }
+.class-teach-roc-line { fill: none; stroke: var(--teal); stroke-width: 3; }
+.class-teach-roc-marker { fill: #a63e25; stroke: var(--white); stroke-width: 2; }
+@media (prefers-reduced-motion: no-preference) {
+  .class-teach-roc-marker { transition: cx 160ms ease, cy 160ms ease; }
 }

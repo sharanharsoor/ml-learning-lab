@@ -1,81 +1,24 @@
-# Teach the Decision Tree Lab
+# Teach decision trees with email and bike-share data
 
-Open the [Decision Tree Lab](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) before class. The same fictional parcel desk carries the lesson from a first prediction to split scoring, evaluation, regression, and Python. Budget about 30 minutes for the walkthrough below, or pause at the deeper applications for a full class. Use Teaching view while screen-sharing. The introduction links to the main stages of the lesson, and the chapter selector can jump to each worked example.
+Start by asking whether an email advertising “FREE seats available” belongs in the inbox. Count the longest uppercase run, then check whether **free** appears as a word. UCI Spambase labels the measured emails. We use a deliberately selected eight-row training set and six evaluation examples so learners can follow individual records. Open the lesson in Teaching view and pre-run the notebook. [Interactive lesson](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/) · [Colab notebook](https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb)
 
-Open the [Colab notebook](https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/decision-trees/notebooks/decision_tree_parcels.ipynb) and run all cells before class. Begin the live code at **Score the first cut**. Change the cutoff from 3.5 to 2.5 and rerun the short cell. The notebook also has expandable tree paths, scored nodes, depth comparisons, and regression examples.
+## First hour
 
-## Begin with a decision
+1. Compare E6, E7, and E8 with the unlabeled new input. E7 has X = 7 and Y = A, meaning free absent. The fitted depth-2 tree asks X ≤ 3.5 and then whether free is absent. It predicts Legitimate based on one example in that leaf.
+2. Draw two cuts on the 21 measured sandbox emails. First cut at X = 5. Then select only the higher-X region and split at an exclamation rate of 5.02 per 1,000 characters. The worked tree matches 21 of 21 selected labels. The fitted straight boundary matches 20 of 21 and misses M14 at (6, 7.01). These are training comparisons on selected rows.
+3. Derive surprise as −log₂(p), then average by class probabilities. Use the 25% Spam example to show why the weight belongs outside the logarithm. Derive Gini as the probability two label draws with replacement differ.
+4. Live-code the split calculation. For X ≤ 3.5 the children have 3 and 5 rows and entropies 0 and 0.7219. Weighted entropy is (3/8)(0) + (5/8)(0.7219) ≈ 0.4512. Gain is 1 − 0.4512 ≈ 0.5488 bits. Change 3.5 to 2.5 and contrast exact midpoints against the coarse demo.
 
-A desk sorts each arriving parcel into **Auto (0)** or **Review (1)**. Auto continues straight to dispatch. A worker may send a parcel to Review after spotting a loose seal. The synthetic training rows pair weight **X** in kilograms and packaging **Y** with a staff route decision. A means rigid box and B means padded mailer. The fitted model uses those two inputs to predict a new parcel’s route. Regression later predicts the duration from intake until clearance for dispatch.
+## Extend through a full class
 
-Ask learners to choose a first question using the eight training parcels. Offer “Is X at most 3.5?” and “Is Y equal to A?” Ask which question better separates the two outcomes. The first question isolates three Auto parcels. The other group contains four Review parcels and one Auto parcel. Packaging A isolates only two Auto parcels at the root.
+- Trace the mixed child of the opening tree. Then open the 16-row tree at depth 3. The parent has seven rows and its child weights are 3/7 and 4/7. The 16 root rows matter when converting local gain to whole-tree feature credit.
+- Read false positives and false negatives directly from the six separate observed emails. At depth 1 the tree gets 5/6 on these evaluation examples. At depth 2 it fits all eight training examples and gets 4/6 on evaluation. Ask which model to take forward. The selected examples demonstrate overfitting. An independent larger evaluation is needed to estimate performance.
+- Compare the depth-4 and depth-5 feature-credit fits. Capital-run length has raw credit of about 0.5208 bits at both depths. The new exclamation split adds about 0.2427 bits, changing X's normalized share from 75.34% to 55.76%. Attribute a split by multiplying its local gain by that node's share of the 20 training rows. Add by feature before dividing by total gain.
+- Switch to measured hourly Capital Bikeshare counts. The eight-row stump gives means 2 and 6.8 at the 03:30 boundary with weighted MSE of 1.6 rentals². Click through the deeper January model and trace UCI record 699 from February 1 at 11:00. Depth four predicts 31 and depth five predicts 28, against 51 observed rentals. The last split gains 13.5 rentals² locally. The optional notebook benchmark uses all earlier hours to train and later hours to check two calendar-based approaches.
+- Close by asking what happens if the classifier trains on a different set of emails. This question sets up the Bagging lesson. For confusion matrices and forecast error, the metrics lessons use the same application areas with their own evaluation slices. [Bagging](https://sharanharsoor.github.io/ml-learning-lab/bagging/) · [Classification and regression metrics](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/)
 
-Before the prediction prompt, compare the past rows and the new input row in the same table. P7 has weight 7 and packaging A and actually went to Auto. The new parcel has those same inputs and an unknown route. After making a prediction, open the worked route. Start with the root, follow the No branch for weight 7, then the Yes branch for packaging A. Point out the difference between a decision node, which asks another question, and a leaf, which returns a class.
+## Data and attribution
 
-## Draw the splits
+The email records are selected from **Spambase**, Mark Hopkins, Erik Reeber, George Forman, and Jaap Suermondt (1999), UCI Machine Learning Repository, CC BY 4.0. The app's teaching IDs correspond to the one-based lines of `spambase.data`. It derives a free indicator from `word_freq_free`, uses `capital_run_length_longest` directly, and displays `char_freq_!` as a rate per thousand characters or as stated buckets. The opening subject, optional Gini contrast, and three-label example are invented. [Dataset and citation](https://archive.ics.uci.edu/dataset/94/spambase) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
-Use the separate 21-parcel sandbox to draw cuts. Scan score is a scanner's 0–10 warning about its first shipping-label image, with stronger warnings for harder-to-read labels. Both features and the example routes are synthetic. Ask where learners would place a first cut. Choose Vertical and mark 5 kg, midway between observed weights 4 and 6 kg. The Yes region contains eight Auto parcels. The No region still has five Auto and eight Review parcels. [Draw the splits](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#draw-splits)
-
-Select the No region on either the plot or the tree. Choose Horizontal and apply scan score 5, midway between observed scores 4 and 6 in that region. Point out where the line ends at the first cut. It divides only the No region. Compare the three leaf predictions with the shaded regions, then undo a cut to try a different question. The worked example builds these same two cuts.
-
-Turn on **Show logistic regression boundary** with both tree cuts visible. The blue line is where logistic regression, fitted to the same weight and scan-score data, predicts a 50% chance of Review. It matches 20 of the 21 training labels, and the worked tree matches all 21. Ask learners to find the Review parcel at weight 6 and scan score 6.6 on the Auto side of the line. That parcel lies inside a triangle formed by three Auto parcels, so a single straight line cannot separate it from all three.
-
-Ask how the tree could compare the possible cuts without our help. Use that question to introduce entropy.
-
-## Turn surprise into a split score
-
-Ask how surprised you would be to observe an outcome with probability 1, ½, or ¼.
-
-- Inverse likelihood, $1/p$, increases as an outcome gets rarer. The base-2 logarithm gives $I(p)=\log_2(1/p)=-\log_2(p)$, so certainty is worth zero bits and those three outcomes give 0, 1, and 2 bits.
-- The logarithm also makes independent surprises add. Two independent events of probability ½ each have one bit of surprise. Observing both has probability ¼ and gives two bits.
-- Entropy is expected surprise. Count the frequency of each class and multiply the class's surprise by its probability, once per class. Averaging the surprise over all individual rows gives the same result. The term for an absent class contributes zero by the limit $p\log_2(p)\to 0$ as $p$ approaches zero from above. An empty child has no class distribution and is excluded as a split.
-
-The root has four parcels per class, so its entropy is **1 bit**. At $X\leq3.5$, the children contain three and five parcels. Their entropies are **0** and **0.7219** bits. Weighting by the child sizes gives $(3/8)(0)+(5/8)(0.7219)\approx0.4512$ bits. Subtracting from the parent gives **0.5488 bits** of information gain. The packaging split gains **0.3113 bits** at the root.
-
-Use the weighted area diagram to connect the terms to the rows. Each width is a child’s fraction of the parent. The height is the child’s entropy. A pure child can have a wide band with zero shaded area.
-
-Open [Gini vs. entropy](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#gini) and move from a pure node to the balanced root and then the 80% Review branch. Gini is the probability that two labels drawn with replacement differ. Gini uses squares and avoids logarithms. Score the same split with both criteria before opening the optional counterexample where the best candidate changes. Both criteria choose the same root split for the eight training parcels. The weight split gives weighted child Gini **0.2** and reduction **0.3**. The scores have different meanings and scales.
-
-For an exact numeric search, sort the distinct weights and test a midpoint between each adjacent pair. All cutoffs in the same gap partition these training rows identically. A histogram search groups values into bins and scores eligible bin boundaries. It can miss a better cut inside a bin. For packaging A/B, the one grouping divides A from B.
-
-## Grow the tree and check new parcels
-
-Follow the five parcels with $X>3.5$. Ask whether packaging becomes useful here even though it lost at the root. In this branch, A sends the remaining Auto parcel to one child and B sends all four Review parcels to the other. The left branch of the root was already pure. Select the internal node to compare its weighted child score and local gain. Change the depth between one split and two levels to show when another question is allowed. Trace H5 from the matrix to show that 100% Auto in a leaf may represent just one training row.
-
-Then open [the deeper weighted-entropy example](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#deep-tree). Starting at depth 3, ask which three nodes belong in the calculation. The earlier tests routed seven of the 16 rows here. The immediate children have three rows at entropy 0 and four at entropy 1. Their weighted entropy is $(3/7)(0)+(4/7)(1)\approx0.5714$ bits. Switch to depth 4 to show that only the four rows at that node are used and both of its children are pure.
-
-Evaluate on the six held-out parcels. With Review as the positive class, the two-level tree gives **TN 2, FP 1, FN 1, TP 2**. A Review parcel at $X=6$, $Y=A$ is missed. An Auto parcel at $X=7$, $Y=B$ is flagged. Ask which kind of mistake matters more at this desk before moving to the [metrics playground](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/) in a later lesson.
-
-## Decide where to stop
-
-Open [Where to stop](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#stopping). Compare the same training and held-out parcels at each depth.
-
-- **Depth 0:** One leaf predicts Auto by the lab's tie rule. Training accuracy is **4/8**, and held-out accuracy is **3/6**. A single class for every parcel misses useful structure.
-- **Depth 1:** The weight question raises training accuracy to **7/8** and held-out accuracy to **5/6**. Its held-out matrix is **TN 2, FP 1, FN 0, TP 3**.
-- **Depth 2:** The extra packaging question gives **8/8** on training and **4/6** on held-out parcels. The perfectly pure one-row leaf illustrates how a more detailed rule can fit the training set and still do worse on new cases.
-
-In class, ask what a minimum of two rows per leaf would do to that packaging split. A depth limit, minimum leaf size, or required improvement can stop growth early. Pruning starts with a larger tree and cuts back weak branches. These six parcels illustrate the tradeoff. If learners use their scores to choose depth or pruning, those parcels serve as validation data. Reserve an independent test set for the final evaluation.
-
-## Give each feature credit
-
-An impurity-based importance score asks how much each feature reduced impurity across the original training set. Choose a training parcel at random. A split low in the tree improves the score only for the fraction of parcels that reach its node. A node with $n$ out of $N$ training rows therefore contributes $(n/N)$ times its local improvement. Credit that value to the feature used at the node and add all its contributions.
-
-For the two-level entropy tree, X gets $(8/8)(1-0.4512)\approx\mathbf{0.5488}$ bits. Y gets $(5/8)(0.7219-0)\approx\mathbf{0.4512}$ bits. When the gains are added, the impurity of each intermediate node cancels against its contribution to its parent's child score. The total is root impurity minus the root-weighted impurity of the leaves. Here the leaves are pure, so the total is $1-0=1$ bit. Divide each feature's credit by the total gain to get **54.88% X** and **45.12% Y**. Those percentages describe the tree's training impurity reduction.
-
-Open [feature importance in a deeper tree](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#deep-importance) and keep Weight X selected. Its three splits reach 20, 16, and 13 of the 20 training rows. Ask why the third split multiplies its local gain of 0.3600 by 13/20. The three credited reductions add to 0.5208 bits.
-
-Switch between maximum depths 4 and 5. Weight keeps the same raw credit. At depth 5, Scan score Z contributes 0.2427 bits, so Weight’s normalized share falls from 75.34% to 55.76%. Ask learners to explain what changed in the denominator.
-
-## Predict minutes and run the code
-
-Switch the target to processing time. Each leaf predicts the mean of the minutes it contains. For any constant guess $c$, its MSE equals the MSE at the mean plus $(c-\bar y)^2$. Guessing the mean makes that extra term zero.
-
-The root predicts **5 minutes** with MSE **7 minutes²**. At the same root cut, the two child predictions are **2** and **6.8 minutes**. The child errors are **0** and **2.56 minutes²**, so the weighted error is $(3/8)(0)+(5/8)(2.56)=\mathbf{1.6}$ minutes². The reduction is **5.4 minutes²**. Keep the weight question visible while changing the target so learners can see that the partition stays the same and the score and predictions change.
-
-Use the depth control in the deeper regression explorer. A deeper tree can keep reducing training MSE by producing averages for smaller groups. Compare validation MSE or RMSE across depths before choosing one. The six held-out parcels have routing labels only, so they cannot measure processing-time error.
-
-Open [regression in a deeper tree](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#deep-regression) and inspect the selected scan-score split. Three parcels have a mean of 13 minutes and an MSE of $2/3$ minutes². Two have a mean of 15 minutes and an MSE of $0.25$ minutes². Weight the errors by 3/5 and 2/5 to get 0.50 minutes². The five parcels are the ones that reach this parent.
-
-Trace the starting parcel at depths 4 and 5. The prediction moves from the parent mean of 13.8 minutes to the No leaf mean of 15 minutes. Change the scan score to 2 and trace again to reach the Yes leaf mean of 13 minutes.
-
-Run the embedded Python example after learners have predicted its output. Compare the printed gains, held-out matrix, and weighted regression error with the browser view. Load the in-browser Python runtime before presenting if you plan to execute the code live.
+The hourly bike counts come from **Bike Sharing**, Hadi Fanaee-T (2013), UCI Machine Learning Repository, CC BY 4.0, based on Capital Bikeshare records from 2011 and 2012. The app displays the original `instant`, date, hour, and total count where applicable. The deeper example converts `hum` to a percentage, groups it into three bins, and maps the recorded `workingday` flag to the two shown categories. It uses historical humidity as an input for a retrospective forecast exercise. The notebook's larger model uses calendar fields. Both small samples were selected for teaching. [Dataset and citation](https://archive.ics.uci.edu/dataset/275/bike-sharing-dataset) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)

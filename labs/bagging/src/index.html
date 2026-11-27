@@ -190,7 +190,18 @@
               <p>These are <strong>out-of-fold predictions</strong> because each email’s scores come from models trained on the other folds. The final test set stays separate.</p>
             </div>
           </details>
-          <p class="bag-quiz-cue">Quiz 1</p>
+          <aside class="lab-quiz">
+            <h4>Check your understanding</h4>
+            <p>Two trees classify the same email. What makes the system an ensemble?</p>
+            <details><summary>Show options</summary><ol type="A">
+              <li>Both trees must use exactly the same training rows</li><li>A rule combines the two trees’ predictions</li>
+              <li>Only the second tree receives the email</li><li>One of the trees uses two input features</li>
+            </ol>
+              <details><summary>What is the right answer?</summary><p><strong>B. A rule combines the two trees’ predictions.</strong></p>
+                <details><summary>Show explanation</summary><p>An ensemble combines predictions from several models using a rule such as voting. A one-to-one hard vote is a tie.</p></details>
+              </details>
+            </details>
+          </aside>
           <p class="transition">Let’s build Bagging. Both trees started from the same 12 labeled emails. How did they get different training samples?</p>
           <div class="bag-actions"><a href="#bootstrap" class="button primary">Draw a training sample</a></div>
         </div>
@@ -227,7 +238,18 @@
         <ol id="bag-drawn-rows" class="bag-drawn" aria-label="Draws in order"></ol>
         <p id="bag-draw-current" class="bag-readout" aria-live="polite"></p>
         <div id="bag-sample-counts" class="bag-sample-counts"></div>
-        <p class="bag-quiz-cue">Quiz 2</p>
+        <aside class="lab-quiz">
+          <h4>Check your understanding</h4>
+          <p>A bootstrap tray contains email IDs 1, 2, 2, 4, 6, 6. How many draws and how many distinct emails are in that tray?</p>
+          <details><summary>Show options</summary><ol type="A">
+            <li>6 draws and 4 distinct emails</li><li>6 draws and 6 distinct emails</li>
+            <li>4 draws and 4 distinct emails</li><li>4 draws and 6 distinct emails</li>
+          </ol>
+            <details><summary>What is the right answer?</summary><p><strong>A. 6 draws and 4 distinct emails.</strong></p>
+              <details><summary>Show explanation</summary><p>There are six draw slots. The distinct IDs are 1, 2, 4, and 6. A row can be drawn again because it is returned to the pool.</p></details>
+            </details>
+          </details>
+        </aside>
       </div>
       <ol class="bag-steps">
         <li><strong>Draw the whole row.</strong> Each ticket keeps its two features and recorded label together.</li>
@@ -273,7 +295,17 @@ tree.predict(email)</code></pre>
         <p class="small" id="bag-trace-email"></p>
         <div class="bag-tree-meta" id="bag-tree-meta"></div>
         <div id="bag-tree-plot" class="tree-diagram"></div>
-        <p class="bag-quiz-cue">Quiz 3</p>
+        <aside class="lab-quiz">
+          <h4>Check your understanding</h4>
+          <p>Three trees give the same email Spam probabilities of 0, 1, and 2/3. What is their mean Spam probability?</p>
+          <details><summary>Show options</summary><ol type="A">
+            <li>33.3%</li><li>50.0%</li><li>66.7%</li><li>55.6%</li>
+          </ol>
+            <details><summary>What is the right answer?</summary><p><strong>D. 55.6%.</strong></p>
+              <details><summary>Show explanation</summary><p>Add the three probabilities and divide by three. The result is 5/9, about 55.6%. The 66.7% choice is the share of trees voting Spam.</p></details>
+            </details>
+          </details>
+        </aside>
         <div class="bag-actions"><button type="button" class="button primary" id="bag-vote-next">Reveal next vote</button><button type="button" class="button secondary" id="bag-vote-reset">Reset votes</button></div>
         <div id="bag-votes" aria-live="polite"></div>
         <div id="bag-vote-truth" class="bag-worked" hidden>
@@ -304,7 +336,18 @@ tree.predict(email)</code></pre>
         <label>Features considered <select id="bag-feature-mode"><option value="all">Both features</option><option value="one">One feature at each node</option></select></label></div>
         <div class="bag-actions"><button id="bag-feature-next" class="button primary" type="button">Reveal next feature draw</button></div>
         <div class="bag-pair" id="bag-features" aria-live="polite"></div>
-        <p class="bag-quiz-cue">Quiz 4</p>
+        <aside class="lab-quiz">
+          <h4>Check your understanding</h4>
+          <p>In a Random Forest using feature subsampling, when is a fresh set of candidate features drawn?</p>
+          <details><summary>Show options</summary><ol type="A">
+            <li>Once for the whole forest</li><li>Once per training tray</li><li>At each split during training</li>
+            <li>Each time the trained forest predicts a new email</li>
+          </ol>
+            <details><summary>What is the right answer?</summary><p><strong>C. At each split during training.</strong></p>
+              <details><summary>Show explanation</summary><p>The bootstrap draw supplies rows for one tree. The feature draw gives one node a list of features to consider as it learns its question.</p></details>
+            </details>
+          </details>
+        </aside>
         <div class="bag-worked"><p><strong>Try it.</strong> Read the root’s question with <strong>Both features</strong>. Click <strong>Reveal next feature draw</strong> and compare the new question and child rows. Advance again to see a fresh set of candidates.</p></div>
         <details class="teaching-note"><summary>Work through the first Gini decrease</summary><div class="bag-worked" id="bag-gini-worked"></div></details>
       </div>

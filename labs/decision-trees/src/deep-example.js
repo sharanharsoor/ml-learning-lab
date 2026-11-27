@@ -1,11 +1,12 @@
 (() => {
   'use strict';
 
-  const { DEEP_TRAIN, evaluate, fit } = TreeLab;
+  const { DEEP_TRAIN } = TreeLabData;
+  const { evaluate, fit } = TreeLab;
   const get = id => document.getElementById(id);
   const number = value => Number(value.toFixed(4)).toString();
   const question = split => 'X ≤ ' + split.threshold + '?';
-  const counts = group => group.auto + ' Auto · ' + group.review + ' Review';
+  const counts = group => group.auto + ' Legitimate · ' + group.review + ' Spam';
 
   function init(renderWeightedVisual) {
     const limit = get('deep-max-depth');
@@ -41,9 +42,9 @@
         '<br><span class="small">' + parcels.map(row => row.id + ' (X ' + row.x + ')').join(', ') + '</span>' +
         '</td><td>' + number(stats.score) + '</td><td>' + stats.n + '/' + parent.n + '</td></tr>').join('');
       const context = depth === 0
-        ? '<p>The selected parent is the root. All ' + parent.n + ' parcels reach it.</p>'
+        ? '<p>The selected parent is the root. All ' + parent.n + ' emails reach it.</p>'
         : '<p>Earlier questions routed <strong>' + parent.n + ' of the ' + tree.stats.n +
-          ' root parcels</strong> here. This split uses the ' + parent.n + ' that reached this node.</p>';
+          ' root emails</strong> here. This split uses the ' + parent.n + ' that reached this node.</p>';
 
       math.innerHTML = '<h3>Depth ' + depth + ' · ' + question(split.split) + '</h3>' + context +
         '<p><strong>Current parent</strong> ' + counts(parent) + ' · Entropy ' + number(parent.score) + ' bits</p>' +
@@ -83,7 +84,7 @@
     }));
 
     get('deep-training-rows').innerHTML = DEEP_TRAIN.map(row =>
-      '<tr><th scope="row">' + row.id + '</th><td>' + row.x + '</td><td>' + (row.label ? 'Review' : 'Auto') + '</td></tr>').join('');
+      '<tr><th scope="row">' + row.id + '</th><td>' + row.sourceRow + '</td><td>' + row.x + '</td><td>' + (row.label ? 'Spam' : 'Legitimate') + '</td></tr>').join('');
     limit.addEventListener('change', fitTree);
     fitTree();
   }
