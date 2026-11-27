@@ -39,7 +39,7 @@
       button.disabled = index === pages.length - 1;
       button.textContent = index === pages.length - 2 ? 'Course outline' : 'Next unit';
     }
-    get('course-position').textContent = current.id === 'course' ? 'Course outline' : `Unit ${index + 1} of 4`;
+    get('course-position').textContent = current.id === 'course' ? 'Course outline' : `Unit ${index + 1} of ${pages.length - 1}`;
   }
 
   function navigate(id) {

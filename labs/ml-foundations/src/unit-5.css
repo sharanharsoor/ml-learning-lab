@@ -1,0 +1,273 @@
+#unit-5 {
+  --u5-model: #624789;
+  --u5-model-light: #f3eff8;
+  --u5-record: #0a6b5c;
+}
+
+.u5-timing, .u5-terms, .u5-term-readout {
+  display: grid;
+  gap: .65rem;
+  margin-block: .9rem;
+}
+
+.u5-timing {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  list-style: none;
+}
+
+.u5-timing li, .u5-terms > div, .u5-term-readout > div {
+  min-width: 0;
+  border-radius: .5rem;
+  padding: .72rem .9rem;
+}
+
+.u5-timing li {
+  display: grid;
+  align-content: start;
+  gap: .28rem;
+  border-top: .23rem solid var(--u5-record);
+  background: var(--light);
+}
+
+.u5-timing li:nth-child(2) {
+  border-color: var(--u5-model);
+  background: var(--u5-model-light);
+}
+
+.u5-timing li:nth-child(3) {
+  border-color: var(--rust);
+  background: var(--warm);
+}
+
+.u5-timing span { color: var(--muted); font-size: .88em; }
+.u5-timing strong { font-size: 1.2em; line-height: 1.25; }
+.u5-terms, .u5-term-readout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.u5-terms > div, .u5-term-readout > div { background: var(--light); }
+.u5-terms p { margin: .2rem 0 0; }
+.u5-equation > div { background: var(--u5-model-light); }
+.u5-term-readout dt { font-weight: 720; }
+.u5-term-readout dd { margin: .28rem 0 0; font-variant-numeric: tabular-nums; }
+
+.u5-callout {
+  margin-block: .8rem;
+  padding: .68rem .9rem;
+  border-inline-start: .23rem solid var(--u5-record);
+  border-radius: .24rem;
+  background: var(--light);
+}
+
+.u5-callout p:first-child { margin-top: 0; }
+.u5-callout p:last-child { margin-bottom: 0; }
+
+.u5-plot-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.1rem;
+  margin-block: .85rem;
+}
+
+.u5-chart, .u5-controls {
+  min-width: 0;
+  padding: .75rem clamp(.65rem, 1.6vw, 1rem);
+  border: 1px solid var(--line);
+  border-radius: .58rem;
+  background: var(--surface);
+}
+
+.u5-chart figcaption { display: grid; gap: .1rem; }
+.u5-chart figcaption strong { color: var(--ink); }
+.u5-axis-title { color: var(--muted); font-weight: 650; font-size: .85em; }
+.u5-x-title { text-align: center; margin: .35rem 0 .6rem 2.9rem; }
+
+.u5-coordinates {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  grid-template-rows: auto 1.35rem;
+  column-gap: .28rem;
+  row-gap: .3rem;
+  margin: .64rem .7rem 0 0;
+}
+
+.u5-plot {
+  position: relative;
+  min-height: clamp(15rem, 34vw, 24rem);
+  border-inline-start: 1px solid var(--muted);
+  border-bottom: 1px solid var(--muted);
+  background-image: linear-gradient(to right, var(--line) 1px, transparent 1px), linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 25% 25%;
+}
+
+.u5-y-ticks, .u5-x-ticks {
+  position: relative;
+  color: var(--muted);
+  font-size: .75em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.u5-y-ticks span, .u5-x-ticks span { position: absolute; }
+.u5-y-ticks span { right: 0; transform: translateY(-50%); }
+.u5-y-ticks span:nth-child(1) { top: 0; }
+.u5-y-ticks span:nth-child(2) { top: 25%; }
+.u5-y-ticks span:nth-child(3) { top: 50%; }
+.u5-y-ticks span:nth-child(4) { top: 75%; }
+.u5-y-ticks span:nth-child(5) { top: 100%; }
+
+.u5-x-ticks { grid-column: 2; }
+.u5-x-ticks span { transform: translateX(-50%); }
+.u5-x-ticks span:nth-child(1) { left: 0; }
+.u5-x-ticks span:nth-child(2) { left: 25%; }
+.u5-x-ticks span:nth-child(3) { left: 50%; }
+.u5-x-ticks span:nth-child(4) { left: 75%; }
+.u5-x-ticks span:nth-child(5) { left: 100%; }
+
+.u5-plot-layers, #u5-points {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.u5-plot-layers { overflow: hidden; }
+#u5-baseline-line, #u5-line, #u5-residual { position: absolute; }
+#u5-baseline-line, #u5-line { transform-origin: 0 50%; }
+#u5-baseline-line { border-top: 2px dashed var(--muted); }
+#u5-line { height: 3px; background: var(--u5-model); }
+#u5-residual { border-inline-start: 3px dotted var(--rust); }
+
+.u5-point, .u5-context-point {
+  position: absolute;
+  left: var(--u5-x);
+  bottom: var(--u5-y);
+  transform: translate(-50%, 50%);
+}
+
+.u5-point {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.u5-point::before, .u5-context-point {
+  border-radius: 50%;
+  background: var(--u5-record);
+}
+
+.u5-point::before {
+  content: "";
+  width: .66rem;
+  height: .66rem;
+  border: 1px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--u5-record);
+}
+
+.u5-context-point {
+  width: .3rem;
+  height: .3rem;
+  opacity: .28;
+}
+
+.u5-point:hover::before, .u5-point[aria-pressed="true"]::before {
+  width: .92rem;
+  height: .92rem;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--u5-record);
+}
+
+.u5-point:focus-visible, .u5-point[aria-pressed="true"] { z-index: 1; }
+
+.u5-handle {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: 1.14rem;
+  height: 1.14rem;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--surface);
+  border-radius: .22rem;
+  background: var(--u5-model);
+  box-shadow: 0 0 0 1px var(--u5-model);
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.u5-handle:hover, .u5-handle:active {
+  box-shadow: 0 0 0 2px var(--u5-model), 0 0 0 .35rem var(--u5-model-light);
+}
+
+.u5-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .28rem .8rem;
+  margin: .4rem 0 0;
+  padding: .45rem 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  color: var(--muted);
+  font-size: .79em;
+}
+
+.u5-legend li { display: inline-flex; align-items: center; gap: .35rem; }
+.u5-key { display: inline-block; width: .95rem; }
+.u5-key-dot { height: .5rem; width: .5rem; border-radius: 50%; background: var(--u5-record); }
+.u5-key-line { border-top: 3px solid var(--u5-model); }
+.u5-key-baseline { border-top: 2px dashed var(--muted); }
+.u5-key-residual { border-top: 3px dotted var(--rust); }
+
+.u5-controls h4 { margin-bottom: .28rem; }
+.u5-controls .formula { color: var(--u5-model); font-size: 1.05em; font-variant-numeric: tabular-nums; }
+.u5-controls .actions { margin-top: .65rem; }
+.u5-controls .actions .button { font-size: .85em; min-height: 2.25rem; }
+.u5-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.u5-slider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .15rem .5rem;
+  align-items: center;
+  padding: .38rem .55rem;
+  border-radius: .4rem;
+  background: var(--u5-model-light);
+  font-size: .84em;
+}
+
+.u5-slider label { font-weight: 710; }
+.u5-slider output { color: var(--u5-model); font-weight: 750; font-variant-numeric: tabular-nums; }
+.u5-slider input { grid-column: 1 / -1; width: 100%; min-height: 1.5rem; margin: 0; accent-color: var(--u5-model); cursor: ew-resize; }
+
+.u5-trace { border-top: 1px solid var(--line); margin-block: .62rem; padding-top: .55rem; }
+.u5-trace label { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; font-size: .9em; font-weight: 680; }
+.u5-trace select {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2rem;
+  padding: .22rem .4rem;
+  border: 1px solid var(--line);
+  border-radius: .38rem;
+  background: var(--surface);
+}
+
+.u5-arithmetic { margin: .38rem 0; padding: .3rem .55rem; list-style: none; border-radius: .4rem; background: var(--u5-model-light); }
+.u5-arithmetic li { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 .4rem; padding: .16rem 0; font-size: .87em; }
+.u5-arithmetic li + li { border-top: 1px solid #dfd5ea; }
+.u5-arithmetic output { color: var(--u5-model); font-variant-numeric: tabular-nums; }
+.u5-numeric :is(th, td) { font-variant-numeric: tabular-nums; }
+.u5-worked-table { min-width: 36rem; }
+.u5-score-table { min-width: 28rem; }
+.u5-evaluation-result { margin-top: .88rem; padding-top: .78rem; border-top: 1px solid var(--line); }
+
+@media (max-width: 61rem) {
+  .u5-plot-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 40rem) {
+  .u5-timing, .u5-terms, .u5-term-readout { grid-template-columns: minmax(0, 1fr); }
+  .u5-coordinates { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .u5-x-title { margin-left: 2.35rem; }
+}

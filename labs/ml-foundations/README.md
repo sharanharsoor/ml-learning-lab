@@ -1,11 +1,12 @@
 # ML Foundations
 
-The first four units of the ML Learning Lab course follow one test hour from the Capital Bikeshare records. The class forecasts 470 rentals for 08:00 on November 1, 2012, then compares it with the recorded count of 680.
+The ML Foundations course follows one held-out hour from the Capital Bikeshare records. The class forecasts 470 rentals for 08:00 on November 1, 2012, then compares it with the recorded count of 680.
 
 1. **Make a first prediction.** Read a row, identify the inputs and target, and calculate the miss on one hour.
 2. **Python and Colab.** Follow the three cells, filter historical rows, and reproduce the forecast.
 3. **Understand the data.** Inspect real records, investigate data quality, and work through distributions and summary calculations.
 4. **Test on unseen data.** Compare two rules on validation and test periods, explain split choices, and trace leakage.
+5. **Linear regression.** Drag a line through real pairs of hourly counts, work through squared errors, and compare the fitted rule with the calendar baseline.
 
 Each unit has a Colab notebook and a downloadable copy on the course page. The starter CSV contains a few observed past rows and one held-out row for practice. The fitted group uses the full training period.
 

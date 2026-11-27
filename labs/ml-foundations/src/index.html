@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f2eb">
-  <meta name="description" content="Learn machine learning from your first bike-rental forecast through Python, data exploration, and testing on unseen hours.">
+  <meta name="description" content="Learn machine learning from your first bike-rental forecast through Python, data exploration, model evaluation, and linear regression.">
   <link rel="icon" type="image/png" href="data:image/png;base64,{{FAVICON}}">
   <link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/ml-foundations/">
   <title>ML Foundations | ML Learning Lab</title>
@@ -27,6 +27,7 @@
         <option value="unit-2">2 · Python and Colab</option>
         <option value="unit-3">3 · Understand the data</option>
         <option value="unit-4">4 · Test on unseen data</option>
+        <option value="unit-5">5 · Linear regression</option>
         <option value="course">Course outline</option>
       </select>
       <div class="lesson-jump">
@@ -51,6 +52,7 @@
           <li><a href="#unit-2">Python and Colab</a></li>
           <li><a href="#unit-3">Understand the data</a></li>
           <li><a href="#unit-4">Test on unseen data</a></li>
+          <li><a href="#unit-5">Linear regression</a></li>
         </ol>
         <a href="#course">Course outline and notebooks</a>
       </nav>
@@ -58,14 +60,15 @@
     <main id="lesson-content" class="course-main" tabindex="-1">
       {{UNITS}}
       <section class="course-page" id="course" aria-labelledby="course-title" hidden>
-        <h2 id="course-title">Your first four units</h2>
-        <p class="lede">Start with one prediction and build up to a fair comparison on unseen data. Each unit has a worked example, a classroom check, and a runnable Python notebook.</p>
+        <h2 id="course-title">ML Foundations course outline</h2>
+        <p class="lede">Start with one prediction, then fit a line and compare forecasts on unseen data. Each unit has a worked example, a classroom check, and a runnable Python notebook.</p>
         <p>Use <strong>Jump within unit</strong> to find an example or quiz while teaching. Quiz questions are visible on the page. Reveal the options, correct answer, and explanation in order.</p>
         <ol class="course-outline">
           <li><a href="#unit-1">Make a first prediction</a><p>Read one real bike-share record, estimate the rental count, and measure the miss.</p></li>
           <li><a href="#unit-2">Python and Colab</a><p>Run a cell, read a table, filter past hours, and reproduce the estimate.</p></li>
           <li><a href="#unit-3">Understand the data</a><p>Check data types and quality, read a chart, and calculate center and spread.</p></li>
           <li><a href="#unit-4">Test on unseen data</a><p>Separate training, validation, and test data. Compare a baseline with an honest forecast.</p></li>
+          <li><a href="#unit-5">Linear regression</a><p>Fit a line to earlier rentals and check whether yesterday’s count improves the 8 a.m. forecast.</p></li>
         </ol>
         <section class="panel" aria-labelledby="course-notebooks-title">
           <h3 id="course-notebooks-title">Notebooks and offline teaching</h3>
@@ -77,7 +80,7 @@
         </section>
         <section class="panel" aria-labelledby="course-practice-title">
           <h3 id="course-practice-title">Practice with the existing labs</h3>
-          <p>Linear and logistic regression are the next planned units. You can already practice measuring prediction errors and reading fitted trees in these labs.</p>
+          <p>Practice measuring prediction errors and reading fitted trees in these labs.</p>
           <div class="actions">
             <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#regression">Regression Metrics</a>
             <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification">Classification Metrics</a>

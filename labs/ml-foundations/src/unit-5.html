@@ -1,0 +1,274 @@
+<h2 id="unit-5-title">Could yesterday’s rentals improve today’s forecast?</h2>
+<p class="lede">Fit a line to predict the number of bikes rented at 8 a.m. on a workday. Move the line yourself, look at its misses, then find out how the fitted line performs on later dates.</p>
+
+<section class="panel" aria-labelledby="u5-opening-title">
+  <h3 id="u5-opening-title" data-lesson-jump="Yesterday, today, and the forecast">Return to November 1, 2012</h3>
+  <p>At 7:59 a.m., the bike-share operator wants to know how many rentals to expect during the 8 a.m. hour. The calendar forecast from Unit 4 gives us 470. We also have a new clue in the rental log.</p>
+  <ol class="u5-timing">
+    <li><span>Oct 31 · 8 a.m. hour</span><strong>621 rentals</strong><span>Yesterday’s count, available today.</span></li>
+    <li><span>Nov 1 · 7:59 a.m.</span><strong>470 rentals</strong><span>The calendar forecast for the coming hour.</span></li>
+    <li><span>Nov 1 · After the hour</span><strong>Today’s count</strong><span>Available after 08:00–08:59 ends.</span></li>
+  </ol>
+  <p><strong>Would you keep the forecast at 470 or move it toward 621? Why?</strong></p>
+  <div class="actions">
+    <button class="button primary" type="button" id="u5-reveal-actual" aria-controls="u5-focal-actual" aria-expanded="false">Reveal the recorded count</button>
+  </div>
+  <div class="u5-callout" id="u5-focal-actual" hidden>
+    <p>The log recorded <strong>680 rentals</strong> on November 1. The calendar forecast was low by <strong>680 − 470 = 210 rentals</strong>. Yesterday’s count might help, but this one case can only motivate the idea. Later we’ll measure both rules on the same test workdays.</p>
+    <p class="small">The two records are 15,904 and 15,928 in the source <code>hour.csv</code>. <a href="https://doi.org/10.24432/C5W894">UCI Bike Sharing dataset</a></p>
+  </div>
+</section>
+
+<section class="panel" aria-labelledby="u5-pairs-title">
+  <h3 id="u5-pairs-title" data-lesson-jump="Build the input and target">Pair one day with the day before</h3>
+  <div class="u5-terms">
+    <div><h4>Feature <var>x</var></h4><p>Yesterday’s recorded rental count during 08:00–08:59. In the opening example, <var>x</var> = 621 on October 31.</p></div>
+    <div><h4>Target <var>y</var></h4><p>Today’s recorded rental count during the same hour. Each target date in this lesson is a workday.</p></div>
+  </div>
+  <p>A <strong>lag feature</strong> is a value from an earlier time. Here “yesterday” means the previous <em>calendar</em> date. A Monday target can use Sunday’s count. If yesterday’s exact 8 a.m. record is absent, this line has no input for that date.</p>
+  <p>Linear regression turns the input into a <strong>numeric prediction</strong> using a straight-line rule. We write the predicted value as <var>ŷ</var> and the recorded value as <var>y</var>.</p>
+  <details><summary>Why is yesterday’s count safe to use at 7:59 a.m.?</summary>
+    <p>Yesterday’s 8 a.m. hour has already ended. Today’s hour has yet to finish, so its recorded count is only used later to score the prediction. We build the training and test rows using the same timing.</p>
+  </details>
+  <details><summary>What does a missing previous day look like in the source data?</summary>
+    <p>October 31 has a recorded 8 a.m. count of 621. October 30 has no 8 a.m. record. We skip October 31 as a target in the paired evaluation. That same count of 621 can still serve as the input for the November 1 target.</p>
+  </details>
+</section>
+
+<section class="panel u5-workbench" aria-labelledby="u5-line-title">
+  <h3 id="u5-line-title" data-lesson-jump="Move the line and read a residual">Draw a forecast through the training points</h3>
+  <p>Each dot pairs two real rental counts. The horizontal position is yesterday’s 8 a.m. count. The vertical position is today’s. These dots come from the earlier training dates only.</p>
+  <div class="u5-plot-layout">
+    <figure class="u5-chart">
+      <figcaption><strong>Observed 8 a.m. workday rentals</strong><span>Choose a marked training date to trace its prediction.</span></figcaption>
+      <p class="u5-axis-title">Today’s 8 a.m. rentals, <var>y</var></p>
+      <div class="u5-coordinates">
+        <div class="u5-y-ticks" aria-hidden="true"><span>1,000</span><span>750</span><span>500</span><span>250</span><span>0</span></div>
+        <div id="u5-plot" class="u5-plot">
+          <div class="u5-plot-layers" aria-hidden="true">
+            <span id="u5-baseline-line"></span>
+            <span id="u5-line"></span>
+            <span id="u5-residual"></span>
+          </div>
+          <div id="u5-points"></div>
+          <span class="u5-handle" id="u5-intercept-handle" title="Drag up or down to shift the whole line" aria-hidden="true"></span>
+          <span class="u5-handle" id="u5-rise-handle" title="Drag up or down to change the slope" aria-hidden="true"></span>
+        </div>
+        <div class="u5-x-ticks" aria-hidden="true"><span>0</span><span>250</span><span>500</span><span>750</span><span>1,000</span></div>
+      </div>
+      <p class="u5-axis-title u5-x-title">Yesterday’s 8 a.m. rentals, <var>x</var></p>
+      <ul class="u5-legend" aria-label="Chart key">
+        <li><span class="u5-key u5-key-dot" aria-hidden="true"></span>Recorded pair</li>
+        <li><span class="u5-key u5-key-line" aria-hidden="true"></span>Your prediction line</li>
+        <li><span class="u5-key u5-key-baseline" aria-hidden="true"></span>470 reference</li>
+        <li><span class="u5-key u5-key-residual" aria-hidden="true"></span>Selected residual</li>
+      </ul>
+    </figure>
+    <div class="u5-controls">
+      <h4>Change the line</h4>
+      <p class="formula" id="u5-line-equation">ŷ = 470 + 0 × x</p>
+      <p class="small">Drag the left handle to shift the line and the right handle to tilt it, or use the sliders.</p>
+      <div class="u5-sliders">
+        <div class="u5-slider">
+          <label for="u5-slope">Slope <var>m</var></label><output id="u5-slope-value" for="u5-slope">0</output>
+          <input type="range" id="u5-slope" min="-1" max="2" step="0.01" value="0">
+        </div>
+        <div class="u5-slider">
+          <label for="u5-intercept">Intercept <var>b</var></label><output id="u5-intercept-value" for="u5-intercept">470</output>
+          <input type="range" id="u5-intercept" min="0" max="900" step="1" value="470">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="button" type="button" id="u5-use-baseline">Use the 470 reference</button>
+        <button class="button" type="button" id="u5-use-trial">Use the trial line</button>
+        <button class="button primary" type="button" id="u5-use-fit">Fit on training pairs</button>
+      </div>
+      <div class="u5-trace">
+        <label for="u5-row">Trace a training row<select id="u5-row"></select></label>
+        <p class="small" id="u5-row-caption"></p>
+        <ol class="u5-arithmetic" aria-label="Prediction, residual, and squared error">
+          <li><strong>Prediction</strong><output id="u5-prediction-steps"></output></li>
+          <li><strong>Residual</strong><output id="u5-residual-steps"></output></li>
+          <li><strong>Squared error</strong><output id="u5-squared-steps"></output></li>
+        </ol>
+        <p class="small" id="u5-point-summary" aria-live="polite"></p>
+      </div>
+      <p class="small" id="u5-line-status" role="status">A slope of zero gives the same forecast for every input.</p>
+    </div>
+  </div>
+  <div class="u5-terms u5-equation">
+    <div><h4>Start at the intercept</h4><p><var>b</var> is the predicted number of rentals when yesterday’s count <var>x</var> is 0. Increasing <var>b</var> by 20 lifts every prediction by 20.</p></div>
+    <div><h4>Move by the slope</h4><p>For one extra rental yesterday, the prediction changes by <var>m</var> rentals. A slope of 0.5 gives a 50-rental rise when the input increases by 100.</p></div>
+  </div>
+  <p>The vertical gap is the residual. A positive residual means the dot is above the line and the line predicted too low. A negative residual means it predicted too high. Try the trial line on September 17 for a positive residual, then on September 28 for a negative one.</p>
+  <details><summary>Should we trust the line far outside these observations?</summary>
+    <p>The plotted training inputs span <strong id="u5-feature-range">the recorded range</strong>. Predicting outside that range is <strong>extrapolation</strong>. The line keeps its slope even where we have no nearby examples to check it. A negative rental forecast can also happen with an unrestricted straight line. Use the fit within its supported range and check predictions against the real task.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u5-slope-quiz" data-lesson-jump="Quiz 7 · Read the slope">What does a slope of 0.5 tell us?</h3>
+  <p>Keep the intercept fixed. The slope is 0.5. If yesterday’s 8 a.m. count rises from 400 to 500, what happens to the prediction?</p>
+  <details><summary>Show options</summary>
+    <ol type="A">
+      <li>It rises by 50 rentals.</li>
+      <li>It rises by 100 rentals.</li>
+      <li>It stays the same.</li>
+    </ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>A. It rises by 50 rentals.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>The change in the prediction is 0.5 × (500 − 400) = 50 rentals. The intercept stays fixed.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u5-loss-title">
+  <h3 id="u5-loss-title" data-lesson-jump="Squared errors and MSE">What makes one line fit better?</h3>
+  <p>A line that misses by +20 and −20 has an average signed residual of 0, even though both predictions missed. Squaring the residuals gives 400 and 400. Now every miss increases the total, and larger misses cost more.</p>
+  <p class="formula">MSE = (∑ (yᵢ − ŷᵢ)²) ÷ n</p>
+  <p><strong>Mean squared error (MSE)</strong> averages one squared residual per row. The index <var>i</var> labels a row. <var>n</var> is the number of rows over which we average. The values below change as you move the line.</p>
+  <div class="table-wrap">
+    <table class="u5-numeric u5-worked-table">
+      <caption>A few real training rows with the current line</caption>
+      <thead><tr><th scope="col">Target date</th><th scope="col">Yesterday x</th><th scope="col">Recorded y</th><th scope="col">Prediction ŷ</th><th scope="col">Residual</th><th scope="col">Squared error</th></tr></thead>
+      <tbody id="u5-worked-rows"></tbody>
+    </table>
+  </div>
+  <dl class="u5-term-readout">
+    <div><dt>MSE across these displayed rows</dt><dd id="u5-sample-mse"></dd></div>
+    <div><dt>MSE across all training pairs</dt><dd id="u5-train-mse"></dd></div>
+  </dl>
+  <p>The small table shows the arithmetic. The fit uses the full training set, so it may pick a line that misses one of these displayed points by more.</p>
+  <p class="small">The fitted line keeps full precision. If you square a residual rounded for display, your result can differ slightly from the table.</p>
+  <p class="small"><a href="#u5-line-title">Return to the plot to move the line</a></p>
+  <details><summary>Why do unusual observations matter?</summary>
+    <p>A 20-rental mistake contributes 400 rentals². A 200-rental mistake contributes 40,000 rentals². One large miss can pull a least-squares line toward that point. Check whether an extreme observation reflects a real change in demand or a data issue before deciding how to model it.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u5-squared-quiz" data-lesson-jump="Quiz 8 · Squared error">What does squaring do to a large miss?</h3>
+  <p>One line misses by 10 rentals on a row and another misses by 20. How much larger is the second squared error?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>Twice as large.</li><li>Four times as large.</li><li>Ten times as large.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. Four times as large.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>The squared errors are 10² = 100 and 20² = 400 rentals². Doubling the miss makes its squared error four times as large.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u5-fit-title">
+  <h3 id="u5-fit-title" data-lesson-jump="Learn the slope and intercept">Fit the line by least squares</h3>
+  <p><strong>Ordinary least squares</strong> chooses the slope and intercept that make the sum of squared residuals smallest. On a fixed set of rows, the row count stays constant, so the same line minimizes the mean squared error.</p>
+  <div class="u5-callout">
+    <h4>Fit through September 2012</h4>
+    <p class="formula" id="u5-fit-equation"></p>
+    <p id="u5-fit-stats"></p>
+    <p class="small">The equation displays rounded coefficients. The fit and score use their full precision.</p>
+  </div>
+  <p>The slope captures how much today’s rentals tend to change with yesterday’s. The mean of today’s counts sets a useful reference. If we force the slope to zero, the least-squares intercept is that mean.</p>
+  <details><summary>How do we compute the fitted coefficients?</summary>
+    <p>Let <var>x̄</var> and <var>ȳ</var> be the training means. For each row, subtract the relevant mean from <var>xᵢ</var> and <var>yᵢ</var>. Multiply those deviations and add the products for the numerator. Square the <var>x</var> deviations and add them for the denominator.</p>
+    <p class="formula">m = ∑ [(xᵢ − x̄)(yᵢ − ȳ)] ÷ ∑ [(xᵢ − x̄)²]<br>b = ȳ − m × x̄</p>
+    <p>For September 17, subtract the training means from the observed pair <strong>(128, 683)</strong>. This gives deviations of about −255.15 and +223.59. Their product contributes about <strong>−57,049.05</strong> to the numerator. The first deviation squared contributes about <strong>65,099.05</strong> to the denominator. We sum the products and squares for all training rows before dividing.</p>
+    <p>Pairs well above both means or below both means contribute positive products. Opposite deviations contribute negative products. Once we know the slope, the intercept makes the line pass through the point made by the two training means, (<var>x̄</var>, <var>ȳ</var>).</p>
+    <p class="formula" id="u5-fit-arithmetic"></p>
+  </details>
+  <details><summary>Why fit with MSE and report MAE?</summary>
+    <p>Squaring is the fitting rule for ordinary least squares. Mean absolute error reports an average miss in rentals, which is easy to compare and explain. Minimizing training MSE does not guarantee the lowest MAE on later data.</p>
+  </details>
+  <details><summary>See the same fit in Python</summary>
+    <pre><code>def fit_line(rows):
+    x_mean = mean(x for x, y in rows)
+    y_mean = mean(y for x, y in rows)
+    cross_products = sum((x - x_mean) * (y - y_mean) for x, y in rows)
+    input_squares = sum((x - x_mean) ** 2 for x, y in rows)
+    slope = cross_products / input_squares
+    intercept = y_mean - slope * x_mean
+    return slope, intercept</code></pre>
+    <p>Each <code>(x, y)</code> pair is yesterday’s count and today’s recorded count. This Colab function computes the training means, adds the terms shown above, and returns the two parameters.</p>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u5-evaluation-title">
+  <h3 id="u5-evaluation-title" data-lesson-jump="Validation and test results">Check whether yesterday’s count helped</h3>
+  <ol class="u5-timing u5-split">
+    <li><span>Through Sep 2012</span><strong>Fit</strong><span>Estimate the line from earlier pairs and the calendar forecast from earlier workday counts.</span></li>
+    <li><span>October 2012</span><strong>Validate</strong><span>Score the rules on the same later workday pairs.</span></li>
+    <li><span>Nov to Dec 2012</span><strong>Test</strong><span>Recalculate both rules through October before scoring on the final workday pairs.</span></li>
+  </ol>
+  <p>We score both rules on exactly the dates with a workday 8 a.m. target and an observed 8 a.m. count for the previous calendar day. The calendar forecast can run on more dates. The comparison measures performance where both rules can make a valid prediction.</p>
+  <p id="u5-pair-counts"></p>
+  <p class="formula">MAE = (∑ |yᵢ − ŷᵢ|) ÷ number of scored dates</p>
+  <p>The calendar rule follows Unit 4 and rounds each forecast to whole rentals. The line keeps its decimal predictions for scoring. For both rules, a lower test MAE means a smaller average miss on these dates.</p>
+  <div class="actions">
+    <button class="button primary" type="button" id="u5-reveal-validation" aria-controls="u5-validation-results" aria-expanded="false">Reveal October validation</button>
+    <button class="button" type="button" id="u5-reveal-test" aria-controls="u5-test-results" aria-expanded="false" disabled>Reveal November and December test</button>
+  </div>
+  <div class="u5-evaluation-result" id="u5-validation-results" hidden>
+    <h4>Use October to compare the rules</h4>
+    <div class="table-wrap">
+      <table class="u5-numeric u5-score-table">
+        <caption>October validation dates</caption>
+        <thead><tr><th scope="col">Forecast rule</th><th scope="col">Total absolute error</th><th scope="col">Scored dates</th><th scope="col">MAE in rentals</th></tr></thead>
+        <tbody id="u5-validation-rows"></tbody>
+      </table>
+    </div>
+    <p id="u5-validation-summary"></p>
+  </div>
+  <div class="u5-evaluation-result" id="u5-test-results" hidden>
+    <h4>Score both refitted rules on November and December</h4>
+    <div class="table-wrap">
+      <table class="u5-numeric u5-score-table">
+        <caption>Final test dates</caption>
+        <thead><tr><th scope="col">Forecast rule</th><th scope="col">Total absolute error</th><th scope="col">Scored dates</th><th scope="col">MAE in rentals</th></tr></thead>
+        <tbody id="u5-test-rows"></tbody>
+      </table>
+    </div>
+    <p id="u5-test-summary"></p>
+    <div class="u5-callout"><h4>Return to the November 1 forecast</h4><p id="u5-focal-linear-steps"></p></div>
+  </div>
+  <details><summary>Can a test input come from the day before its target?</summary>
+    <p>Yes. These are forecasts made one day at a time. Yesterday’s observed count is available when we make each new forecast, even if yesterday also belonged to the test period. The line’s fitted coefficients stay fixed throughout that period.</p>
+  </details>
+  <details><summary>What if I wanted a forecast for every workday?</summary>
+    <p>Choose a fallback rule for dates without yesterday’s count, such as the calendar mean. Then evaluate the full system on all available test targets. This lesson first compares the two rules where both can predict.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u5-comparison-quiz" data-lesson-jump="Quiz 9 · Fair comparison">Which test rows make the comparison fair?</h3>
+  <p>A test workday has a recorded 8 a.m. count, but yesterday’s 8 a.m. count is missing. Which rows should we use to compare MAE for the two rules in this lesson?</p>
+  <details><summary>Show options</summary>
+    <ol type="A">
+      <li>Use all workdays for the calendar baseline and fewer workdays for the line.</li>
+      <li>Score both rules on the same workdays with both counts recorded.</li>
+      <li>Fill in yesterday’s missing count with today’s observed count.</li>
+    </ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. Score both rules on the same workdays with both counts recorded.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>Scoring the same rows keeps the test conditions consistent. The missing prior count affects how often the line can run, so track this coverage separately.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="exercise" aria-labelledby="u5-practice-title">
+  <h3 id="u5-practice-title" data-lesson-jump="Try one forecast by hand">Make a prediction by hand</h3>
+  <p>Try a practice line with slope 0.5 and intercept 200. On November 1, yesterday’s input was 621 and the recorded target was 680. What are the prediction, residual, and squared error?</p>
+  <details><summary>Check the calculation</summary>
+    <ol class="steps">
+      <li><strong>Prediction</strong> · 200 + 0.5 × 621 = 510.5 rentals.</li>
+      <li><strong>Residual</strong> · 680 − 510.5 = +169.5 rentals. The line predicted too low.</li>
+      <li><strong>Squared error</strong> · (169.5)² = 28,730.25 rentals².</li>
+    </ol>
+  </details>
+  <p>The Colab notebook reproduces the pairing, fit, and time-based evaluation in a few cells.</p>
+</section>
+<script type="application/json" id="foundations-unit-5-data">{{UNIT_5_DATA}}</script>
