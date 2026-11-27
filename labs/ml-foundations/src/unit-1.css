@@ -1,0 +1,39 @@
+#unit-1 .first-hero {
+  display: grid;
+  grid-template-columns: minmax(0, .93fr) minmax(0, 1.07fr);
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2rem);
+  margin-block-end: 1.7rem;
+}
+#unit-1 .first-hero figure { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: .72rem; background: var(--light); }
+#unit-1 .first-hero img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: center; }
+#unit-1 .first-example-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: .4rem 1rem; }
+#unit-1 .first-hour { padding: .15rem .54rem; border-radius: .34rem; color: var(--teal); background: var(--light); font-weight: 750; font-variant-numeric: tabular-nums; }
+#unit-1 :is(.first-row, .first-process, .first-score) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .62rem; }
+#unit-1 .first-row { margin-block: .9rem .45rem; }
+#unit-1 .first-row > div, #unit-1 .first-process li, #unit-1 .first-score > div {
+  min-width: 0;
+  padding: .65rem .78rem;
+  border: 1px solid var(--line);
+  border-radius: .48rem;
+  background: var(--paper);
+}
+#unit-1 .first-row dt, #unit-1 .first-score dt { color: var(--muted); font-size: .9em; }
+#unit-1 .first-row dd, #unit-1 .first-score dd { margin: .15rem 0 0; font-weight: 750; }
+#unit-1 .first-process { padding: 0; list-style: none; }
+#unit-1 .first-process li p { margin: .25rem 0 0; }
+#unit-1 .first-actions { margin-top: .85rem; }
+#unit-1 #first-result { scroll-margin-block: 4rem .75rem; }
+#unit-1 .first-calculation { margin-block-start: .85rem; padding: .68rem .85rem; border-inline-start: 3px solid var(--teal); border-radius: .32rem; background: var(--light); }
+#unit-1 .first-calculation p { margin-block: .26rem; }
+#unit-1 .first-score { margin-block: .65rem; }
+#unit-1 .first-score > div:last-child { background: var(--warm); border-color: #ead6c7; }
+#unit-1 .first-score dd { font-variant-numeric: tabular-nums; font-size: clamp(1.25rem, 2.1vw, 1.8rem); }
+#unit-1 .first-task-result { margin-top: .65rem; min-height: 3.2rem; }
+@media (max-width: 50rem) {
+  #unit-1 .first-hero { grid-template-columns: minmax(0, 1fr); }
+  #unit-1 .first-hero img { aspect-ratio: 16 / 8; }
+}
+@media (max-width: 34rem) {
+  #unit-1 :is(.first-row, .first-process, .first-score) { grid-template-columns: minmax(0, 1fr); }
+}

@@ -1,0 +1,13 @@
+{
+  "slug": "ml-foundations",
+  "title": "ML Foundations",
+  "description": "Start with a real bike-rental forecast. Read the data in Colab, work through the numbers, and learn how to test a model on hours it has never seen.",
+  "order": 0,
+  "topics": ["Start here", "Python", "Model evaluation"],
+  "lesson_links": {
+    "unit-1": "Start the course",
+    "course": "View course outline"
+  },
+  "builder": "scripts/build_lab.py",
+  "preview": "assets/ml-foundations.jpg"
+}

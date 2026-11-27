@@ -1,0 +1,94 @@
+<header class="first-hero">
+  <div>
+    <p class="eyebrow">Unit 1 · Your first prediction</p>
+    <h2 id="unit-1-title">How many bikes will people rent at 8 a.m.?</h2>
+    <p class="lede">It’s just before the morning commute. A bike-share operator needs a count for the coming hour to plan staffing. What can past rentals tell us?</p>
+  </div>
+  <figure>
+    <img src="{{HERO_IMAGE}}" alt="A commuter unlocking a bicycle at an illustrated bike-share dock">
+  </figure>
+</header>
+
+<section class="panel first-example" aria-labelledby="first-case-title">
+  <div class="first-example-head">
+    <div>
+      <p class="eyebrow">Capital Bikeshare · Washington, DC</p>
+      <h3 id="first-case-title">One hour on November 1, 2012</h3>
+    </div>
+    <span class="first-hour">08:00–08:59</span>
+  </div>
+  <p>Each <strong>row</strong> in the source data describes one observed hour across the system. The <strong>features</strong> are measurements we can use as inputs. The <strong>target</strong> is the outcome we’re trying to predict.</p>
+  <dl class="first-row">
+    <div><dt>Hour · Feature</dt><dd>08:00</dd></div>
+    <div><dt>Workday · Feature</dt><dd>Yes</dd></div>
+    <div><dt>Total rentals · Target</dt><dd>Known after the hour</dd></div>
+  </dl>
+  <p class="small">A workday is a weekday that is also outside the dataset’s holiday calendar. The data uses 1 for workday and 0 otherwise.</p>
+  <details>
+    <summary>See six past hours in the source data</summary>
+    <div class="table-wrap">
+      <table>
+        <caption>Selected 08:00 records from before the forecast</caption>
+        <thead><tr><th scope="col">Source row</th><th scope="col">Date</th><th scope="col">Hour</th><th scope="col">Workday?</th><th scope="col">Actual rentals</th></tr></thead>
+        <tbody id="first-history"></tbody>
+      </table>
+    </div>
+    <p id="first-history-note" class="small"></p>
+  </details>
+  <div class="actions first-actions">
+    <button class="button primary" type="button" id="first-reveal">Reveal forecast</button>
+    <button class="button" type="button" id="first-reset" hidden>Reset example</button>
+  </div>
+  <div id="first-result" aria-live="polite"></div>
+</section>
+
+<section class="panel" aria-labelledby="first-process-title">
+  <h3 id="first-process-title">Fit, predict, evaluate</h3>
+  <ol class="first-process" id="first-process">
+    <li><h4>Fit</h4><p>Learn a value or rule from past examples. Here we calculate a typical 08:00 count from past workdays.</p></li>
+    <li><h4>Predict</h4><p>Use what the model learned to estimate an outcome for a new hour. This use of a fitted model is also called <strong>inference</strong>.</p></li>
+    <li><h4>Evaluate</h4><p>Compare the prediction with the recorded count. Repeat on many unseen hours to judge how well the model works.</p></li>
+  </ol>
+  <details>
+    <summary>What makes this a learned model?</summary>
+    <p>We chose the rule “average past hours with matching calendar features.” The number it returns comes from data. A different training period could give a different average. A rule like “display Closed when the station status is Closed” can simply use a known status. Forecasting requires estimating an outcome that has yet to happen.</p>
+  </details>
+  <details>
+    <summary>What is a baseline?</summary>
+    <p>A baseline is a reference method for a comparison. The historical average is a simple baseline for a later, more complex forecast. In Unit 4 we’ll also compare this calendar forecast with an even simpler method that uses one historical average for every hour.</p>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="first-tasks-title">
+  <h3 id="first-tasks-title">What answer do we need?</h3>
+  <div class="actions" aria-label="Choose a prediction task">
+    <button class="button" type="button" data-first-task="regression" aria-pressed="true">A rental count</button>
+    <button class="button" type="button" data-first-task="classification" aria-pressed="false">Spam or Legitimate</button>
+    <button class="button" type="button" data-first-task="clustering" aria-pressed="false">Groups of similar days</button>
+  </div>
+  <p class="first-task-result" id="first-task-reading" aria-live="polite"></p>
+  <p class="small">Regression and classification learn from examples with known targets. That’s <strong>supervised learning</strong>. Clustering is one kind of <strong>unsupervised learning</strong>.</p>
+</section>
+
+<aside class="lab-quiz">
+  <h3>Which value can we use before the hour?</h3>
+  <p>At 7:59 a.m., which fact can a model use to forecast rentals for the upcoming 08:00 hour?</p>
+  <details><summary>Show options</summary>
+    <ol type="A">
+      <li>The total rentals during the upcoming hour</li>
+      <li>Whether today is a workday</li>
+      <li>The model’s error for that hour</li>
+    </ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. Whether today is a workday.</strong></p>
+      <details><summary>Show explanation</summary><p>The calendar is available when we predict. The recorded rental count comes after the hour. The model needs that count to calculate its error.</p></details>
+    </details>
+  </details>
+</aside>
+
+<section class="exercise" aria-labelledby="first-exercise">
+  <h3 id="first-exercise">Try the next hour</h3>
+  <p id="first-practice-prompt"></p>
+  <details><summary>Check your work</summary><p id="first-practice-answer" class="formula"></p></details>
+  <p>In Unit 2, you’ll use Python to select these rows and calculate the same forecasts yourself.</p>
+</section>

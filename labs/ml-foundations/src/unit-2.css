@@ -1,0 +1,88 @@
+#unit-2 .py-code-grid,
+#unit-2 .py-shape {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  align-items: stretch;
+}
+#unit-2 .py-code-grid > div,
+#unit-2 .py-shape > div {
+  min-width: 0;
+}
+#unit-2 .py-code {
+  margin: .45rem 0;
+  padding: .7rem .85rem;
+  overflow-x: auto;
+  border-radius: .4rem;
+  background: #193330;
+  color: #f8f5ed;
+  font-size: .9rem;
+  line-height: 1.6;
+}
+#unit-2 .py-code code { color: inherit; background: transparent; padding: 0; }
+#unit-2 .py-output {
+  padding: .8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: var(--light);
+}
+#unit-2 .py-output h4 { margin-top: 0; }
+#unit-2 .py-output samp {
+  display: block;
+  margin-block: .4rem;
+  white-space: pre-wrap;
+  color: var(--teal);
+  font-weight: 700;
+}
+#unit-2 .py-actions,
+#unit-2 .py-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem .85rem;
+  align-items: end;
+  margin-block: .6rem 1rem;
+}
+#unit-2 .py-filter label { display: grid; gap: .2rem; font-weight: 650; }
+#unit-2 .py-filter select {
+  padding: .38rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: .35rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+#unit-2 .py-filter .py-check {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 2.25rem;
+  font-weight: 550;
+}
+#unit-2 .py-table caption {
+  margin: 0 0 .25rem;
+  text-align: left;
+  color: var(--muted);
+  font-size: .88rem;
+}
+#unit-2 #py-filter-status { color: var(--teal); font-weight: 700; }
+#unit-2 .py-plot {
+  display: grid;
+  gap: .72rem;
+  margin: .8rem 0;
+  padding: .8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: var(--surface);
+}
+#unit-2 .py-plot-hour { display: grid; grid-template-columns: 4rem minmax(0, 1fr); align-items: start; gap: .3rem .8rem; }
+#unit-2 .py-plot-pairs { display: grid; gap: .3rem; }
+#unit-2 .py-plot-barline { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: center; gap: .4rem; font-size: .88rem; }
+#unit-2 .py-track { display: block; min-height: .7rem; border-radius: .18rem; background: var(--light); }
+#unit-2 .py-fill { display: block; width: var(--py-width); height: .7rem; border-radius: .18rem; background: var(--teal); }
+#unit-2 .py-plot-pairs div:first-child .py-fill { background: var(--rust); }
+#unit-2 .py-plot-scale { margin: 0; text-align: right; color: var(--muted); font-size: .8rem; }
+@media (max-width: 34rem) {
+  #unit-2 .py-code-grid,
+  #unit-2 .py-shape { grid-template-columns: 1fr; }
+  #unit-2 .py-plot-hour { grid-template-columns: 1fr; }
+  #unit-2 .py-plot-barline { grid-template-columns: 6.5rem minmax(0, 1fr); }
+}

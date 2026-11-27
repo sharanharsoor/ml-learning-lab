@@ -1,0 +1,155 @@
+<h2 id="unit-2-title">Python and Colab for ML</h2>
+<p class="lede">Turn the 8 a.m. forecast into code you can explain, then use Python to find the training rows, check their shape, and plot predictions against observations.</p>
+
+<section class="panel" aria-labelledby="py-cells-title">
+  <h3 id="py-cells-title">Run your first notebook cells</h3>
+  <p>A notebook alternates between text cells and code cells. A running Python session remembers names and their values. Run the setup cells first so the later cells have the values they need.</p>
+  <ol class="steps">
+    <li><strong>Connect.</strong> Open the notebook in Colab and click <strong>Connect</strong> to start the Python session.</li>
+    <li><strong>Run.</strong> Click a cell’s play button or press <kbd>Shift</kbd> + <kbd>Enter</kbd>. Read its output underneath.</li>
+    <li><strong>Restart.</strong> If you want a fresh session, use the restart option under <strong>Runtime</strong>, then run the cells from the top. Restarting clears the variables in memory. The cell text stays in the notebook.</li>
+  </ol>
+  <p><a class="button" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/ml-foundations/notebooks/02-python-and-colab.ipynb" target="_blank" rel="noopener noreferrer">Open Unit 2 in Colab</a></p>
+  <p class="small">The Colab notebook includes the teaching rows, so its main exercise can also run from a local Jupyter session with pandas and NumPy installed.</p>
+</section>
+
+<section class="panel" aria-labelledby="py-demo-title">
+  <h3 id="py-demo-title">Trace three cells from inputs to error</h3>
+  <p>This simulation shows what each cell adds to the notebook session. Colab runs the same Python code.</p>
+  <div class="py-code-grid">
+    <div>
+      <h4 id="py-code-label">Cell 1 · Name the inputs</h4>
+      <pre class="py-code"><code id="py-cell-code">rentals_total = 214195
+hours_seen = 456
+print(rentals_total, hours_seen)</code></pre>
+    </div>
+    <div class="py-output">
+      <h4>Output</h4>
+      <samp id="py-cell-output" aria-live="polite">Run the first cell to see its output.</samp>
+      <p id="py-cell-reading">Each name holds a number from the fitted group of earlier workday 8 a.m. hours.</p>
+    </div>
+  </div>
+  <p id="py-cell-status" class="small" role="status">0 of 3 cells run.</p>
+  <div class="py-actions">
+    <button type="button" class="button primary" id="py-run-cell">Run next cell</button>
+    <button type="button" class="button secondary" id="py-reset-cell" disabled>Restart demo</button>
+  </div>
+  <details>
+    <summary>What does the Python syntax mean?</summary>
+    <ul>
+      <li><code>name = value</code> saves a value under a name. Here <code>hours_seen = 456</code> saves the number of historical observations used in this forecast.</li>
+      <li><code>[421, 734, 403]</code> is an ordered list of three measured counts. Python starts counting list positions at zero, so <code>[421, 734, 403][0]</code> is 421.</li>
+      <li><code>def</code> gives a calculation a name. The function takes inputs inside parentheses and <code>return</code> sends its result back to the caller. The indented lines belong inside that function.</li>
+      <li><code>import pandas as pd</code> loads a library of table tools and gives it the short name <code>pd</code>. <code>pd.read_csv(...)</code> calls a tool from that library.</li>
+    </ul>
+  </details>
+  <details>
+    <summary>Why might a cell raise <code>NameError</code>?</summary>
+    <p>If you call <code>forecast</code> before running the cell that defines it, Python has no value under that name. Run the definition first. Restart and rerun the notebook from the top when you want to check that the cells work in order.</p>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="py-filter-title">
+  <h3 id="py-filter-title">Read a CSV and find the matching history</h3>
+  <p>A CSV is a text file with comma-separated columns. <code>pd.read_csv</code> loads it as a DataFrame, a table with named columns. These twelve observed rows are an excerpt from <code>hour.csv</code>. The excerpt lets us see which rows a filter keeps.</p>
+  <div class="py-filter">
+    <label>Hour
+      <select id="py-hour-filter">
+        <option value="all">All three hours</option>
+        <option value="7">07:00</option>
+        <option value="8">08:00</option>
+        <option value="9">09:00</option>
+      </select>
+    </label>
+    <label>Day type
+      <select id="py-workday-filter">
+        <option value="all">All day types</option>
+        <option value="1">Workday</option>
+        <option value="0">Weekend or holiday</option>
+      </select>
+    </label>
+    <label class="py-check"><input type="checkbox" id="py-past-filter"> Earlier than November 1</label>
+  </div>
+  <div class="table-wrap">
+    <table class="py-table">
+      <caption>Selected observed hours from Capital Bikeshare</caption>
+      <thead><tr><th scope="col">Date</th><th scope="col">Hour</th><th scope="col">Workday flag</th><th scope="col">Recorded rentals</th></tr></thead>
+      <tbody id="py-preview-rows">
+        <tr data-date="2012-10-26" data-hour="7" data-workday="1"><td>Oct 26, 2012</td><td>07:00</td><td>1</td><td>421</td></tr>
+        <tr data-date="2012-10-26" data-hour="8" data-workday="1"><td>Oct 26, 2012</td><td>08:00</td><td>1</td><td>734</td></tr>
+        <tr data-date="2012-10-26" data-hour="9" data-workday="1"><td>Oct 26, 2012</td><td>09:00</td><td>1</td><td>403</td></tr>
+        <tr data-date="2012-10-27" data-hour="7" data-workday="0"><td>Oct 27, 2012</td><td>07:00</td><td>0</td><td>86</td></tr>
+        <tr data-date="2012-10-27" data-hour="8" data-workday="0"><td>Oct 27, 2012</td><td>08:00</td><td>0</td><td>213</td></tr>
+        <tr data-date="2012-10-27" data-hour="9" data-workday="0"><td>Oct 27, 2012</td><td>09:00</td><td>0</td><td>328</td></tr>
+        <tr data-date="2012-10-31" data-hour="7" data-workday="1"><td>Oct 31, 2012</td><td>07:00</td><td>1</td><td>337</td></tr>
+        <tr data-date="2012-10-31" data-hour="8" data-workday="1"><td>Oct 31, 2012</td><td>08:00</td><td>1</td><td>621</td></tr>
+        <tr data-date="2012-10-31" data-hour="9" data-workday="1"><td>Oct 31, 2012</td><td>09:00</td><td>1</td><td>297</td></tr>
+        <tr data-date="2012-11-01" data-hour="7" data-workday="1"><td>Nov 1, 2012</td><td>07:00</td><td>1</td><td>420</td></tr>
+        <tr data-date="2012-11-01" data-hour="8" data-workday="1"><td>Nov 1, 2012</td><td>08:00</td><td>1</td><td>680</td></tr>
+        <tr data-date="2012-11-01" data-hour="9" data-workday="1"><td>Nov 1, 2012</td><td>09:00</td><td>1</td><td>331</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p id="py-filter-status" role="status">Showing all 12 rows in the excerpt.</p>
+  <p>Try <strong>08:00</strong>, <strong>Workday</strong>, and <strong>Earlier than November 1</strong>. Two rows match in the excerpt. The full source has <strong>456</strong> matches totaling <strong>214,195</strong> rentals.</p>
+  <details>
+    <summary>See the same filter and group calculation in pandas</summary>
+    <pre class="py-code"><code>history = rows.loc[rows["date"] &lt; "2012-11-01"]
+group_totals = history.groupby(["hour", "workingday"])["rentals"]
+summary = group_totals.agg(["count", "sum"])
+summary.loc[(8, 1)]</code></pre>
+    <p><code>.loc</code> selects rows that pass a condition. <code>groupby</code> puts each hour and day type in its own group. <code>agg</code> computes the count and sum per group. <code>(8, 1)</code> reads the group for 08:00 on workdays. When you run this on the full history, <code>count</code> is 456 and <code>sum</code> is 214,195.</p>
+  </details>
+  <section class="lab-quiz">
+    <h4>Which row can help fit the 08:00 forecast?</h4>
+    <p>We are predicting rentals for the 08:00 hour on November 1, 2012. This model matches the hour and the workday status using earlier history.</p>
+    <details><summary>Show options</summary>
+      <ol type="A">
+        <li>October 31 at 08:00, a workday</li>
+        <li>October 27 at 08:00, a weekend day</li>
+        <li>November 1 at 08:00, a workday</li>
+      </ol>
+      <details><summary>What is the right answer?</summary>
+        <p><strong>A. October 31 at 08:00, a workday.</strong></p>
+        <details><summary>Show explanation</summary>
+          <p>October 31 is earlier and matches both inputs. October 27 does not match the workday flag. The November 1 count comes after the forecast and is available for scoring it.</p>
+        </details>
+      </details>
+    </details>
+  </section>
+</section>
+
+<section class="panel" aria-labelledby="py-shape-title">
+  <h3 id="py-shape-title">Give the model inputs X and targets y</h3>
+  <p>Take the three November 1 rows at 07:00, 08:00, and 09:00. The inputs <code>X</code> contain two columns, hour and workday. The target <code>y</code> has one recorded count for each row. Each position in <code>y</code> describes the row in the same position in <code>X</code>.</p>
+  <div class="py-shape">
+    <div><h4>Inputs X</h4><pre class="py-code"><code>[[7, 1],
+ [8, 1],
+ [9, 1]]</code></pre><p><strong>Shape (3, 2)</strong> · three rows, two features</p></div>
+    <div><h4>Targets y</h4><pre class="py-code"><code>[420, 680, 331]</code></pre><p><strong>Shape (3,)</strong> · one list of three recorded counts</p></div>
+  </div>
+  <details>
+    <summary>Where does this shape come from in the notebook?</summary>
+    <pre class="py-code"><code>X = morning[["hour", "workingday"]].to_numpy()
+y = morning["rentals"].to_numpy()
+print(X.shape, y.shape)</code></pre>
+    <p>Use a list of column names inside brackets to get a table, and a single column name to get a one-dimensional series. <code>.to_numpy()</code> changes each into an array with the same values and dimensions.</p>
+  </details>
+
+  <h4 id="py-plot-title">Read predictions and observations on the same scale</h4>
+  <p>Each pair of bars shares a zero baseline and uses the same rental units. The difference between the two 08:00 bars is the signed error we just computed.</p>
+  <div id="py-plot" class="py-plot" role="group" aria-labelledby="py-plot-title"></div>
+  <p class="small">The notebook draws the same chart from <code>predicted</code> and <code>recorded</code>.</p>
+</section>
+
+<section class="exercise" aria-labelledby="py-exercise-title">
+  <h3 id="py-exercise-title">Try it yourself · Predict 09:00</h3>
+  <ol>
+    <li>Use the notebook to find the 09:00 workday group. Read its historical total and number of hours.</li>
+    <li>Call <code>forecast(total, count)</code> for that group and round to a whole rental.</li>
+    <li>Read the recorded 09:00 count and compute actual minus prediction. Explain what the sign tells you.</li>
+  </ol>
+  <details><summary>Check your calculation</summary><p>The training group has 108,510 rentals over 456 hours. <strong>108,510 ÷ 456 ≈ 237.96</strong>, so the forecast is <strong>238</strong>. The recorded count is 331. <strong>331 − 238 = +93 rentals</strong>. A positive residual means the observed count was higher than the prediction.</p></details>
+</section>
+
+<p class="small">The rows and group totals come from Fanaee-T (2013), UCI Bike Sharing, original <code>hour.csv</code>. The training groups use rows dated before November 1, 2012. <a href="https://doi.org/10.24432/C5W894" target="_blank" rel="noopener noreferrer">Dataset and license</a></p>

@@ -1,0 +1,53 @@
+{
+  "history": [
+    {
+      "row_id": 15724,
+      "date": "2012-10-22",
+      "hour": 8,
+      "workingday": 1,
+      "rentals": 728
+    },
+    {
+      "row_id": 15772,
+      "date": "2012-10-24",
+      "hour": 8,
+      "workingday": 1,
+      "rentals": 801
+    },
+    {
+      "row_id": 15820,
+      "date": "2012-10-26",
+      "hour": 8,
+      "workingday": 1,
+      "rentals": 734
+    },
+    {
+      "row_id": 15844,
+      "date": "2012-10-27",
+      "hour": 8,
+      "workingday": 0,
+      "rentals": 213
+    },
+    {
+      "row_id": 15868,
+      "date": "2012-10-28",
+      "hour": 8,
+      "workingday": 0,
+      "rentals": 173
+    },
+    {
+      "row_id": 15904,
+      "date": "2012-10-31",
+      "hour": 8,
+      "workingday": 1,
+      "rentals": 621
+    }
+  ],
+  "forecast": {
+    "row_id": 15928,
+    "date": "2012-11-01",
+    "hour": 8,
+    "workingday": 1,
+    "rentals": 680
+  }
+}

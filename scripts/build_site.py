@@ -47,6 +47,8 @@ def load_labs():
                 raise SystemExit(f"Missing {field} in {manifest}")
         if bool(lab.get("builder")) == bool(lab.get("entry")):
             raise SystemExit(f"Specify exactly one builder or entry in {manifest}")
+        if type(lab.get("order", 100)) is not int:
+            raise SystemExit(f"Order must be an integer in {manifest}")
         links = lab.get("lesson_links", {})
         if not isinstance(links, dict) or not all(
             re.fullmatch(r"[a-z0-9-]+", anchor) and isinstance(label, str) and label.strip()
@@ -58,7 +60,7 @@ def load_labs():
         labs.append(lab)
     if not labs:
         raise SystemExit("Add at least one labs/<slug>/lab.json manifest.")
-    return labs
+    return sorted(labs, key=lambda lab: (lab.get("order", 100), lab["slug"]))
 
 
 def render_card(lab):

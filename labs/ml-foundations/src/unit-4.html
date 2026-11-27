@@ -1,0 +1,188 @@
+<h2 id="unit-4-title">Test whether a model generalizes</h2>
+<p class="unit-4-lede">We forecast 470 rentals for 8 a.m. on November 1, 2012. Capital Bikeshare recorded 680. Our forecast missed by 210 rentals. Would the same method work across many future hours?</p>
+
+<section class="panel unit-4-panel" aria-labelledby="unit-4-workflow-title">
+  <h3 id="unit-4-workflow-title">Learn from the past, then test on later hours</h3>
+  <p><strong>Generalization</strong> means making useful predictions on new rows outside the training set. We keep the order of the calendar because the job is to predict future rentals.</p>
+  <ol class="unit-4-timeline" aria-label="Three periods in calendar order">
+    <li data-unit-4-period="train" aria-current="step">
+      <strong>1. Train</strong>
+      <span>Jan 2011 to Sep 2012</span>
+      <small data-unit-4-count="train"></small>
+    </li>
+    <li data-unit-4-period="validation">
+      <strong>2. Validate</strong>
+      <span>Oct 2012</span>
+      <small data-unit-4-count="validation"></small>
+    </li>
+    <li data-unit-4-period="test">
+      <strong>3. Test</strong>
+      <span>Nov to Dec 2012</span>
+      <small data-unit-4-count="test"></small>
+    </li>
+  </ol>
+  <div class="unit-4-stage" data-unit-4-stage="train">
+    <h4>Fit two candidate rules</h4>
+    <ul class="unit-4-rules">
+      <li><strong>Overall mean baseline</strong> gives every hour the same forecast. It rounds the average of all training counts.</li>
+      <li><strong>Calendar model</strong> groups training rows by hour and workday status. It rounds the average within the matching group.</li>
+    </ul>
+    <p>A baseline sets a reference point. We can ask how much prediction error the calendar model saves over a rule that ignores the hour.</p>
+    <button class="button primary" type="button" data-unit-4-next="validation">Score on October hours</button>
+  </div>
+  <div class="unit-4-stage" data-unit-4-stage="validation" hidden>
+    <h4>Choose using validation error</h4>
+    <p>Forecast October using the rules fitted through September. For each hour, take the absolute difference between prediction and actual. Divide the total miss by the number of hours to get mean absolute error, or MAE. Lower is better.</p>
+    <div class="table-wrap">
+      <table class="unit-4-results">
+        <caption>October validation results · Bars use a 0 to 200 rental scale</caption>
+        <thead><tr><th scope="col">Rule</th><th scope="col">Total absolute error ÷ hours</th><th scope="col">MAE</th></tr></thead>
+        <tbody data-unit-4-results="validation"></tbody>
+      </table>
+    </div>
+    <p>October favors the calendar model. Lock the rule and then recalculate its means using all rows through October 31. Refit the baseline on the same past rows so both methods use the same information.</p>
+    <button class="button primary" type="button" data-unit-4-next="locked">Lock calendar model and refit</button>
+  </div>
+  <div class="unit-4-stage" data-unit-4-stage="locked" hidden>
+    <h4>The rule is locked</h4>
+    <p>The calendar model was selected using October. Its group averages now use January 2011 through October 31, 2012. The baseline uses the same rows and forecasts 189 rentals for every test hour.</p>
+    <p>At 08:00 on November 1 we know it is a workday. The calendar forecast is <strong>round(214,195 ÷ 456) = 470</strong> rentals. Every count in that average comes from before November 1.</p>
+    <button class="button primary" type="button" data-unit-4-next="test">Reveal November and December test results</button>
+  </div>
+  <div class="unit-4-stage" data-unit-4-stage="test" hidden>
+    <h4>Measure performance on the final test period</h4>
+    <p>The test contains 1,460 recorded hours. Score the chosen calendar model once and compare it with the baseline we set up at the start.</p>
+    <div class="table-wrap">
+      <table class="unit-4-results">
+        <caption>November and December test results · Bars use the same scale</caption>
+        <thead><tr><th scope="col">Rule</th><th scope="col">Total absolute error ÷ hours</th><th scope="col">MAE</th></tr></thead>
+        <tbody data-unit-4-results="test"></tbody>
+      </table>
+    </div>
+    <p>The calendar model misses by about <strong>63.52 rentals per hour on average</strong> over this test period. Compare that with the 210-rental miss we saw at 8 a.m. A single miss and an average miss answer different questions.</p>
+    <button class="button secondary" type="button" data-unit-4-next="train">Replay the evaluation</button>
+  </div>
+  <p class="unit-4-status" data-unit-4-status role="status"></p>
+  <details class="teaching-note">
+    <summary>Why can we train again on October after choosing?</summary>
+    <p>October had two jobs in sequence. First its labels checked the candidates fitted through September. Once the calendar rule won, October became extra historical training data for estimating the group averages. November and December still stayed outside both steps.</p>
+  </details>
+  <details class="teaching-note">
+    <summary>Why can October have a higher error than the test months?</summary>
+    <p>They cover different dates. November and December have a different mix of rental counts and the final rules are refitted on more history. The difference in errors alone cannot tell us how much each factor contributed.</p>
+  </details>
+</section>
+
+<section class="panel unit-4-panel" aria-labelledby="unit-4-splits-title">
+  <h3 id="unit-4-splits-title">Choose a split that matches how predictions will be used</h3>
+  <p>Decide what must be new at test time. Select a scenario to see what should be kept apart.</p>
+  <div class="unit-4-split-controls" role="group" aria-label="Compare splitting strategies">
+    <button class="button" type="button" data-unit-4-split="chronological" aria-pressed="true">Later hours</button>
+    <button class="button" type="button" data-unit-4-split="random" aria-pressed="false">Unrelated rows</button>
+    <button class="button" type="button" data-unit-4-split="stratified" aria-pressed="false">Rare spam</button>
+    <button class="button" type="button" data-unit-4-split="grouped" aria-pressed="false">New stations</button>
+  </div>
+  <div class="unit-4-split-readout" aria-live="polite">
+    <h4 data-unit-4-split-name></h4>
+    <p data-unit-4-split-reason></p>
+    <ol class="unit-4-split-flow" data-unit-4-split-flow aria-label="How rows are allocated"></ol>
+  </div>
+  <details class="teaching-note">
+    <summary>Can two split requirements apply together?</summary>
+    <p>Yes. Repeated emails from the same campaign might need to stay together while each split still contains enough spam to measure recall. Group integrity comes first. With a forecasting task, the final test must remain later in time even if class proportions change.</p>
+  </details>
+</section>
+
+<section class="panel unit-4-panel" aria-labelledby="unit-4-leakage-title">
+  <h3 id="unit-4-leakage-title">Would this information be available at 7:59 a.m.?</h3>
+  <p><strong>Data leakage</strong> happens when unavailable information slips into training, prediction, or model selection. Use the same recorded hour to test a shortcut.</p>
+  <div class="unit-4-split-controls" role="group" aria-label="Choose the inputs to examine">
+    <button class="button" type="button" data-unit-4-input="calendar" aria-pressed="true">Use the calendar</button>
+    <button class="button" type="button" data-unit-4-input="after" aria-pressed="false">Use the after-hour counts</button>
+  </div>
+  <div class="unit-4-input-readout" data-unit-4-input-readout aria-live="polite">
+    <h4 data-unit-4-input-title></h4>
+    <p data-unit-4-input-detail></p>
+    <dl class="unit-4-input-values">
+      <div><dt data-unit-4-prediction-label></dt><dd data-unit-4-prediction></dd></div>
+      <div><dt>Recorded total</dt><dd data-unit-4-actual></dd></div>
+      <div><dt>Absolute error</dt><dd data-unit-4-error></dd></div>
+    </dl>
+  </div>
+  <p>The source file records totals for casual and registered riders. Their sum gives the target by definition. It is a valid accounting identity after the hour and a leaky input before the hour. <a href="https://doi.org/10.24432/C5W894">UCI Bike Sharing dataset and data dictionary</a></p>
+  <details class="teaching-note">
+    <summary>How do duplicates and preprocessing leak information?</summary>
+    <ul>
+      <li><strong>Duplicate rows.</strong> A copied test email in training lets a model see the same example and its label early. Drop verified duplicates or keep related copies in one split before evaluating.</li>
+      <li><strong>Preprocessing.</strong> If you fill missing training values with a mean computed over all rows, that mean already depends on future rows. Fit the mean, category encoding, or scaling rule on training rows and apply the fitted rule to validation and test rows.</li>
+      <li><strong>Repeated testing.</strong> Trying many models and selecting the one with the best test result uses that test for model selection. Make those choices on validation and reserve an independent final check.</li>
+    </ul>
+  </details>
+</section>
+
+<section class="panel unit-4-panel" aria-labelledby="unit-4-code-title">
+  <h3 id="unit-4-code-title">Reproduce the decision in Python</h3>
+  <p>The notebook reads all 17,379 records, fits both rules, and runs this sequence. Each mean uses the rows passed to <code>fit_rules</code>.</p>
+  <pre><code>candidates = fit_rules(train)
+validation_errors = evaluate(candidates, validation)
+chosen = min(validation_errors, key=validation_errors.get)
+
+final = fit_rules(train + validation)
+test_errors = evaluate(
+    {chosen: final[chosen], "Overall mean": final["Overall mean"]},
+    test,
+)</code></pre>
+  <p><code>evaluate</code> returns one MAE per rule. The selected name is <code>Calendar model</code>. The final call also reports the overall mean reference.</p>
+  <a class="button" href="https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/ml-foundations/notebooks/04-testing-on-unseen-data.ipynb" target="_blank" rel="noopener">Open Unit 4 in Colab</a>
+</section>
+
+<section class="lab-quiz">
+  <h3>Which evidence should choose the rule?</h3>
+  <p>You fit both rules using data through September. Which period should decide which rule you lock?</p>
+  <details>
+    <summary>Show options</summary>
+    <ol type="A">
+      <li>January 2011 through September 2012, used to fit both rules</li>
+      <li>October 2012, set aside for comparison</li>
+      <li>November and December 2012, reserved for the final check</li>
+    </ol>
+    <details>
+      <summary>What is the right answer?</summary>
+      <p><strong>B. October 2012.</strong></p>
+      <details>
+        <summary>Show explanation</summary>
+        <p>October measures each candidate on unseen hours while we are still allowed to change the rule. November and December check the decision once it is locked.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3>Would you trust this zero error?</h3>
+  <p>A colleague uses casual rentals plus registered rentals as the 8 a.m. forecast. What explains the zero error?</p>
+  <details>
+    <summary>Show options</summary>
+    <ol type="A">
+      <li>The model learned a better relationship from additional months.</li>
+      <li>The two counts together reveal the target after the hour.</li>
+      <li>The chronological split creates a perfect forecast by itself.</li>
+    </ol>
+    <details>
+      <summary>What is the right answer?</summary>
+      <p><strong>B. The two counts together reveal the target after the hour.</strong></p>
+      <details>
+        <summary>Show explanation</summary>
+        <p>At 8 a.m. the recorded counts were 12 casual and 668 registered rentals. The total is 680. Those counts only become known after the prediction deadline.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="exercise" aria-labelledby="unit-4-practice-title">
+  <h3 id="unit-4-practice-title">Try the procedure without the screen</h3>
+  <p>At 9 a.m. on November 1, the model forecast 238 rentals and 331 were recorded. Calculate the absolute error. Then explain why this hour belongs in the final test and where you would compare a new rule before using that test.</p>
+  <details class="teaching-note">
+    <summary>Check your work</summary>
+    <p>|331 − 238| = 93 rentals. November 1 is after the training and validation cutoffs. Compare new rules using validation data. If the final test has already been used to guide changes, choose a fresh, later period to check the new decision.</p>
+  </details>
+</section>

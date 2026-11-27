@@ -1,0 +1,38 @@
+{
+  "train": {
+    "start": "2011-01-01",
+    "end": "2012-09-30",
+    "n": 15211
+  },
+  "validation": {
+    "start": "2012-10-01",
+    "end": "2012-10-31",
+    "n": 708
+  },
+  "validation_baseline": 185,
+  "validation_results": {
+    "training_mean": {
+      "mae": 192.704802259887,
+      "absolute_error_total": 136435
+    },
+    "calendar_model": {
+      "mae": 111.10875706214689,
+      "absolute_error_total": 78665
+    }
+  },
+  "test_results": {
+    "training_mean": {
+      "mae": 140.08424657534246,
+      "absolute_error_total": 204523
+    },
+    "calendar_model": {
+      "mae": 63.51575342465753,
+      "absolute_error_total": 92733
+    }
+  },
+  "case": {
+    "record": 15928,
+    "casual": 12,
+    "registered": 668
+  }
+}

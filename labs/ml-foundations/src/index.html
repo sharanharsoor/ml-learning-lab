@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f2eb">
+  <meta name="description" content="Learn machine learning from your first bike-rental forecast through Python, data exploration, and testing on unseen hours.">
+  <link rel="icon" type="image/png" href="data:image/png;base64,{{FAVICON}}">
+  <link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/ml-foundations/">
+  <title>ML Foundations | ML Learning Lab</title>
+  <style>{{STYLES}}</style>
+</head>
+<body>
+  <a class="skip" href="#lesson-content">Skip to the lesson</a>
+  <header class="masthead">
+    <div class="shell masthead-inner">
+      <a class="brand" href="https://sharanharsoor.github.io/ml-learning-lab/"><span aria-hidden="true">∑</span> ML Learning Lab</a>
+      <h1>ML Foundations</h1>
+      <button class="button" type="button" id="teaching-view" aria-pressed="false">Teaching view</button>
+    </div>
+  </header>
+  <div class="toolbar">
+    <div class="shell toolbar-inner">
+      <label for="course-unit" class="sr-only">Choose a unit</label>
+      <select id="course-unit">
+        <option value="unit-1">1 · First prediction</option>
+        <option value="unit-2">2 · Python and Colab</option>
+        <option value="unit-3">3 · Understand the data</option>
+        <option value="unit-4">4 · Test on unseen data</option>
+        <option value="course">Course outline</option>
+      </select>
+      <p id="course-position" class="small"></p>
+      <div class="toolbar-buttons">
+        <button class="button" type="button" id="previous-unit">Previous</button>
+        <button class="button primary" type="button" id="next-unit">Next unit</button>
+      </div>
+    </div>
+  </div>
+  <div class="shell course-layout">
+    <aside class="course-rail">
+      <nav aria-label="Foundation units">
+        <p class="eyebrow">Course units</p>
+        <ol>
+          <li><a href="#unit-1" aria-current="location">Make a first prediction</a></li>
+          <li><a href="#unit-2">Python and Colab</a></li>
+          <li><a href="#unit-3">Understand the data</a></li>
+          <li><a href="#unit-4">Test on unseen data</a></li>
+        </ol>
+        <a href="#course">Course outline and notebooks</a>
+      </nav>
+    </aside>
+    <main id="lesson-content" class="course-main" tabindex="-1">
+      {{UNITS}}
+      <section class="course-page" id="course" aria-labelledby="course-title" hidden>
+        <h2 id="course-title">Your first four units</h2>
+        <p class="lede">Start with one prediction and build up to a fair comparison on unseen data. Each unit has a worked example, a classroom check, and a runnable Python notebook.</p>
+        <ol class="course-outline">
+          <li><a href="#unit-1">Make a first prediction</a><p>Read one real bike-share record, estimate the rental count, and measure the miss.</p></li>
+          <li><a href="#unit-2">Python and Colab</a><p>Run a cell, read a table, filter past hours, and reproduce the estimate.</p></li>
+          <li><a href="#unit-3">Understand the data</a><p>Check data types and quality, read a chart, and calculate center and spread.</p></li>
+          <li><a href="#unit-4">Test on unseen data</a><p>Separate training, validation, and test data. Compare a baseline with an honest forecast.</p></li>
+        </ol>
+        <section class="panel" aria-labelledby="course-notebooks-title">
+          <h3 id="course-notebooks-title">Notebooks and offline teaching</h3>
+          {{NOTEBOOK_LIST}}
+          <div class="actions">
+            <button class="button" type="button" id="download-foundations">Save offline HTML</button>
+            <button class="button" type="button" data-download="bike-share-starter-rows.csv">Download starter CSV</button>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="course-practice-title">
+          <h3 id="course-practice-title">Practice with the existing labs</h3>
+          <p>Linear and logistic regression are the next planned units. You can already practice measuring prediction errors and reading fitted trees in these labs.</p>
+          <div class="actions">
+            <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#regression">Regression Metrics</a>
+            <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification">Classification Metrics</a>
+            <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/">Decision Trees</a>
+            <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/bagging/">Bagging and Random Forests</a>
+          </div>
+        </section>
+      </section>
+      <div class="bottom-navigation">
+        <button class="button" type="button" id="bottom-previous">Previous unit</button>
+        <button class="button primary" type="button" id="bottom-next">Next unit</button>
+      </div>
+    </main>
+  </div>
+  <footer class="shell course-footer">
+    <p>Observed rental counts from the Capital Bikeshare records in the <a href="https://doi.org/10.24432/C5W894">UCI Bike Sharing dataset</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+    <a href="https://github.com/sharanharsoor/ml-learning-lab/tree/main/labs/ml-foundations">Source on GitHub</a>
+  </footer>
+  <script type="application/json" id="foundation-bike-data">{{BIKE_DATA}}</script>
+  <script type="application/json" id="foundations-unit-1-data">{{UNIT_1_DATA}}</script>
+  {{EXTRA_DATA}}
+  <script type="application/json" id="foundation-downloads">{{DOWNLOADS}}</script>
+  {{SCRIPTS}}
+</body>
+</html>

@@ -6,6 +6,7 @@ Interactive lessons with worked calculations, annotated examples, quizzes, and r
 
 ## Available lessons
 
+- **ML Foundations.** Start with one real bike-share forecast, learn the Python that makes it, read and visualize the data, and test the model on future hours. [Start the course](https://sharanharsoor.github.io/ml-learning-lab/ml-foundations/#unit-1)
 - **Classification Metrics.** Score real Spambase emails, trace the four confusion-matrix outcomes, change the cutoff, and work out precision, recall, F1, accuracy, and ROC-AUC. [Open the lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification)
 - **Regression Metrics.** Forecast hourly Capital Bikeshare rentals using historical calendar groups. Compare the real counts with forecasts, then work through residuals, MAE, MSE, RMSE, and R². [Open the lesson](https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#regression)
 - **Decision Trees.** Draw decisions on real email measurements, compare impurity criteria, trace deeper trees, and use squared error for rental-count predictions. [Open the lesson](https://sharanharsoor.github.io/ml-learning-lab/decision-trees/)
@@ -40,6 +41,7 @@ On Windows, activate with `.venv\Scripts\activate`. The guided notebooks use the
 python3 scripts/build_site.py
 node labs/classification-regression-metrics/tests/check_metrics.mjs
 node labs/decision-trees/tests/check_tree.mjs
+node labs/ml-foundations/tests/check_foundations.mjs
 python3 scripts/build_site.py --check
 ```
 

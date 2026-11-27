@@ -1,0 +1,155 @@
+<h2 id="unit-3-title">Understand the data before fitting a model</h2>
+<p class="lede">The workday forecast came from averaging older 08:00 counts. Look at those rows first. How much do the counts vary, and is it useful to group workdays and non-workdays separately?</p>
+
+<section class="panel" aria-labelledby="u3-row-title">
+  <h3 id="u3-row-title">Read a real row</h3>
+  <p>The dataset records rental counts in one-hour intervals. This training example describes 08:00 to 08:59 on Thursday, October 25, 2012. It comes one week before the forecast case.</p>
+  <div class="table-wrap">
+    <table class="u3-reading-table">
+      <caption>One row from the training period</caption>
+      <thead><tr><th scope="col">Date</th><th scope="col">Hour</th><th scope="col">Day type</th><th scope="col">Weather</th><th scope="col">Temperature</th><th scope="col">Rentals</th></tr></thead>
+      <tbody id="u3-example-row"></tbody>
+    </table>
+  </div>
+  <div class="u3-explain-grid">
+    <div><strong>Numerical measurements</strong><p>Temperature is measured in °C. Rentals are a count. The gap between 300 and 400 rentals is 100 rentals.</p></div>
+    <div><strong>Categorical values</strong><p>Workday status and weather describe groups. A workday is a weekday outside the holiday calendar. Weather code 2 means mist or clouds.</p></div>
+    <div><strong>Recorded outcome</strong><p>The total rental count is the target. Date and hour together identify the observation. Choose inputs available at the time you make a forecast.</p></div>
+  </div>
+  <details>
+    <summary>What does the temperature number mean?</summary>
+    <p>UCI stores temperature divided by 41. A stored value of 0.52 corresponds to 0.52 × 41 = 21.32 °C. The source figure was already normalized, so this conversion gives the approximate temperature represented by the stored value.</p>
+  </details>
+  <aside class="lab-quiz">
+    <p><strong>What should you do with the weather code?</strong></p>
+    <p>The archive stores clear conditions as 1 and mist or clouds as 2. What does the difference of 1 measure?</p>
+    <details><summary>Show options</summary>
+      <ol type="A"><li>A one-degree temperature increase.</li><li>A change between two named weather groups.</li><li>One extra rental per hour.</li></ol>
+      <details><summary>What is the right answer?</summary>
+        <p><strong>B. A change between two named weather groups.</strong></p>
+        <details><summary>Show explanation</summary>
+          <p>Those integers label conditions. Indicator columns give a model a separate yes-or-no input for each weather group.</p>
+        </details>
+      </details>
+    </details>
+  </aside>
+</section>
+
+<section class="panel" aria-labelledby="u3-stats-title">
+  <h3 id="u3-stats-title">Describe the center and spread</h3>
+  <p>Work with five real hours on October 25. Ask what a typical count might be, then ask how far the counts tend to be from that center.</p>
+  <label class="u3-switch"><input type="checkbox" id="u3-unusual"> Try a what-if where the 08:00 count is 2,500</label>
+  <p class="u3-scenario" id="u3-scenario"></p>
+  <div class="table-wrap">
+    <table class="u3-count-table">
+      <caption>Five hourly counts and their distances from the mean</caption>
+      <thead><tr><th scope="col">Hour</th><th scope="col">Rentals</th><th scope="col">Count − mean</th><th scope="col">Squared distance</th></tr></thead>
+      <tbody id="u3-count-rows"></tbody>
+    </table>
+  </div>
+  <div class="u3-stat-grid" id="u3-statistics" aria-live="polite"></div>
+  <details>
+    <summary>Why divide the variance by five here?</summary>
+    <p>We describe the spread of these exact five hours, so we average their five squared distances. In a statistics lesson that estimates a wider population’s variance from a random sample, the usual sample variance uses <var>n</var> − 1. These five consecutive hours are a descriptive slice of one morning.</p>
+  </details>
+  <details>
+    <summary>When would I use the median?</summary>
+    <p>Toggle the what-if and watch the mean move while the middle place in the sorted list stays the same. A median can describe a typical observation or serve as a baseline when large counts pull the mean upward. The forecasting example in this course uses the mean of historical records for the same hour and day type.</p>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u3-eda-title">
+  <h3 id="u3-eda-title">Look for patterns across many days</h3>
+  <p>Keep the hour at 08:00 and switch the day type. The histogram groups rental counts into ranges. The scatterplot pairs each hour’s recorded temperature with its rental count. Both use earlier records from January 2011 through October 2012.</p>
+  <div class="u3-field-row">
+    <label for="u3-group">08:00 group</label>
+    <select id="u3-group">
+      <option value="workday">Workdays</option>
+      <option value="nonWorkday">Non-workdays</option>
+    </select>
+  </div>
+  <p class="u3-group-reading" id="u3-group-reading" aria-live="polite"></p>
+  <div class="u3-chart-grid">
+    <figure class="u3-chart">
+      <figcaption><strong>Histogram of rentals</strong><span>Bar height counts the observed hours in a range.</span></figcaption>
+      <div class="u3-field-row">
+        <label for="u3-bin-width">Width of each range</label>
+        <select id="u3-bin-width">
+          <option value="100">100 rentals</option>
+          <option value="150">150 rentals</option>
+          <option value="300">300 rentals</option>
+        </select>
+      </div>
+      <p class="u3-axis" id="u3-histogram-axis">Vertical axis · number of recorded hours</p>
+      <div id="u3-histogram" class="u3-histogram" role="group" aria-label="Rental-count ranges and frequencies"></div>
+      <p class="u3-axis u3-axis-bottom">Horizontal axis · rental count</p>
+      <p class="u3-reading" id="u3-bin-reading" aria-live="polite"></p>
+    </figure>
+    <figure class="u3-chart">
+      <figcaption><strong>Temperature and rentals</strong><span>Each dot represents an observed 08:00 hour. Some dots overlap.</span></figcaption>
+      <div class="u3-field-row">
+        <label for="u3-point-picker">Highlight a recorded hour</label>
+        <select id="u3-point-picker"></select>
+      </div>
+      <p class="u3-axis">Vertical axis · rentals (0 to 900)</p>
+      <div id="u3-scatter" class="u3-scatter" aria-hidden="true">
+        <div id="u3-points"></div>
+        <span class="u3-selected-point" id="u3-selected-point"></span>
+        <span class="u3-scatter-limit u3-scatter-top">900</span>
+        <span class="u3-scatter-limit u3-scatter-bottom">0</span>
+      </div>
+      <p class="u3-axis u3-axis-bottom">Horizontal axis · temperature (0 to 35 °C)</p>
+      <p class="u3-reading" id="u3-point-reading" aria-live="polite"></p>
+    </figure>
+  </div>
+  <details>
+    <summary>Why inspect workdays and non-workdays separately?</summary>
+    <p>At 08:00, the two groups in these training records have different distributions. A single shared average would mix them. The day-type comparison motivates a forecasting feature we can know in advance. It also helps us spot which subgroups have fewer examples.</p>
+  </details>
+  <details>
+    <summary>Does the scatterplot prove that temperature changes demand?</summary>
+    <p>It shows recorded pairs for this date range. Temperature moves with season and weather, and the number of riders can also change over time. To estimate the effect of temperature itself, we would need a study that accounts for these other differences.</p>
+  </details>
+  <details>
+    <summary>What changes when the target is a category?</summary>
+    <p>Count how many examples carry each target label. This is the <strong>class balance</strong>. In the full Spambase file, 1,813 of 4,601 emails are Spam (about 39.4%) and 2,788 are Legitimate (about 60.6%). A group count such as the number of bike workdays describes an input feature. A class count describes the outcome the classifier is trained to predict. <a href="https://doi.org/10.24432/C53G6X">UCI Spambase dataset</a></p>
+  </details>
+  <pre class="u3-code"><code># training is a DataFrame of hours before November 1, 2012
+eight_am = training.loc[training["hr"] == 8]
+eight_am.groupby("workingday")["cnt"].agg(["size", "mean", "median"])</code></pre>
+  <p>The displayed forecast of 470 rounds the workday mean. The November 1 outcome of 680 becomes available after that hour and stays outside these charts.</p>
+</section>
+
+<section class="panel" aria-labelledby="u3-quality-title">
+  <h3 id="u3-quality-title">Check what the dataset recorded</h3>
+  <p id="u3-audit-scope"></p>
+  <div id="u3-audit" class="u3-explain-grid"></div>
+  <p>An unusually high or low count is a clue to investigate. Compare it with similar hours, check the source, and record your decision before modeling. Rush hour can make a high count entirely plausible.</p>
+  <details>
+    <summary>What do I do if I find a data problem?</summary>
+    <p>Confirm what the field or row represents. If a measured target is missing, look for a source that can supply it before using that observation as a labeled training example. For missing inputs, a simple starting point is to fill numerical values with the training median and record which values were missing. For repeats, confirm the real unit of observation before deduplicating. Document the reason for any correction.</p>
+  </details>
+  <aside class="lab-quiz">
+    <p><strong>Can you distinguish missing values from missing rows?</strong></p>
+    <p>The training file has zero blank cells. Does it contain a record for every date and hour in its calendar span?</p>
+    <details><summary>Show options</summary>
+      <ol type="A"><li>Yes, zero blank cells proves every hour has a record.</li><li>No, an absent hour leaves no blank cell to count.</li><li>Yes, if rental counts are integers.</li></ol>
+      <details><summary>What is the right answer?</summary>
+        <p><strong>B. An absent hour leaves no blank cell to count.</strong></p>
+        <details><summary>Show explanation</summary>
+          <p>Checking blank fields covers rows that exist. The calendar comparison finds 161 expected date-hour keys with no row. The source data alone do not tell you which of those hours should be interpreted as zero rentals.</p>
+        </details>
+      </details>
+    </details>
+  </aside>
+  <div class="exercise">
+    <h4>Try it yourself</h4>
+    <p>With 100-rental bins, compare workdays and non-workdays. Which range contains the most hours in each group? Use the chart to explain in one sentence why day type is a reasonable feature to try. Check your answer in Python.</p>
+    <details>
+      <summary>Check the reasoning</summary>
+      <p id="u3-exercise-answer"></p>
+    </details>
+  </div>
+  <p>Source observations from the UCI Bike Sharing archive, Fanaee-T and Gama. <a href="https://doi.org/10.24432/C5W894">UCI dataset and license</a></p>
+</section>
+<script type="application/json" id="foundations-unit-3-data">{{UNIT_3_DATA}}</script>
