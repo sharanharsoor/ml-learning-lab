@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f2eb">
-  <meta name="description" content="Learn machine learning from your first bike-rental forecast through Python, data exploration, model evaluation, and linear regression.">
+  <meta name="description" content="Learn machine learning through real bike-share forecasts and spam classification, with worked Python examples, interactive models, and evaluation on unseen data.">
   <link rel="icon" type="image/png" href="data:image/png;base64,{{FAVICON}}">
   <link rel="canonical" href="https://sharanharsoor.github.io/ml-learning-lab/ml-foundations/">
   <title>ML Foundations | ML Learning Lab</title>
@@ -28,6 +28,7 @@
         <option value="unit-3">3 · Understand the data</option>
         <option value="unit-4">4 · Test on unseen data</option>
         <option value="unit-5">5 · Linear regression</option>
+        <option value="unit-6">6 · Logistic regression</option>
         <option value="course">Course outline</option>
       </select>
       <div class="lesson-jump">
@@ -53,6 +54,7 @@
           <li><a href="#unit-3">Understand the data</a></li>
           <li><a href="#unit-4">Test on unseen data</a></li>
           <li><a href="#unit-5">Linear regression</a></li>
+          <li><a href="#unit-6">Logistic regression</a></li>
         </ol>
         <a href="#course">Course outline and notebooks</a>
       </nav>
@@ -61,7 +63,7 @@
       {{UNITS}}
       <section class="course-page" id="course" aria-labelledby="course-title" hidden>
         <h2 id="course-title">ML Foundations course outline</h2>
-        <p class="lede">Start with one prediction, then fit a line and compare forecasts on unseen data. Each unit has a worked example, a classroom check, and a runnable Python notebook.</p>
+        <p class="lede">Start with one bike-share forecast, fit a regression line, then turn an email measurement into a spam probability. Each unit has a worked example, a classroom check, and a runnable Python notebook.</p>
         <p>Use <strong>Jump within unit</strong> to find an example or quiz while teaching. Quiz questions are visible on the page. Reveal the options, correct answer, and explanation in order.</p>
         <ol class="course-outline">
           <li><a href="#unit-1">Make a first prediction</a><p>Read one real bike-share record, estimate the rental count, and measure the miss.</p></li>
@@ -69,6 +71,7 @@
           <li><a href="#unit-3">Understand the data</a><p>Check data types and quality, read a chart, and calculate center and spread.</p></li>
           <li><a href="#unit-4">Test on unseen data</a><p>Separate training, validation, and test data. Compare a baseline with an honest forecast.</p></li>
           <li><a href="#unit-5">Linear regression</a><p>Fit a line to earlier rentals and check whether yesterday’s count improves the 8 a.m. forecast.</p></li>
+          <li><a href="#unit-6">Logistic regression</a><p>Turn a score into a spam probability, choose a threshold, and check the filter on new emails.</p></li>
         </ol>
         <section class="panel" aria-labelledby="course-notebooks-title">
           <h3 id="course-notebooks-title">Notebooks and offline teaching</h3>
@@ -96,7 +99,7 @@
     </main>
   </div>
   <footer class="shell course-footer">
-    <p>Observed rental counts from the Capital Bikeshare records in the <a href="https://doi.org/10.24432/C5W894">UCI Bike Sharing dataset</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+    <p><a href="https://doi.org/10.24432/C5W894">UCI Bike Sharing</a> and <a href="https://doi.org/10.24432/C53G6X">UCI Spambase</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
     <a href="https://github.com/sharanharsoor/ml-learning-lab/tree/main/labs/ml-foundations">Source on GitHub</a>
   </footer>
   <script type="application/json" id="foundation-bike-data">{{BIKE_DATA}}</script>

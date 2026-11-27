@@ -19,11 +19,13 @@ const first = embedded('foundations-unit-1-data');
 const exploration = embedded('foundations-unit-3-data');
 const evaluation = embedded('foundations-unit-4-data');
 const regression = embedded('foundations-unit-5-data');
+const logistic = embedded('foundations-unit-6-data');
 const bike = embedded('foundation-bike-data');
 assert.deepEqual(first, fixture('unit-1.json'));
 assert.deepEqual(exploration, fixture('unit-3.json'));
 assert.deepEqual(evaluation, fixture('unit-4.json'));
 assert.deepEqual(regression, fixture('unit-5.json'));
+assert.deepEqual(logistic, fixture('unit-6.json'));
 assert.deepEqual(bike, JSON.parse(fs.readFileSync(
   path.join(root, 'labs/classification-regression-metrics/data/bikeshare_metrics.json'), 'utf8'
 )));
@@ -108,9 +110,50 @@ const sampleErrors = regression.sampleDates.map(day => {
 assert.deepEqual(sampleErrors, [269, 111, -42]);
 assert.equal(sum(sampleErrors.map(error => error ** 2)), 86_446);
 
+const spamRows = Object.values(logistic.rows);
+assert.deepEqual(spamRows.map(rows => rows.length), [2654, 1011, 936]);
+assert.deepEqual(spamRows.map(rows => sum(rows.map(row => row.y))), [1075, 386, 352]);
+const spamIds = new Set(spamRows.flat().map(row => row.id));
+assert.equal(spamIds.size, 4601);
+for (let row = 1; row <= spamIds.size; row += 1) assert.ok(spamIds.has(`E${row}`));
+const sigmoid = z => 1 / (1 + Math.exp(-z));
+const spamLogit = row => logistic.fit.intercept + logistic.fit.weight * row.x;
+const spamProbability = row => sigmoid(spamLogit(row));
+const trainingErrors = logistic.rows.train.map(row => spamProbability(row) - row.y);
+close(sum(trainingErrors), 0);
+close(sum(logistic.rows.train.map((row, index) => row.x * trainingErrors[index])), 0);
+const spamLoss = sum(logistic.rows.train.map(row => {
+  const z = spamLogit(row);
+  return Math.max(z, 0) - row.y * z + Math.log1p(Math.exp(-Math.abs(z)));
+})) / logistic.rows.train.length;
+close(logistic.fit.lossBefore, Math.log(2));
+close(logistic.fit.lossAfter, spamLoss);
+assert.ok(spamLoss < logistic.fit.lossBefore);
+const spamExample = logistic.rows.validation.find(row => row.id === logistic.examples.focal);
+assert.deepEqual(spamExample, { id: 'E17', x: 0.428, y: 1 });
+assert.equal(spamProbability(spamExample).toFixed(4), '0.4866');
+
+function confusion(rows, threshold) {
+  const counts = { tp: 0, fp: 0, fn: 0, tn: 0 };
+  for (const row of rows) {
+    const predicted = spamProbability(row) >= threshold;
+    if (predicted) counts[row.y ? 'tp' : 'fp'] += 1;
+    else counts[row.y ? 'fn' : 'tn'] += 1;
+  }
+  return counts;
+}
+
+assert.equal(logistic.thresholds.default, 0.5);
+assert.deepEqual(logistic.thresholds.presets, [0.35, 0.5, 0.65]);
+const [low, standard, high] = logistic.thresholds.presets.map(threshold => confusion(logistic.rows.validation, threshold));
+assert.deepEqual(standard, { tp: 141, fp: 21, fn: 245, tn: 604 });
+assert.ok(low.tp > standard.tp && standard.tp > high.tp);
+assert.ok(low.fp > standard.fp && standard.fp > high.fp);
+assert.deepEqual(confusion(logistic.rows.test, logistic.thresholds.default), { tp: 138, fp: 27, fn: 214, tn: 557 });
+
 const downloads = embedded('foundation-downloads');
 const notebookNames = fs.readdirSync(path.join(lab, 'notebooks')).filter(name => name.endsWith('.ipynb'));
-assert.equal(notebookNames.length, 5);
+assert.equal(notebookNames.length, 6);
 for (const name of notebookNames) {
   assert.equal(page.includes('colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/ml-foundations/notebooks/' + name), true);
   assert.deepEqual(Buffer.from(downloads[name].data, 'base64'), fs.readFileSync(path.join(lab, 'notebooks', name)));
@@ -118,12 +161,13 @@ for (const name of notebookNames) {
 const csv = Buffer.from(downloads['bike-share-starter-rows.csv'].data, 'base64').toString('utf8').trim().split('\n');
 assert.equal(csv.length, first.history.length + 2);
 assert.equal(csv.at(-1), '15928,2012-11-01,8,1,680,held_out_example');
-assert.equal(page.match(/class="lab-quiz"/g).length, 9);
+assert.equal(page.match(/class="lab-quiz"/g).length, 12);
 for (const label of ['Show options', 'What is the right answer?', 'Show explanation']) {
-  assert.equal(page.split(`<summary>${label}</summary>`).length - 1, 9);
+  assert.equal(page.split(`<summary>${label}</summary>`).length - 1, 12);
 }
 assert.ok(home.indexOf('href="./ml-foundations/" aria-label="Open ML Foundations"') <
   home.indexOf('href="./bagging/" aria-label='));
 assert.ok(home.includes('./ml-foundations/#unit-1'));
+assert.ok(page.includes('href="#unit-6"') && page.includes('value="unit-6"'));
 assert.doesNotMatch(page, /\{\{[A-Z0-9_]+\}\}/);
 console.log('Verified Foundations forecasts, regression fits, held-out metrics, notebook downloads, quizzes, and course entry.');

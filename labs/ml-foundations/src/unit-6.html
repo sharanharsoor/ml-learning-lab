@@ -1,0 +1,241 @@
+<h2 id="unit-6-title">Should this email go to Spam?</h2>
+<p class="lede">In Unit 5, a line estimated a rental count. Here a line gives each email a score. Logistic regression turns that score into a Spam probability, and a threshold turns the probability into a label.</p>
+
+<section class="panel" aria-labelledby="u6-opening-title">
+  <h3 id="u6-opening-title" data-lesson-jump="Predict one email">Start with email E17</h3>
+  <p>Suppose the inbox has to decide where to put a new email. The teaching model sees one measurement. In E17, <strong>0.428% of characters are exclamation marks</strong>. Is that enough to tell where the email belongs?</p>
+  <div class="u6-opening-grid">
+    <div><span>Input <var>x</var></span><strong>0.428%</strong><p>The recorded percentage of exclamation marks.</p></div>
+    <div><span>Model estimate and decision</span><strong id="u6-opening-example">Calculate with the fitted model</strong><p>The decision uses a 50% threshold.</p></div>
+    <div><span>Recorded label</span><strong id="u6-opening-label" hidden>Spam</strong><p>The source label used to check the prediction.</p></div>
+  </div>
+  <button class="button primary" type="button" id="u6-reveal-label" aria-controls="u6-observed-label u6-opening-label" aria-expanded="false">Reveal the recorded label</button>
+  <p class="u6-callout" id="u6-observed-label" hidden>E17 is labeled <strong>Spam</strong>. A model that predicts Legitimate here makes a <strong>false negative</strong>. The point of this example is to separate a model’s probability, its decision, and the label we use to check it.</p>
+  <details><summary>What does the source actually record?</summary>
+    <p>UCI Spambase contains 4,601 email records. The released records contain measurements and labels only. An ID such as E17 refers to line 17 in the data. This lesson uses one of the 57 measurements, <code>char_freq_!</code>. The full Classification Metrics lab uses more features.</p>
+    <p>Spam is the positive class, <var>y</var> = 1. Legitimate is the negative class, <var>y</var> = 0. E17 is a validation row. <a href="https://doi.org/10.24432/C53G6X" target="_blank" rel="noopener noreferrer">UCI Spambase dataset</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></p>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u6-curve-title">
+  <h3 id="u6-curve-title" data-lesson-jump="Explore the sigmoid">Turn a score into a probability</h3>
+  <p>The model computes <strong>z = b + w × x</strong> first. The score <var>z</var> can be any real number. The <strong>sigmoid</strong> maps it onto a probability between 0 and 1 using <strong>p = 1 ÷ (1 + e<sup>−z</sup>)</strong>. Choose an email or move the feature slider to trace all three steps.</p>
+  <div class="u6-curve-layout">
+    <figure class="u6-chart">
+      <figcaption><strong>Spam probability by exclamation frequency</strong><span>Click the plot or use the slider to move the selected input.</span></figcaption>
+      <canvas id="u6-curve" width="640" height="360" role="img" aria-label="The fitted logistic regression curve, with exclamation marks as a percentage of characters on the horizontal axis and fitted Spam probability on the vertical axis. The controls give exact values for the selected point." aria-describedby="u6-curve-note">Use the input picker and calculation readout to explore the fitted Spam probability.</canvas>
+      <ul class="u6-chart-key" aria-label="Chart key">
+        <li><span class="u6-curve-key" aria-hidden="true"></span>Fitted model</li>
+        <li><span class="u6-point-key" aria-hidden="true"></span>Selected input</li>
+        <li><span class="u6-threshold-key" aria-hidden="true"></span><span id="u6-curve-cutoff">50% cutoff</span></li>
+      </ul>
+      <p class="small" id="u6-curve-note">This view shows 0–2% exclamation marks. The dataset includes higher rates. The cutoff starts at 50%, where the curve crosses about 0.459% exclamation marks. The validation slider below moves that cutoff on this chart.</p>
+    </figure>
+    <div class="u6-controls">
+      <label for="u6-row">Choose an email</label>
+      <select id="u6-row"></select>
+      <p class="small" id="u6-row-caption"></p>
+      <div class="u6-control-row">
+        <label for="u6-feature">Exclamation marks, <var>x</var></label>
+        <output id="u6-feature-value" for="u6-feature">0.428%</output>
+      </div>
+      <input id="u6-feature" type="range" min="0" max="2" step="0.001" value="0.428">
+      <p class="formula u6-model-equation" id="u6-equation"></p>
+      <ol class="u6-calculation" aria-label="Score, probability and odds">
+        <li><strong>Linear score</strong><output id="u6-score-steps"></output></li>
+        <li><strong>Spam probability</strong><output id="u6-probability-steps"></output></li>
+        <li><strong>Spam odds</strong><output id="u6-odds-steps"></output></li>
+      </ol>
+      <p id="u6-label-result" class="u6-decision" aria-live="polite"></p>
+    </div>
+  </div>
+  <div class="u6-explain-grid">
+    <div><h4>Read the feature in percentage points</h4><p>One exclamation mark in 200 characters is 0.5%. This model uses <var>x</var> = 0.5 for that rate. Moving from 0.5% to 1.5% adds one percentage point to <var>x</var>.</p></div>
+    <div><h4>Read probability and odds separately</h4><p>If <var>p</var> = 0.75, the odds in favor of Spam are 0.75 ÷ 0.25 = 3, or 3 to 1. The score <var>z</var> is the natural log of those odds, so the odds are e<sup>z</sup>.</p></div>
+  </div>
+  <details><summary>What do the fitted coefficients mean?</summary>
+    <p>The intercept <var>b</var> is the log odds at <var>x</var> = 0. Here <var>b</var> ≈ −0.7957, which gives a fitted Spam probability of about 31.1% with no exclamation marks. Adding one percentage point to <var>x</var> adds about 1.7336 to the log odds and multiplies the odds by e<sup>1.7336</sup> ≈ 5.66. The curve bends, so the probability increase depends on where we start. The relationship describes this fitted model and dataset.</p>
+  </details>
+  <details><summary>Can two emails get the same prediction and have different labels?</summary>
+    <p>Choose E3383 and then E8. Both have 0% exclamation marks and get the same fitted probability of about 31.1%. The recorded label is Legitimate for E3383 and Spam for E8. One measurement can leave emails indistinguishable to this model.</p>
+  </details>
+  <details><summary>What if the display rounds to 0%, 50% or 100%?</summary>
+    <p>Finite scores give sigmoid probabilities strictly between 0 and 1. The display rounds for reading. The decision compares the full-precision value to the threshold. An exact tie meets the threshold and predicts Spam. A fitted probability describes the model’s estimate. Calibration would check whether similarly scored emails really occur in the predicted proportion.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u6-score-quiz" data-lesson-jump="Quiz 10 · Score of zero">What does a score of zero predict?</h3>
+  <p>For an email with a linear score of z = 0, what probability does the sigmoid assign to Spam?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>0%.</li><li>50%.</li><li>100%.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. 50%.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>With z = 0, e⁻ᶻ = 1, so p = 1 ÷ (1 + 1) = 0.5. A zero score gives equal odds for both labels.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u6-loss-title">
+  <h3 id="u6-loss-title" data-lesson-jump="Work through log loss">Fit the curve with log loss</h3>
+  <p><strong>Binary cross-entropy</strong>, also called log loss for binary labels, measures how much probability the model gave to the recorded label. For Spam, use <var>p</var>. For Legitimate, use 1 − <var>p</var>. Take the negative natural log of that value, then average across emails.</p>
+  <p class="formula">Loss for one email = −[y × ln(p) + (1 − y) × ln(1 − p)]</p>
+  <div class="table-wrap">
+    <table class="u6-worked-table">
+      <caption>Worked examples from the training split</caption>
+      <thead><tr><th scope="col">Email</th><th scope="col">Recorded label</th><th scope="col">Spam probability p</th><th scope="col">Probability of recorded label</th><th scope="col">Log loss</th></tr></thead>
+      <tbody id="u6-loss-rows"></tbody>
+    </table>
+  </div>
+  <p class="formula" id="u6-loss-mean"></p>
+  <p class="u6-callout" id="u6-loss-fit"></p>
+  <details><summary>Why take the negative logarithm?</summary>
+    <p>Giving the recorded class probability 1 earns a loss of −ln(1) = 0. Giving it probability close to 0 raises the penalty sharply. For independent observations, the probability assigned to all recorded outcomes is the product of their individual recorded-class probabilities. The negative log turns that product into a sum. Minimizing the average of those terms fits the same coefficients as maximizing the product.</p>
+  </details>
+  <details><summary>How does the fit use all training emails?</summary>
+    <p>Start with <var>b</var> = 0 and <var>w</var> = 0, so every email initially gets a Spam probability of 0.5. The optimizer recomputes the fitted probabilities and updates both coefficients to reduce the average log loss on the training split. Each email contributes <var>p</var> − <var>y</var> to the intercept gradient and <var>x</var> × (<var>p</var> − <var>y</var>) to the weight gradient. The notebook shows the Newton steps used to fit this lesson’s two coefficients. Threshold changes later leave these coefficients fixed.</p>
+  </details>
+  <details><summary>See the score and sigmoid in Python</summary>
+    <pre><code>from math import exp
+
+z = intercept + weight * x
+p_spam = 1 / (1 + exp(-z))
+prediction = "Spam" if p_spam &gt;= threshold else "Legitimate"</code></pre>
+    <p>The notebook uses a numerically stable calculation for the same model. The formulas above apply to every row.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u6-loss-quiz" data-lesson-jump="Quiz 11 · Log loss">Which prediction adds more loss?</h3>
+  <p>Two emails are both labeled Spam. The model assigns one a Spam probability of 0.90 and the other 0.10. Which prediction adds more log loss?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>The 0.90 prediction.</li><li>The 0.10 prediction.</li><li>The contributions are equal.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. The 0.10 prediction.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>When the label is Spam, the loss is −ln(p). The first contributes about 0.105 and the second about 2.303. The confident mistake costs more.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u6-threshold-title">
+  <h3 id="u6-threshold-title" data-lesson-jump="Explore thresholds on validation">Choose what the filter flags</h3>
+  <p>Predict <strong>Spam when p ≥ threshold</strong>. Lowering the threshold can catch more Spam and can also move more Legitimate email to the spam folder. Raising it can reduce those false alarms while missing more Spam. Move the threshold on the validation split and count the consequences.</p>
+  <div class="u6-evaluation-grid">
+    <div class="u6-controls">
+      <div class="u6-control-row"><label for="u6-threshold">Spam threshold</label><output id="u6-threshold-value" for="u6-threshold">50%</output></div>
+      <input id="u6-threshold" type="range" min="0.05" max="0.95" step="0.01" value="0.5">
+      <div class="actions u6-preset-actions" role="group" aria-label="Threshold presets">
+        <button type="button" class="button" id="u6-threshold-low">35%</button>
+        <button type="button" class="button" id="u6-threshold-default">50%</button>
+        <button type="button" class="button" id="u6-threshold-high">65%</button>
+      </div>
+      <p class="small" id="u6-validation-count"></p>
+      <p class="small" id="u6-boundary"></p>
+      <p class="small">The probabilities come from the same fitted curve at every threshold.</p>
+      <p class="u6-decision" id="u6-validation-verdict" aria-live="polite"></p>
+    </div>
+    <div>
+      <div class="table-wrap">
+        <table class="u6-matrix">
+          <caption>Validation confusion matrix</caption>
+          <thead><tr><th scope="col">Recorded label</th><th scope="col">Predict Spam</th><th scope="col">Predict Legitimate</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Spam</th><td class="u6-correct"><strong id="u6-v-tp"></strong><span>True positive</span></td><td class="u6-error"><strong id="u6-v-fn"></strong><span>False negative</span></td></tr>
+            <tr><th scope="row">Legitimate</th><td class="u6-error"><strong id="u6-v-fp"></strong><span>False positive</span></td><td class="u6-correct"><strong id="u6-v-tn"></strong><span>True negative</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <dl class="u6-metrics">
+        <div><dt>Precision · Correct among flagged</dt><dd id="u6-v-precision"></dd></div>
+        <div><dt>Recall · Caught among recorded Spam</dt><dd id="u6-v-recall"></dd></div>
+      </dl>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="u6-case-table">
+      <caption>Track two validation emails as the threshold moves</caption>
+      <thead><tr><th scope="col">Email</th><th scope="col">Spam probability</th><th scope="col">Recorded class</th><th scope="col">Prediction at this cutoff</th></tr></thead>
+      <tbody id="u6-validation-cases"></tbody>
+    </table>
+  </div>
+  <div class="u6-explain-grid">
+    <div><h4>Precision</h4><p><strong>TP ÷ (TP + FP)</strong> asks how many flagged emails really were Spam. With zero flagged emails, this fraction is undefined.</p></div>
+    <div><h4>Recall</h4><p><strong>TP ÷ (TP + FN)</strong> asks how many recorded Spam emails we caught. With zero recorded Spam emails, this fraction is undefined.</p></div>
+  </div>
+  <details><summary>Which threshold makes sense for this inbox?</summary>
+    <p>Ask which mistake is more costly for the people using the filter. Saving a user from Spam and keeping an important Legitimate email in the inbox can call for different thresholds. Choose before checking test results.</p>
+  </details>
+  <details><summary>How does a probability threshold become a cutoff on the input?</summary>
+    <p>First find the score that gives probability <var>t</var>. It is ln(t ÷ (1 − t)). Then solve <var>z = b + w × x</var> for <var>x</var>. At <var>t</var> = 0.50, the score is zero, so the input cutoff is about (0 − (−0.7957)) ÷ 1.7336 ≈ 0.459%. Our weight is positive, so larger inputs meet this cutoff.</p>
+    <p><a href="#u6-curve-title">See the current cutoff on the curve</a></p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u6-threshold-quiz" data-lesson-jump="Quiz 12 · Lower the threshold">What stays true when the threshold goes down?</h3>
+  <p>Keep the model and validation emails fixed. If we lower the threshold for predicting Spam, what must happen?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>Every previously flagged email stays flagged.</li><li>Every email’s Spam probability increases.</li><li>False positives must go down.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>A. Every previously flagged email stays flagged.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>The probabilities stay fixed. An email that meets the higher threshold also meets the lower one. A lower threshold can flag more emails, including both Spam and Legitimate messages.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u6-test-title">
+  <h3 id="u6-test-title" data-lesson-jump="Lock a threshold and test it">Check the fixed rule on held-out emails</h3>
+  <p>We use a reproducible split that groups identical feature rows together. Fit the curve on training emails. Explore thresholds on validation emails. Keep the test emails separate until you settle on a threshold.</p>
+  <div class="actions">
+    <button class="button" type="button" id="u6-lock-threshold">Lock the current threshold</button>
+    <button class="button primary" type="button" id="u6-reveal-test" aria-expanded="false" aria-controls="u6-test-results" disabled>Reveal test results</button>
+  </div>
+  <p class="small" id="u6-locked-threshold" aria-live="polite">Choose a threshold in the validation section, then lock it here.</p>
+  <p class="small">After locking, moving the slider still explores validation. The test result uses the locked value.</p>
+  <details><summary>How did the split group identical rows?</summary>
+    <p>The split takes each email’s full profile of 57 measurements and maps it to a repeatable bucket. Identical profiles share a bucket and stay in the same split. Fitting the logistic curve uses just one measurement from the training rows.</p>
+  </details>
+  <div class="u6-test-results" id="u6-test-results" hidden>
+    <h4>Held-out results at the locked threshold</h4>
+    <p class="small" id="u6-test-count"></p>
+    <div class="table-wrap">
+      <table class="u6-matrix">
+        <caption>Test confusion matrix</caption>
+        <thead><tr><th scope="col">Recorded label</th><th scope="col">Predict Spam</th><th scope="col">Predict Legitimate</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Spam</th><td class="u6-correct"><strong id="u6-t-tp"></strong><span>True positive</span></td><td class="u6-error"><strong id="u6-t-fn"></strong><span>False negative</span></td></tr>
+          <tr><th scope="row">Legitimate</th><td class="u6-error"><strong id="u6-t-fp"></strong><span>False positive</span></td><td class="u6-correct"><strong id="u6-t-tn"></strong><span>True negative</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <dl class="u6-metrics">
+      <div><dt>Test precision</dt><dd id="u6-t-precision"></dd></div>
+      <div><dt>Test recall</dt><dd id="u6-t-recall"></dd></div>
+    </dl>
+    <p class="u6-callout" id="u6-test-verdict"></p>
+    <div class="table-wrap">
+      <table class="u6-case-table">
+        <caption>Two held-out email predictions</caption>
+        <thead><tr><th scope="col">Email</th><th scope="col">Exclamation marks</th><th scope="col">Spam probability</th><th scope="col">Recorded class</th><th scope="col">Prediction at locked cutoff</th></tr></thead>
+        <tbody id="u6-test-cases"></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="small">The separate <a href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification">Classification Metrics lab</a> uses Spambase with more features and a different split. Go there to explore the confusion matrix, precision and recall in greater depth.</p>
+</section>
+
+<section class="exercise" aria-labelledby="u6-practice-title">
+  <h3 id="u6-practice-title" data-lesson-jump="Calculate one decision">Trace one probability by hand</h3>
+  <p>An email has a score of z = ln(3). Calculate its Spam probability and decide its class at thresholds of 0.50 and 0.80.</p>
+  <details><summary>Check the calculation</summary>
+    <p>Its Spam odds are e<sup>ln(3)</sup> = 3. The probability is 3 ÷ (1 + 3) = 0.75. It meets 0.50, so that rule predicts Spam. It falls below 0.80, so that rule predicts Legitimate. The probability stays at 0.75 for both decisions.</p>
+  </details>
+  <p>The Colab notebook reproduces the split, the fitted probabilities, and the threshold calculations.</p>
+</section>
+<script type="application/json" id="foundations-unit-6-data">{{UNIT_6_DATA}}</script>
