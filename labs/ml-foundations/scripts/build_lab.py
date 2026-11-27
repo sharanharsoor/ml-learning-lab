@@ -19,6 +19,7 @@ UNITS = {
     4: ("Test on unseen data", "04-testing-on-unseen-data.ipynb"),
     5: ("Linear regression", "05-linear-regression.ipynb"),
     6: ("Logistic regression", "06-logistic-regression.ipynb"),
+    7: ("Classification metrics", "07-classification-metrics.ipynb"),
 }
 COLAB = ("https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/"
          "blob/main/labs/ml-foundations/notebooks/")

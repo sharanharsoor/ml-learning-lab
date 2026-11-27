@@ -2,18 +2,15 @@
   'use strict';
 
   const get = id => document.getElementById('u6-' + id);
-  const data = JSON.parse(document.getElementById('foundations-unit-6-data').textContent);
-  const { rows, fit, examples, thresholds } = data;
+  const { spam, spamScore: score, spamProbability: probability, spamOutcome } = window.Foundations;
+  const { rows, fit, examples, thresholds } = spam;
   const allRows = new Map(Object.values(rows).flat().map(row => [row.id, row]));
   const integer = new Intl.NumberFormat('en-US');
   const percentage = new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 2 });
   const fmt = (value, digits = 4) => value.toFixed(digits).replace('-', '−');
   const percent = value => percentage.format(value);
   const featureText = value => value.toFixed(3) + '%';
-  const sigmoid = z => z >= 0 ? 1 / (1 + Math.exp(-z)) : Math.exp(z) / (1 + Math.exp(z));
   const logit = p => Math.log(p / (1 - p));
-  const score = x => fit.intercept + fit.weight * x;
-  const probability = x => sigmoid(score(x));
   const loss = ({ x, y }) => {
     const z = score(x);
     return Math.max(z, 0) - z * y + Math.log1p(Math.exp(-Math.abs(z)));
@@ -47,7 +44,7 @@
 
   function showMeasurement() {
     const z = score(feature);
-    const p = sigmoid(z);
+    const p = probability(feature);
     const comparison = p >= threshold ? '≥' : '<';
     const rounded = Number(p.toFixed(4));
     const probabilityLabel = (rounded >= threshold) === (p >= threshold) ? fmt(p) : 'Unrounded p';
@@ -229,8 +226,7 @@
   function confusion(emails, cutoff) {
     const counts = { tp: 0, fp: 0, fn: 0, tn: 0 };
     for (const { x, y } of emails) {
-      const positive = probability(x) >= cutoff;
-      counts[positive ? (y ? 'tp' : 'fp') : (y ? 'fn' : 'tn')] += 1;
+      counts[spamOutcome(y, probability(x), cutoff)] += 1;
     }
     return counts;
   }

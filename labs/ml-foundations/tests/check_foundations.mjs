@@ -149,11 +149,55 @@ const [low, standard, high] = logistic.thresholds.presets.map(threshold => confu
 assert.deepEqual(standard, { tp: 141, fp: 21, fn: 245, tn: 604 });
 assert.ok(low.tp > standard.tp && standard.tp > high.tp);
 assert.ok(low.fp > standard.fp && standard.fp > high.fp);
-assert.deepEqual(confusion(logistic.rows.test, logistic.thresholds.default), { tp: 138, fp: 27, fn: 214, tn: 557 });
+
+const practiceBudget = 25;
+const candidates = logistic.thresholds.presets.map((threshold, index) => ({
+  threshold,
+  counts: [low, standard, high][index],
+}));
+const accepted = candidates.filter(({ counts }) => counts.fp <= practiceBudget);
+assert.deepEqual(accepted.map(({ threshold }) => threshold), [0.5, 0.65]);
+const winner = accepted.reduce((best, candidate) => candidate.counts.tp > best.counts.tp ? candidate : best);
+assert.equal(winner.threshold, 0.5);
+const heldOut = confusion(logistic.rows.test, winner.threshold);
+assert.deepEqual(heldOut, { tp: 138, fp: 27, fn: 214, tn: 557 });
+assert.ok(heldOut.fp > practiceBudget);
+const inboxOnly = confusion(logistic.rows.test, Infinity);
+assert.equal(inboxOnly.tp, 0);
+assert.equal((inboxOnly.tn / logistic.rows.test.length).toFixed(4), '0.6239');
+
+const { tp, fp, fn, tn } = winner.counts;
+assert.deepEqual([
+  ((tp + tn) / logistic.rows.validation.length).toFixed(4),
+  (tp / (tp + fp)).toFixed(4),
+  (tp / (tp + fn)).toFixed(4),
+  (fp / (fp + tn)).toFixed(4),
+  (2 * tp / (2 * tp + fp + fn)).toFixed(4),
+], ['0.7369', '0.8704', '0.3653', '0.0336', '0.5146']);
+
+const ranked = logistic.rows.validation.map(row => ({ ...row, score: spamProbability(row) }));
+const actualSpam = ranked.filter(row => row.y === 1);
+const actualLegitimate = ranked.filter(row => row.y === 0);
+let wins = 0;
+let ties = 0;
+for (const spam of actualSpam) {
+  for (const legitimate of actualLegitimate) {
+    if (spam.score > legitimate.score) wins += 1;
+    if (spam.score === legitimate.score) ties += 1;
+  }
+}
+assert.deepEqual([wins, ties], [193_544, 28_093]);
+close((wins + 0.5 * ties) / (actualSpam.length * actualLegitimate.length), 0.8604787565);
+const tiedScore = ranked.find(row => row.id === 'E1405').score;
+const tiedRows = ranked.filter(row => row.score === tiedScore);
+assert.deepEqual(tiedRows.map(({ id, y }) => [id, y]), [['E1405', 1], ['E3487', 0]]);
+const highEnough = confusion(logistic.rows.validation, tiedScore);
+assert.equal(highEnough.tp, actualSpam.filter(row => row.score > tiedScore).length + 1);
+assert.equal(highEnough.fp, actualLegitimate.filter(row => row.score > tiedScore).length + 1);
 
 const downloads = embedded('foundation-downloads');
 const notebookNames = fs.readdirSync(path.join(lab, 'notebooks')).filter(name => name.endsWith('.ipynb'));
-assert.equal(notebookNames.length, 6);
+assert.equal(notebookNames.length, 7);
 for (const name of notebookNames) {
   assert.equal(page.includes('colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/ml-foundations/notebooks/' + name), true);
   assert.deepEqual(Buffer.from(downloads[name].data, 'base64'), fs.readFileSync(path.join(lab, 'notebooks', name)));
@@ -161,13 +205,16 @@ for (const name of notebookNames) {
 const csv = Buffer.from(downloads['bike-share-starter-rows.csv'].data, 'base64').toString('utf8').trim().split('\n');
 assert.equal(csv.length, first.history.length + 2);
 assert.equal(csv.at(-1), '15928,2012-11-01,8,1,680,held_out_example');
-assert.equal(page.match(/class="lab-quiz"/g).length, 12);
+assert.equal(page.match(/class="lab-quiz"/g).length, 16);
 for (const label of ['Show options', 'What is the right answer?', 'Show explanation']) {
-  assert.equal(page.split(`<summary>${label}</summary>`).length - 1, 12);
+  assert.equal(page.split(`<summary>${label}</summary>`).length - 1, 16);
 }
 assert.ok(home.indexOf('href="./ml-foundations/" aria-label="Open ML Foundations"') <
   home.indexOf('href="./bagging/" aria-label='));
 assert.ok(home.includes('./ml-foundations/#unit-1'));
 assert.ok(page.includes('href="#unit-6"') && page.includes('value="unit-6"'));
+assert.ok(page.includes('href="#unit-7"') && page.includes('value="unit-7"'));
+const metricsLesson = page.slice(page.indexOf('<section class="course-page" id="unit-7"'), page.indexOf('<section class="course-page" id="course"'));
+assert.ok(metricsLesson.includes('href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification"'));
 assert.doesNotMatch(page, /\{\{[A-Z0-9_]+\}\}/);
-console.log('Verified Foundations forecasts, regression fits, held-out metrics, notebook downloads, quizzes, and course entry.');
+console.log('Verified Foundations model fits, held-out metrics, cutoff selection, ROC ranking, notebooks, quizzes, and course links.');

@@ -1,0 +1,329 @@
+<h2 id="unit-7-title">How good is our spam filter?</h2>
+<p class="lede">Unit 6 gave each email a Spam score. Keep those same scores and ask what happens across an inbox when we change the cutoff.</p>
+
+<section class="panel" aria-labelledby="u7-start-title">
+  <h3 id="u7-start-title" data-lesson-jump="Revisit two emails from Unit 6">The same score can lead to a different decision</h3>
+  <p>At or above the cutoff, the filter predicts <strong>Spam</strong>. Below it, the filter predicts <strong>Legitimate</strong>. When we evaluate a decision, we compare that prediction with the recorded label.</p>
+  <div class="u7-two-up">
+    <article class="u7-example">
+      <h4>E17 · Recorded Spam</h4>
+      <p class="u7-example-score">48.66%</p>
+      <p>At 50%, the email goes to the inbox, a <strong>false negative</strong>. At 35%, it goes to Spam, a <strong>true positive</strong>.</p>
+    </article>
+    <article class="u7-example">
+      <h4>E3027 · Recorded Legitimate</h4>
+      <p class="u7-example-score">51.21%</p>
+      <p>At 50%, the email goes to Spam, a <strong>false positive</strong>. At 65%, it goes to the inbox, a <strong>true negative</strong>.</p>
+    </article>
+  </div>
+  <p><strong>What happens to Legitimate emails when we lower the cutoff to catch more Spam?</strong> We’ll answer that with the confusion matrix and use the result to choose a cutoff.</p>
+  <details><summary>Where did these scores come from?</summary>
+    <p>These are the Unit 6 predictions from the saved one-feature logistic regression. Its only input is the percentage of characters that are exclamation marks. Both emails above are from the same Unit 6 validation split. E17’s source row contains 0.428% exclamation marks and E3027’s contains 0.487%. The released rows contain measured features and recorded labels. The scores use the fitted model, and we compare them with cutoffs at full precision.</p>
+    <p><a href="#unit-6">Revisit the model in Unit 6</a> · <a href="https://doi.org/10.24432/C53G6X" target="_blank" rel="noopener noreferrer">UCI Spambase dataset</a></p>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u7-practice-title">
+  <h3 id="u7-practice-title" data-lesson-jump="Place emails in the matrix">Place each email in the confusion matrix</h3>
+  <p>Find the row using the recorded label. Find the column using the predicted label. Choose the cell where those two meet. Each email adds one count at the current cutoff.</p>
+  <div class="u7-placement">
+    <div class="u7-control">
+      <div class="u7-controls-grid">
+        <label for="u7-practice-email">Validation email
+          <select id="u7-practice-email">
+            <option value="E17">E17</option>
+            <option value="E3027">E3027</option>
+            <option value="E1365">E1365</option>
+            <option value="E3383">E3383</option>
+          </select>
+        </label>
+        <label for="u7-practice-cutoff">Spam cutoff
+          <select id="u7-practice-cutoff">
+            <option value="0.35">35%</option>
+            <option value="0.50" selected>50%</option>
+            <option value="0.65">65%</option>
+          </select>
+        </label>
+      </div>
+      <dl class="u7-email-readout">
+        <div><dt>Spam score</dt><dd id="u7-practice-score"></dd></div>
+        <div><dt>Recorded label</dt><dd id="u7-practice-actual"></dd></div>
+        <div><dt>Prediction</dt><dd id="u7-practice-prediction"></dd></div>
+      </dl>
+      <p class="formula u7-comparison" id="u7-practice-comparison"></p>
+      <p class="u7-feedback" id="u7-practice-feedback" role="status">Choose a cell to place this email.</p>
+    </div>
+    <div>
+      <div class="table-wrap">
+        <table class="u7-matrix u7-practice-matrix">
+          <caption>Four emails to practice with</caption>
+          <thead><tr><th scope="col">Recorded label</th><th scope="col">Predict Spam</th><th scope="col">Predict Legitimate</th></tr></thead>
+          <tbody>
+            <tr>
+              <th scope="row">Spam</th>
+              <td><button class="u7-correct" type="button" data-u7-cell="tp"><strong id="u7-practice-tp">0</strong><span>True positive</span></button></td>
+              <td><button class="u7-error" type="button" data-u7-cell="fn"><strong id="u7-practice-fn">0</strong><span>False negative</span></button></td>
+            </tr>
+            <tr>
+              <th scope="row">Legitimate</th>
+              <td><button class="u7-error" type="button" data-u7-cell="fp"><strong id="u7-practice-fp">0</strong><span>False positive</span></button></td>
+              <td><button class="u7-correct" type="button" data-u7-cell="tn"><strong id="u7-practice-tn">0</strong><span>True negative</span></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="button small" id="u7-practice-reset" type="button">Reset placements</button>
+    </div>
+  </div>
+  <details><summary>Why do two names start with “true”?</summary>
+    <p><strong>True</strong> means the prediction agrees with the recorded label. <strong>False</strong> means they differ. <strong>Positive</strong> and <strong>negative</strong> name the predicted class. In this lesson, Spam is positive and Legitimate is negative. A false positive is a Spam prediction for a Legitimate email. A false negative is a Legitimate prediction for a Spam email.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u7-placement-quiz" data-lesson-jump="Quiz 13 · Place one email">Where does E3027 belong?</h3>
+  <p>E3027 is Legitimate and has a Spam score of about 51.21%. At a 50% cutoff, which cell receives it?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>True negative.</li><li>False positive.</li><li>False negative.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. False positive.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>The score meets the cutoff, so the prediction is Spam. The recorded label is Legitimate.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u7-validation-title">
+  <h3 id="u7-validation-title" data-lesson-jump="Read five validation metrics">Read metrics as fractions of the matrix</h3>
+  <p>Count all <strong>1,011 validation emails</strong> the same way. Move the cutoff to see how many fall into each cell. The 386 recorded Spam and 625 recorded Legitimate emails stay fixed.</p>
+  <div class="u7-count-layout">
+    <div class="u7-control">
+      <div class="u7-range-header">
+        <label for="u7-validation-cutoff">Validation cutoff</label>
+        <output for="u7-validation-cutoff" id="u7-validation-cutoff-value">50%</output>
+      </div>
+      <input id="u7-validation-cutoff" type="range" min="0.05" max="0.95" step="0.01" value="0.50">
+      <div class="actions u7-presets" role="group" aria-label="Validation cutoff presets">
+        <button type="button" class="button" data-u7-cutoff="0.35">35%</button>
+        <button type="button" class="button" data-u7-cutoff="0.50" aria-pressed="true">50%</button>
+        <button type="button" class="button" data-u7-cutoff="0.65">65%</button>
+      </div>
+      <p class="small">The cutoff changes predictions. It leaves the recorded labels and scores alone.</p>
+      <label class="u7-metric-focus" for="u7-metric-focus">Highlight a metric’s denominator
+        <select id="u7-metric-focus">
+          <option value="accuracy">Accuracy</option>
+          <option value="precision">Precision</option>
+          <option value="recall">Recall</option>
+          <option value="fpr">False-positive rate</option>
+          <option value="f1">F1</option>
+        </select>
+      </label>
+      <p class="small u7-focus-note" id="u7-metric-focus-note" aria-live="polite"></p>
+    </div>
+    <div class="table-wrap">
+      <table class="u7-matrix u7-count-matrix">
+        <caption>Validation confusion matrix</caption>
+        <thead><tr><th scope="col">Recorded label</th><th scope="col">Predict Spam</th><th scope="col">Predict Legitimate</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Spam</th><td class="u7-correct"><strong id="u7-v-tp"></strong><span>True positive</span></td><td class="u7-error"><strong id="u7-v-fn"></strong><span>False negative</span></td></tr>
+          <tr><th scope="row">Legitimate</th><td class="u7-error"><strong id="u7-v-fp"></strong><span>False positive</span></td><td class="u7-correct"><strong id="u7-v-tn"></strong><span>True negative</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="u7-metric-table">
+      <caption>What each metric asks at this cutoff</caption>
+      <thead><tr><th scope="col">Metric</th><th scope="col">Question and formula</th><th scope="col">Worked calculation</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Accuracy</th><td>What share of all decisions were right?<span class="formula">(TP + TN) ÷ all emails</span></td><td class="u7-worked" id="u7-v-accuracy"></td></tr>
+        <tr><th scope="row">Precision</th><td>What share of flagged emails were Spam?<span class="formula">TP ÷ (TP + FP)</span></td><td class="u7-worked" id="u7-v-precision"></td></tr>
+        <tr><th scope="row">Recall <small>(TPR)</small></th><td>What share of recorded Spam did we flag?<span class="formula">TP ÷ (TP + FN)</span></td><td class="u7-worked" id="u7-v-recall"></td></tr>
+        <tr><th scope="row">False-positive rate <small>(FPR)</small></th><td>What share of recorded Legitimate emails did we flag?<span class="formula">FP ÷ (FP + TN)</span></td><td class="u7-worked" id="u7-v-fpr"></td></tr>
+        <tr><th scope="row">F1</th><td>How well do precision and recall balance?<span class="formula">2 × TP ÷ (2 × TP + FP + FN)</span></td><td class="u7-worked" id="u7-v-f1"></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="u7-baseline">
+    <h4>What if the filter sent every email to the inbox?</h4>
+    <p>On these same validation emails, an always-inbox rule gets every Legitimate email right and misses every Spam email.</p>
+    <dl>
+      <div><dt>Accuracy</dt><dd id="u7-v-baseline-accuracy"></dd></div>
+      <div><dt>Recall</dt><dd id="u7-v-baseline-recall"></dd></div>
+    </dl>
+  </div>
+  <details><summary>Why does F1 use a harmonic mean?</summary>
+    <p><strong>F1 = 2 × precision × recall ÷ (precision + recall).</strong> A high F1 needs both precision and recall to be high. A small value pulls the harmonic mean toward it. The count formula avoids rounding the two parts first. F1 leaves true negatives out, so track the false-positive rate separately when false alarms matter.</p>
+  </details>
+  <details><summary>What if there are no flagged emails?</summary>
+    <p>Precision is undefined because TP + FP equals zero. The always-inbox rule still has zero recall here because there are recorded Spam emails and it catches none. Recall is undefined only when there are zero recorded Spam emails.</p>
+  </details>
+  <details><summary>How does the false-positive rate differ from one minus precision?</summary>
+    <p>Both use the false alarms in the numerator. At 50%, FPR divides 21 by the 625 recorded Legitimate emails, giving 3.36%. One minus precision divides those 21 by the 162 predicted Spam emails, giving 12.96%. The first asks what share of Legitimate mail was flagged. The second asks what share of flags were false alarms.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u7-denominator-quiz" data-lesson-jump="Quiz 14 · Choose the denominator">What is the denominator of the false-positive rate?</h3>
+  <p>On validation at 50%, the model flags 21 Legitimate emails. Which total do we divide by to get the false-positive rate?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>162 predicted Spam emails.</li><li>386 recorded Spam emails.</li><li>625 recorded Legitimate emails.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>C. 625 recorded Legitimate emails.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>The false-positive rate asks what share of all Legitimate mail was flagged. Its denominator is FP + TN, or 21 + 604 = 625.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u7-budget-title">
+  <h3 id="u7-budget-title" data-lesson-jump="Choose and test a cutoff">Choose a cutoff under a false-alarm limit</h3>
+  <p>Try a practice goal for the inbox team. <strong>Catch as much Spam as possible while flagging at most 25 Legitimate emails on validation.</strong> Compare these three candidates before you open the held-out results.</p>
+  <div class="u7-budget-layout">
+    <div class="table-wrap">
+      <table class="u7-budget-table">
+        <caption>Compare three cutoffs on the same validation split</caption>
+        <thead><tr><th scope="col">Cutoff</th><th scope="col">Spam caught (TP)</th><th scope="col">False alarms (FP)</th><th scope="col">Within limit?</th></tr></thead>
+        <tbody id="u7-budget-rows"></tbody>
+      </table>
+    </div>
+    <div class="u7-control">
+      <label for="u7-budget-choice">Which cutoff would you use?
+        <select id="u7-budget-choice">
+          <option value="">Choose a cutoff</option>
+          <option value="0.35">35%</option>
+          <option value="0.50">50%</option>
+          <option value="0.65">65%</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button class="button" id="u7-lock-cutoff" type="button" disabled>Lock cutoff</button>
+        <button class="button primary" id="u7-reveal-test" type="button" aria-expanded="false" aria-controls="u7-test-results" disabled>Reveal test results</button>
+      </div>
+      <p class="u7-feedback" id="u7-budget-feedback" role="status">Choose using validation, then lock the choice to evaluate it on test.</p>
+    </div>
+  </div>
+  <details><summary>Does the cutoff with the highest F1 meet the inbox team’s goal?</summary>
+    <p>Of these three presets, 35% has the highest validation F1 at 76.56%. It also flags 88 Legitimate emails, which exceeds the practice limit of 25. The rule for this exercise is to maximize the number of Spam emails caught among the cutoffs that satisfy the limit.</p>
+  </details>
+  <div id="u7-test-results" class="u7-test-results" hidden>
+    <h4>Held-out results at <span id="u7-test-cutoff"></span></h4>
+    <p>This is the original Unit 6 test split of <strong>936 emails</strong>, including 352 recorded Spam and 584 recorded Legitimate emails. We’re rehearsing the selection and evaluation sequence with the same held-out records.</p>
+    <div class="u7-count-layout">
+      <div class="table-wrap">
+        <table class="u7-matrix u7-count-matrix">
+          <caption>Test confusion matrix</caption>
+          <thead><tr><th scope="col">Recorded label</th><th scope="col">Predict Spam</th><th scope="col">Predict Legitimate</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Spam</th><td class="u7-correct"><strong id="u7-t-tp"></strong><span>True positive</span></td><td class="u7-error"><strong id="u7-t-fn"></strong><span>False negative</span></td></tr>
+            <tr><th scope="row">Legitimate</th><td class="u7-error"><strong id="u7-t-fp"></strong><span>False positive</span></td><td class="u7-correct"><strong id="u7-t-tn"></strong><span>True negative</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <dl class="u7-test-metrics">
+        <div><dt>Accuracy</dt><dd id="u7-t-accuracy"></dd></div>
+        <div><dt>Precision</dt><dd id="u7-t-precision"></dd></div>
+        <div><dt>Recall</dt><dd id="u7-t-recall"></dd></div>
+        <div><dt>False-positive rate</dt><dd id="u7-t-fpr"></dd></div>
+        <div><dt>F1</dt><dd id="u7-t-f1"></dd></div>
+      </dl>
+    </div>
+    <div class="u7-baseline">
+      <h4>Always inbox on the same test fold</h4>
+      <dl>
+        <div><dt>Accuracy</dt><dd id="u7-t-baseline-accuracy"></dd></div>
+        <div><dt>Recall</dt><dd id="u7-t-baseline-recall"></dd></div>
+      </dl>
+    </div>
+    <p class="u7-feedback">At 50%, the filter flagged 21 Legitimate emails on validation and 27 on test. The validation result gave us a way to choose a cutoff. The test fold shows how that same cutoff performed on a separate sample. Compare the rates too, since the splits contain different numbers of Legitimate emails. If the team changes its policy after seeing these results, reserve fresh data for a final check.</p>
+  </div>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u7-budget-quiz" data-lesson-jump="Quiz 15 · Pick a cutoff">Which cutoff meets our practice goal?</h3>
+  <p>Among 35%, 50%, and 65%, which cutoff catches the most validation Spam while flagging at most 25 Legitimate emails?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>35%.</li><li>50%.</li><li>65%.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. 50%.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>35% flags 88 Legitimate emails and exceeds the limit. 50% and 65% both qualify. They catch 141 and 63 Spam emails, respectively.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u7-roc-title">
+  <h3 id="u7-roc-title" data-lesson-jump="Sweep the ROC curve">One cutoff gives one ROC point</h3>
+  <p>The <strong>receiver operating characteristic (ROC) curve</strong> plots false-positive rate horizontally and recall vertically. At a validation cutoff of 50%, the point is <strong>(21 ÷ 625, 141 ÷ 386) ≈ (3.36%, 36.53%)</strong>.</p>
+  <p>Start with a cutoff above every score. Nobody is flagged, so the curve begins at (0, 0). Lower the cutoff one distinct score at a time. Flag all emails with that score in the same step. The curve ends at (1, 1) when everyone is flagged.</p>
+  <div class="u7-roc-layout">
+    <figure class="u7-roc-frame">
+      <figcaption><strong>ROC on the Unit 6 validation emails</strong><span class="small">Vertical axis · Recall (true-positive rate)</span></figcaption>
+      <canvas id="u7-roc" width="620" height="380" role="img" aria-label="Receiver operating characteristic curve. Horizontal axis shows false-positive rate and vertical axis shows true-positive rate. The adjacent readout reports the exact counts for the current point.">Use the threshold controls and adjacent readout to explore the ROC curve.</canvas>
+      <p class="small">The pale line shows the full curve and the darker line shows the points you’ve reached. The marker shows the current cutoff. The dashed diagonal is the reference for random ranking.</p>
+    </figure>
+    <div class="u7-control">
+      <label for="u7-roc-step">Move through the scores in descending order</label>
+      <input id="u7-roc-step" type="range" min="0" max="343" step="1" value="0">
+      <div class="actions u7-roc-actions">
+        <button class="button" id="u7-roc-previous" type="button">Previous point</button>
+        <button class="button" id="u7-roc-next" type="button">Next point</button>
+        <button class="button primary" id="u7-roc-play" type="button" aria-pressed="false">Play sweep</button>
+      </div>
+      <div class="actions u7-roc-actions">
+        <button class="button" id="u7-roc-fifty" type="button">Use the 50% point</button>
+        <button class="button" id="u7-roc-tie" type="button">Find a shared score</button>
+      </div>
+      <dl class="u7-roc-readout">
+        <div><dt>Cutoff</dt><dd id="u7-roc-threshold"></dd></div>
+        <div><dt>Horizontal · FPR</dt><dd id="u7-roc-fpr"></dd></div>
+        <div><dt>Vertical · recall</dt><dd id="u7-roc-tpr"></dd></div>
+      </dl>
+      <p class="small" id="u7-roc-group"></p>
+      <p class="u7-feedback" id="u7-roc-status" role="status"></p>
+    </div>
+  </div>
+  <div class="u7-baseline">
+    <h4>ROC AUC measures ranking across the sweep</h4>
+    <p id="u7-auc" class="formula"></p>
+    <p>Area under the ROC curve equals the chance that a randomly chosen recorded Spam email ranks above a randomly chosen recorded Legitimate email, with half credit when the scores tie. Changing the cutoff moves the marker. AUC stays fixed because the underlying scores and the ranking stay fixed.</p>
+  </div>
+  <details><summary>See a real win, loss, and tie</summary>
+    <ul>
+      <li><strong>Win.</strong> Spam E1365 scores about 69.20%, above Legitimate E3027 at 51.21%. The pair earns 1.</li>
+      <li><strong>Loss.</strong> Spam E17 scores about 48.66%, below that same Legitimate E3027. The pair earns 0.</li>
+      <li><strong>Tie.</strong> Spam E8 and Legitimate E3383 both have 0% exclamation marks. The same fitted model gives both about 31.10%. The pair earns ½.</li>
+    </ul>
+    <p>There are 386 × 625 = 241,250 Spam–Legitimate pairs on validation. Give one point for each win, half for each tie, then divide by the number of pairs. The area gives the same answer. In the sweep, a tied score group that includes both labels moves the point up and right together.</p>
+    <p><strong>Find a shared score</strong> shows this movement. It goes to the score shared by E1405, a Spam email, and E3487, a Legitimate email.</p>
+  </details>
+  <details><summary>When should we read a precision–recall curve?</summary>
+    <p>When Spam is rare, a small false-positive rate can still mean many Legitimate messages go to Spam. Precision shows how often a flagged message is actually Spam. A precision–recall curve plots precision against recall across the same cutoffs, so you can see that trade-off directly.</p>
+  </details>
+</section>
+
+<section class="lab-quiz">
+  <h3 id="u7-auc-quiz" data-lesson-jump="Quiz 16 · Count a tied pair">How does AUC count a tied pair?</h3>
+  <p>A recorded Spam email and a recorded Legitimate email have exactly the same score. How much credit does this pair earn when calculating ROC AUC?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>Zero.</li><li>Half.</li><li>One.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. Half.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>A Spam score ranked above a Legitimate score earns one point. A lower Spam score earns zero. An exact tie earns half a point.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="exercise" aria-labelledby="u7-handoff-title">
+  <h3 id="u7-handoff-title" data-lesson-jump="Continue in the Metrics lab">Apply the same questions to another spam model</h3>
+  <p>The Classification Metrics lab uses the same UCI Spambase source. It fits a logistic regression with all 57 features on a different split, so its scores and counts belong to that model and split. Open <strong>Read matrix and rates</strong> to work with its teaching emails, then <strong>Read ROC and AUC</strong> to replay its ranking.</p>
+  <div class="actions">
+    <a class="button primary" href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification">Open Classification Metrics</a>
+    <a class="button" href="#unit-6">Review the Unit 6 model</a>
+  </div>
+</section>

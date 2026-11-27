@@ -5,8 +5,19 @@
   const json = id => JSON.parse(get(id).textContent);
   const bike = json('foundation-bike-data');
   const unitOne = json('foundations-unit-1-data');
+  const spam = json('foundations-unit-6-data');
   const downloads = json('foundation-downloads');
-  window.Foundations = Object.freeze({ bike, unitOne });
+  const spamScore = x => spam.fit.intercept + spam.fit.weight * x;
+  const spamProbability = x => {
+    const score = spamScore(x);
+    if (score >= 0) return 1 / (1 + Math.exp(-score));
+    const odds = Math.exp(score);
+    return odds / (1 + odds);
+  };
+  const spamOutcome = (actual, probability, cutoff) => probability >= cutoff
+    ? (actual ? 'tp' : 'fp')
+    : (actual ? 'fn' : 'tn');
+  window.Foundations = Object.freeze({ bike, unitOne, spam, spamScore, spamProbability, spamOutcome });
 
   const pages = [...document.querySelectorAll('.course-page')];
   const railLinks = [...document.querySelectorAll('.course-rail a')];

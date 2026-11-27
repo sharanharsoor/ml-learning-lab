@@ -1,0 +1,151 @@
+#unit-7 {
+  --u7-violet: #624789;
+  --u7-lilac: #f3eff8;
+  --u7-grid-gap: .8rem;
+}
+
+.u7-two-up, .u7-placement, .u7-count-layout, .u7-budget-layout, .u7-roc-layout {
+  display: grid;
+  gap: var(--u7-grid-gap);
+  align-items: start;
+  margin-block: .8rem;
+}
+
+.u7-two-up { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.u7-placement, .u7-count-layout { grid-template-columns: minmax(0, .86fr) minmax(0, 1fr); }
+.u7-budget-layout, .u7-roc-layout { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+.u7-count-layout > *, .u7-placement > *, .u7-budget-layout > *, .u7-roc-layout > * { min-width: 0; }
+
+.u7-example, .u7-control, .u7-roc-frame {
+  min-width: 0;
+  padding: .72rem clamp(.65rem, 1.5vw, .94rem);
+  border: 1px solid var(--line);
+  border-radius: .52rem;
+}
+
+.u7-example { background: var(--light); border-top: .22rem solid var(--teal); align-self: stretch; }
+.u7-example:nth-child(2) { background: var(--u7-lilac); border-top-color: var(--u7-violet); }
+.u7-example p:last-child { margin-bottom: 0; }
+.u7-example h4 { margin: 0; }
+.u7-example-score { color: var(--teal); font-size: clamp(1.5rem, 3.3vw, 2.3rem); font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.u7-example:nth-child(2) .u7-example-score { color: var(--u7-violet); }
+
+.u7-controls-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.u7-control label { font-size: .9em; font-weight: 700; }
+.u7-control select {
+  width: 100%;
+  min-width: 0;
+  margin: .19rem 0;
+  padding: .35rem .45rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .36rem;
+}
+.u7-control input[type="range"] {
+  display: block;
+  width: 100%;
+  margin: .25rem 0;
+  min-height: 1.5rem;
+  accent-color: var(--u7-violet);
+  cursor: ew-resize;
+}
+.u7-range-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem .5rem; }
+.u7-range-header output { color: var(--u7-violet); font-weight: 750; font-variant-numeric: tabular-nums; }
+.u7-presets, .u7-roc-actions, .u7-budget-layout .actions { margin: .57rem 0; gap: .42rem; }
+.u7-presets .button, .u7-roc-actions .button { min-height: 2.25rem; padding: .32rem .64rem; }
+.u7-metric-focus { display: block; margin-top: .65rem; }
+.u7-focus-note { margin-bottom: .12rem; }
+.u7-feedback {
+  margin: .55rem 0 0;
+  padding: .53rem .7rem;
+  border-inline-start: .2rem solid var(--u7-violet);
+  border-radius: .3rem;
+  background: var(--u7-lilac);
+  font-size: .91em;
+}
+.u7-feedback:empty { display: none; }
+.u7-comparison { margin-block: .52rem; }
+
+.u7-email-readout, .u7-roc-readout, .u7-test-metrics, .u7-baseline dl { margin: .6rem 0 0; }
+.u7-email-readout > div, .u7-roc-readout > div, .u7-test-metrics > div, .u7-baseline dl > div {
+  display: grid;
+  grid-template-columns: 1fr 1.13fr;
+  align-items: baseline;
+  gap: .18rem .55rem;
+  padding: .27rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.u7-email-readout dt, .u7-roc-readout dt, .u7-test-metrics dt, .u7-baseline dt { font-weight: 700; font-size: .9em; }
+.u7-email-readout dd, .u7-roc-readout dd, .u7-test-metrics dd, .u7-baseline dd {
+  margin: 0;
+  color: var(--u7-violet);
+  font-variant-numeric: tabular-nums;
+}
+.u7-email-readout dd { font-weight: 680; }
+.u7-test-metrics > div { grid-template-columns: 1fr 1.6fr; }
+.u7-roc-readout > div { grid-template-columns: .78fr 1.22fr; }
+
+.u7-matrix { min-width: 23rem; border-collapse: separate; border-spacing: .26rem; }
+.u7-matrix :is(th, td) { padding: .45rem .52rem; border: 0; }
+.u7-matrix :is(th, td):not(:first-child) { text-align: center; }
+.u7-matrix td { border-radius: .37rem; }
+.u7-matrix td strong { display: block; font-size: clamp(1.22rem, 2.5vw, 1.6rem); line-height: 1.15; font-variant-numeric: tabular-nums; }
+.u7-matrix td span { display: block; margin-top: .14rem; color: var(--muted); font-size: .78em; }
+.u7-correct { color: var(--teal); background: var(--light); }
+.u7-error { color: var(--rust); background: var(--warm); }
+.u7-count-matrix td { box-shadow: inset 0 0 0 1px transparent; }
+.u7-count-matrix td.u7-count-focus { box-shadow: inset 0 0 0 2px var(--u7-violet); }
+.u7-practice-matrix td { padding: 0; }
+.u7-practice-matrix button {
+  display: block;
+  width: 100%;
+  min-height: 4.7rem;
+  padding: .48rem .5rem;
+  border: 1px solid transparent;
+  border-radius: .38rem;
+  cursor: pointer;
+}
+.u7-practice-matrix button:hover { border-color: currentColor; }
+.u7-practice-matrix button:active, .u7-practice-matrix button.u7-cell-selected {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+#u7-practice-reset { margin-top: .5rem; }
+
+.u7-metric-table { min-width: 32rem; margin-top: .55rem; }
+.u7-metric-table th:first-child { width: 20%; }
+.u7-metric-table td:last-child { width: 33%; }
+.u7-metric-table .formula { display: block; margin-top: .23rem; font-size: .91em; }
+.u7-metric-table small { display: inline-block; color: var(--muted); }
+.u7-worked { color: var(--u7-violet); font-weight: 660; font-variant-numeric: tabular-nums; }
+.u7-baseline {
+  margin: .78rem 0;
+  padding: .67rem .85rem;
+  background: var(--light);
+  border-inline-start: .22rem solid var(--teal);
+  border-radius: .35rem;
+}
+.u7-baseline h4 { margin-bottom: .2rem; }
+.u7-baseline p:last-child { margin-bottom: 0; }
+.u7-baseline dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem .8rem; }
+.u7-baseline dl > div { border: 0; }
+
+.u7-budget-table { min-width: 23rem; }
+.u7-budget-table th, .u7-budget-table td { padding: .4rem .5rem; }
+.u7-budget-table td { font-variant-numeric: tabular-nums; }
+.u7-test-results { margin-top: .9rem; border-top: 1px solid var(--line); padding-top: .9rem; }
+.u7-test-metrics > div:last-child { border-bottom: 0; }
+
+.u7-roc-frame figcaption { display: grid; color: var(--ink); margin-bottom: .4rem; }
+.u7-roc-frame p:last-child { margin-bottom: 0; }
+#u7-roc { display: block; width: 100%; height: clamp(15rem, 34vw, 23rem); }
+#u7-auc { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 63rem) {
+  .u7-placement, .u7-count-layout, .u7-budget-layout, .u7-roc-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 40rem) {
+  .u7-two-up, .u7-baseline dl { grid-template-columns: minmax(0, 1fr); }
+  .u7-matrix, .u7-budget-table { min-width: 18rem; }
+  .u7-matrix :is(th, td) { padding: .34rem .28rem; }
+  .u7-practice-matrix td { padding: 0; }
+}
