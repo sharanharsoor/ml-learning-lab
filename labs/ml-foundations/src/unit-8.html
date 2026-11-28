@@ -1,0 +1,273 @@
+<h2 id="unit-8-title">Which questions help us spot spam?</h2>
+<p class="lede">In Unit 7 we changed the cutoff on a Spam score. Now we’ll train a model that learns yes-or-no questions about the email itself. Follow the questions to see how a decision tree predicts.</p>
+
+<section class="panel" aria-labelledby="u8-start-title">
+  <h3 id="u8-start-title" data-lesson-jump="Compare two familiar emails">Two emails with the same score</h3>
+  <p>Recall E8 and E3383. Both have 0% exclamation marks, so the one-feature logistic model from Unit 6 gives both about <strong>31.10% Spam</strong>. Their recorded labels differ. What could a second measurement tell us?</p>
+  <div class="u8-pair">
+    <article class="u8-source-card u8-spam">
+      <h4>E8 · Recorded Spam</h4>
+      <p class="u8-value"><span id="u8-e8-run">11</span> letters</p>
+      <p>Longest uppercase run</p>
+    </article>
+    <article class="u8-source-card u8-legitimate">
+      <h4>E3383 · Recorded Legitimate</h4>
+      <p class="u8-value"><span id="u8-e3383-run">47</span> letters</p>
+      <p>Longest uppercase run</p>
+    </article>
+  </div>
+  <p>We’ll give the tree two inputs. One is the percentage of characters that are exclamation marks. The other is the length of the longest consecutive uppercase run. Spambase provides these measurements and a recorded label for each email.</p>
+  <details><summary>Where are the original emails?</summary>
+    <p>The public Spambase dataset contains measurements and labels. E8 and E3383 name the original source rows. A string such as “NOW” illustrates a run of three consecutive uppercase letters. It’s a made-up example of the measurement.</p>
+    <p><a href="#unit-6">Revisit the one-feature model</a> · <a href="https://doi.org/10.24432/C53G6X" target="_blank" rel="noopener noreferrer">UCI Spambase dataset</a></p>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u8-trace-title">
+  <h3 id="u8-trace-title" data-lesson-jump="Follow an email through the tree">Follow an email to a leaf</h3>
+  <p>Choose a validation email and a maximum depth. Start at the root and test the email’s own value at each question. A Yes answer goes left and a No answer goes right. A <strong>leaf</strong> is where the questions stop and the tree predicts.</p>
+  <div class="u8-controls">
+    <label for="u8-email">Validation email
+      <select id="u8-email"><option value="E8">E8</option></select>
+    </label>
+    <label for="u8-depth">Maximum depth
+      <select id="u8-depth">
+        <option value="1">1 · One question per path</option>
+        <option value="2" selected>2 · Two questions per path</option>
+        <option value="3">3 · Three questions per path</option>
+        <option value="4">4 · Four questions per path</option>
+      </select>
+    </label>
+  </div>
+  <div class="u8-trace-readout" aria-live="polite">
+    <p id="u8-email-features"></p>
+    <p id="u8-email-outcome"></p>
+  </div>
+  <div class="u8-model-grid">
+    <div class="u8-model-card">
+      <h4>Fitted questions</h4>
+      <p class="small">The highlighted nodes form this email’s path. Select any node to inspect its training counts and highlight its region. Scroll the tree horizontally at deeper settings.</p>
+      <div class="u8-tree-scroll" tabindex="0" aria-label="Scrollable decision tree">
+        <div class="u8-tree" id="u8-tree" aria-label="Fitted tree nodes"></div>
+      </div>
+      <div class="u8-node-detail" id="u8-node-detail" aria-live="polite"></div>
+    </div>
+    <figure class="u8-model-card u8-region-frame">
+      <figcaption><strong>Where the tree predicts each class</strong><span class="small">Vertical axis · longest uppercase run. Each question cuts only the region that reaches that node.</span></figcaption>
+      <canvas id="u8-regions" width="560" height="380" role="img" aria-label="Decision regions for the selected tree with exclamation-mark percentage and longest uppercase run. The adjacent tree and trace describe the selected email’s prediction.">Use the tree and trace to inspect the selected prediction.</canvas>
+      <div class="u8-legend" aria-label="Decision region key">
+        <span><i class="u8-legend-swatch u8-spam" aria-hidden="true"></i>Predicts Spam</span>
+        <span><i class="u8-legend-swatch u8-legitimate" aria-hidden="true"></i>Predicts Legitimate</span>
+        <span><i class="u8-case-dot" aria-hidden="true"></i>Selected email</span>
+      </div>
+      <div class="u8-plot-controls">
+        <label><input id="u8-training-points" type="checkbox"> Show training emails by recorded class</label>
+        <label><input id="u8-logistic-boundary" type="checkbox"> Show logistic regression boundary</label>
+      </div>
+      <p class="small" id="u8-region-note">The plot zooms in to 0–1.2% exclamation marks and uppercase runs up to 100. The tree also predicts for values outside this view.</p>
+      <details><summary>Why is the logistic boundary a straight line?</summary>
+        <p>The dashed line is where the two-feature logistic model scores exactly 50% Spam. That happens at z = 0, so b + w₁ × exclamation frequency + w₂ × uppercase run = 0. This is one straight line. Each tree question cuts its own rectangular region.</p>
+      </details>
+    </figure>
+  </div>
+  <div class="u8-callout">
+    <h4>Read the selected path</h4>
+    <ol class="u8-path" id="u8-path" aria-live="polite"></ol>
+  </div>
+  <p class="small" id="u8-validation-trace" aria-live="polite"></p>
+  <details><summary>What does the number at a leaf mean?</summary>
+    <p>The count at the leaf describes the training emails that landed there. Its Spam score is <strong>Spam training emails at the leaf ÷ all training emails at the leaf</strong>. In this lesson, a score of at least 0.50 predicts Spam, including an exact tie. A validation email follows the same fitted questions and reads the leaf score.</p>
+  </details>
+  <details><summary>How is this different from changing the Unit 7 cutoff?</summary>
+    <p>A split checks one input measurement and sends each email to one branch. A cutoff on the final Spam score turns a model output into a class. The split questions are learned from training rows. Our model comparison uses a fixed 0.50 cutoff on both models’ output scores.</p>
+  </details>
+  <details><summary>Does the new measurement separate E8 and E3383?</summary>
+    <p>Set depth 3 and trace both. Their uppercase runs differ, but both go right at the question about a run of at most 9.5. The fitted tree routes them to the same leaf and predicts Legitimate for both. A tree chooses splits to improve the mix across training rows. One added clue may help some emails while these two still share a path.</p>
+    <p>Try E17 and E3027 next. They both reach a depth-3 leaf with 551 Spam emails out of 591 training emails, so its score is 551 ÷ 591 ≈ 93.23%. The tree catches E17 as Spam. E3027 is still a false alarm.</p>
+  </details>
+</section>
+
+<section class="lab-quiz" aria-labelledby="u8-branch-quiz">
+  <h3 id="u8-branch-quiz" data-lesson-jump="Quiz 17 · Route an email">Where does an email at the cutoff go?</h3>
+  <p>A tree asks whether the longest uppercase run is at most 10. The email’s run is 10. Which branch does it take?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>Yes, because 10 ≤ 10.</li><li>No, because only values below 10 go left.</li><li>Either branch, because this is a tie.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>A. Yes, because 10 ≤ 10.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>The question includes equality. Each email follows exactly one branch at this node.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u8-split-title">
+  <h3 id="u8-split-title" data-lesson-jump="Calculate a root split">How does the tree choose a question?</h3>
+  <p>A node’s <strong>Gini impurity</strong> describes how mixed its recorded labels are. If you draw two labels independently from the node’s class proportions, Gini is the chance they differ. A pure node has Gini 0. A node with a 50/50 mix of the two labels has Gini 0.5.</p>
+  <div class="u8-formulas">
+    <article><h4>1 · Measure the parent</h4><p class="formula">Gini = 1 − p(Spam)² − p(Legitimate)²</p><p class="small">Each class proportion uses the number of rows at this node.</p></article>
+    <article><h4>2 · Weight the two children</h4><p class="formula">Weighted Gini = (n<sub>Yes</sub> ÷ n) × Gini<sub>Yes</sub> + (n<sub>No</sub> ÷ n) × Gini<sub>No</sub></p><p class="small">Here n is the current parent’s row count.</p></article>
+    <article><h4>3 · Find the reduction</h4><p class="formula">Gain = Gini<sub>parent</sub> − Weighted Gini</p><p class="small">Choose the eligible candidate with the largest gain.</p></article>
+  </div>
+  <p id="u8-root-parent"></p>
+  <p>After trying the eligible midpoints, keep the best question found for each feature. Compare those two finalists to pick the root question.</p>
+  <div class="table-wrap">
+    <table class="u8-candidate-table">
+      <caption>Two candidate questions scored on the root’s training rows</caption>
+      <thead><tr><th scope="col">Question</th><th scope="col">Yes child</th><th scope="col">No child</th><th scope="col">Weighted Gini</th><th scope="col">Gain</th></tr></thead>
+      <tbody id="u8-root-rows"></tbody>
+    </table>
+  </div>
+  <div class="u8-callout u8-working" id="u8-root-working"></div>
+  <details><summary>Route eight nearby training emails under both questions</summary>
+    <p>Use either question above and compare the measured value with its cutoff. These rows illustrate the routing. The gain calculation uses all 2,654 root rows.</p>
+    <div class="table-wrap">
+      <table class="u8-source-table">
+        <caption>Selected training rows reaching the root</caption>
+        <thead><tr><th scope="col">Email</th><th scope="col">Exclamation marks</th><th scope="col">Uppercase run</th><th scope="col">Recorded label</th><th scope="col">Question 1</th><th scope="col">Question 2</th></tr></thead>
+        <tbody id="u8-root-samples"></tbody>
+      </table>
+    </div>
+  </details>
+  <details><summary>Where do the numerical cutoffs come from?</summary>
+    <p>For each feature, sort its distinct values among the rows that reached this node. Try the midpoint between each pair of consecutive distinct values, so each candidate separates a different set of rows. If the neighbors are 10 and 11, the midpoint is (10 + 11) ÷ 2 = 10.5. Equal feature values travel together.</p>
+    <p>In this fit, equal gain favors the exclamation-mark feature. Within one feature, equal gain favors the lower cutoff. These choices make the fit repeatable.</p>
+  </details>
+  <details><summary>How does this relate to entropy?</summary>
+    <p>Entropy measures the same question about label mix using <span class="formula">H = −Σ p(class) × log₂ p(class)</span>. An absent class contributes zero. Entropy uses bits and Gini uses squared proportions. A tree that uses entropy still weights the children by their shares of the parent before subtracting from the parent’s impurity. The two criteria can choose different questions.</p>
+    <p><a href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#split">Open the worked impurity comparisons in Decision Trees</a></p>
+  </details>
+</section>
+
+<section class="lab-quiz" aria-labelledby="u8-weight-quiz">
+  <h3 id="u8-weight-quiz" data-lesson-jump="Quiz 18 · Weight the children">Which average scores a candidate split?</h3>
+  <p>A candidate sends 30 of its 40 parent rows left and 10 right. Which expression gives the weighted Gini impurity after the split?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>0.5 × Gini(left) + 0.5 × Gini(right).</li><li>(30 ÷ 40) × Gini(left) + (10 ÷ 40) × Gini(right).</li><li>Gini(left) + Gini(right).</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. (30 ÷ 40) × Gini(left) + (10 ÷ 40) × Gini(right).</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>Weight each child by its share of the parent’s training rows. The larger child contributes more.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u8-child-title">
+  <h3 id="u8-child-title" data-lesson-jump="Calculate a deeper split">Which rows count at the next question?</h3>
+  <p>Once the tree follows a branch, it repeats the same calculation on the training emails that reached that node. Those emails are the new parent. The two candidate children partition just those emails.</p>
+  <p id="u8-child-parent"></p>
+  <div class="table-wrap">
+    <table class="u8-candidate-table">
+      <caption>Two candidate questions scored at a deeper node</caption>
+      <thead><tr><th scope="col">Question</th><th scope="col">Yes child</th><th scope="col">No child</th><th scope="col">Weighted Gini</th><th scope="col">Gain</th></tr></thead>
+      <tbody id="u8-child-rows"></tbody>
+    </table>
+  </div>
+  <div class="u8-callout u8-working" id="u8-child-working"></div>
+  <details><summary>Route eight nearby training emails at this node</summary>
+    <p>All eight already passed the root’s Yes test. Now follow each under either of the two questions at this node. The weighted impurity uses all 1,502 rows that reach this parent.</p>
+    <div class="table-wrap">
+      <table class="u8-source-table">
+        <caption>Selected training rows reaching the root’s Yes child</caption>
+        <thead><tr><th scope="col">Email</th><th scope="col">Exclamation marks</th><th scope="col">Uppercase run</th><th scope="col">Recorded label</th><th scope="col">Question 1</th><th scope="col">Question 2</th></tr></thead>
+        <tbody id="u8-child-samples"></tbody>
+      </table>
+    </div>
+  </details>
+  <p><a href="#u8-trace-title">Go back to the tree and inspect a child node</a></p>
+  <details><summary>Why does the Decision Trees lab also use a root share?</summary>
+    <p>Use the immediate parent to choose a question at a node. To later credit that question in a whole-tree feature importance calculation, multiply its local gain by the share of root rows that reach the node. These two weights answer different questions.</p>
+    <p><a href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#importance">Follow the accumulated feature credit</a></p>
+  </details>
+</section>
+
+<section class="lab-quiz" aria-labelledby="u8-child-quiz">
+  <h3 id="u8-child-quiz" data-lesson-jump="Quiz 19 · Identify the parent">Which rows count at a deeper split?</h3>
+  <p>An email follows the root’s No branch. At the next split on that branch, which rows define the new parent’s Gini impurity?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>All training rows at the root.</li><li>Only the training emails that reached this node.</li><li>Only the email we’re tracing.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>B. Only the training emails that reached this node.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>The new parent is the node being split. Its label counts and the sizes of its two children determine the gain.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="u8-depth-title">
+  <h3 id="u8-depth-title" data-lesson-jump="Choose depth and compare models">How deep should we let the tree grow?</h3>
+  <p>Depth counts the number of splits allowed along a path. A tree with maximum depth 1 can ask one question. A deeper tree can fit more detailed regions, so compare how those choices perform on validation.</p>
+  <div class="u8-evaluation-grid">
+    <div class="table-wrap">
+      <table class="u8-depth-table">
+        <caption>Fit on 2,654 emails and choose depth on 1,011 validation emails</caption>
+        <thead><tr><th scope="col">Maximum depth</th><th scope="col">Training accuracy</th><th scope="col">Validation accuracy</th></tr></thead>
+        <tbody id="u8-depth-rows"></tbody>
+      </table>
+    </div>
+    <div class="u8-control-card">
+      <p>Choose the highest validation accuracy. When validation scores tie, use the shallower tree. <strong>Accuracy = (TP + TN) ÷ all emails.</strong></p>
+      <label for="u8-lock-depth">Which depth would you use?
+        <select id="u8-lock-depth">
+          <option value="">Choose a depth</option>
+          <option value="1">Depth 1</option><option value="2">Depth 2</option><option value="3">Depth 3</option><option value="4">Depth 4</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button class="button" id="u8-lock" type="button" disabled>Lock depth</button>
+        <button class="button primary" id="u8-reveal" type="button" aria-controls="u8-heldout" aria-expanded="false" disabled>Reveal test results</button>
+      </div>
+      <p class="u8-feedback" id="u8-lock-feedback" role="status">Pick a depth using the validation column, then lock it.</p>
+    </div>
+  </div>
+  <div id="u8-heldout" class="u8-heldout" hidden>
+    <h4>Compare both models on the same 936 test emails</h4>
+    <p>The tree and logistic regression each use exclamation-mark percentage and longest uppercase run. Both fit on the same training emails, use the original Unit 6 test fold, and predict Spam at a score of at least 0.50. We’re rehearsing evaluation with the original held-out records. The opening example used the earlier logistic model with one feature.</p>
+    <div class="table-wrap">
+      <table class="u8-comparison-table">
+        <caption>Held-out confusion counts at the fixed 0.50 score cutoff</caption>
+        <thead><tr><th scope="col">Model</th><th scope="col">TP</th><th scope="col">FP</th><th scope="col">FN</th><th scope="col">TN</th><th scope="col">Accuracy</th></tr></thead>
+        <tbody id="u8-test-rows"></tbody>
+      </table>
+    </div>
+    <p class="u8-feedback" id="u8-test-summary"></p>
+  </div>
+  <details><summary>When can a branch stop before the depth limit?</summary>
+    <p>A pure node already has one class. A mixed node also becomes a leaf if no eligible question improves Gini. The depth limit can turn a mixed node into a leaf even when another split could improve the training fit.</p>
+  </details>
+  <details><summary>How can two depths tie while making different predictions?</summary>
+    <p>At depth 4, E20 changes from Legitimate to Spam, which fixes a mistake. E54 changes from Spam to Legitimate, which creates a mistake. Across the validation fold, the extra level fixes 38 cases and introduces 38 other mistakes. Both depths get the same number right, even though they disagree on some emails.</p>
+  </details>
+  <details><summary>Why keep the inputs and the test emails the same?</summary>
+    <p>Different features can improve a model by giving it more information. Different test emails can make a benchmark easier or harder. Keeping the features and test emails the same lets us compare the fitted rules on a shared task.</p>
+  </details>
+</section>
+
+<section class="lab-quiz" aria-labelledby="u8-depth-quiz">
+  <h3 id="u8-depth-quiz" data-lesson-jump="Quiz 20 · Choose depth">Which depth would you lock?</h3>
+  <p>Depth 3 and depth 4 tie for the best validation accuracy. Depth 4 has higher training accuracy. Our rule chooses the shallower tree when validation accuracy ties. Which depth do you lock?</p>
+  <details><summary>Show options</summary>
+    <ol type="A"><li>Depth 3.</li><li>Depth 4.</li><li>Whichever has higher test accuracy.</li></ol>
+    <details><summary>What is the right answer?</summary>
+      <p><strong>A. Depth 3.</strong></p>
+      <details><summary>Show explanation</summary>
+        <p>Depth 3 wins the validation tie. Lock it before checking the test results.</p>
+      </details>
+    </details>
+  </details>
+</section>
+
+<section class="exercise" aria-labelledby="u8-handoff-title">
+  <h3 id="u8-handoff-title" data-lesson-jump="Continue in the Decision Trees lab">Continue with a split you can calculate by hand</h3>
+  <p>The Decision Trees lab starts from a small selection of Spambase rows and uses its own inputs and fitted trees. Work through its first split, then click a deeper tree to follow the rows. The same questions about local counts, impurity and leaf predictions apply.</p>
+  <div class="actions">
+    <a class="button primary" href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#split">Find the first split</a>
+    <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#tree">Grow a classification tree</a>
+    <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#stopping">Compare stopping rules</a>
+    <a class="button" href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#regression">Try a bike-rental tree</a>
+  </div>
+</section>
+
+<script type="application/json" id="foundations-unit-8-data">{{UNIT_8_DATA}}</script>

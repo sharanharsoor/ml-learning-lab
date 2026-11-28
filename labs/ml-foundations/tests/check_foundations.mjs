@@ -20,12 +20,14 @@ const exploration = embedded('foundations-unit-3-data');
 const evaluation = embedded('foundations-unit-4-data');
 const regression = embedded('foundations-unit-5-data');
 const logistic = embedded('foundations-unit-6-data');
+const tree = embedded('foundations-unit-8-data');
 const bike = embedded('foundation-bike-data');
 assert.deepEqual(first, fixture('unit-1.json'));
 assert.deepEqual(exploration, fixture('unit-3.json'));
 assert.deepEqual(evaluation, fixture('unit-4.json'));
 assert.deepEqual(regression, fixture('unit-5.json'));
 assert.deepEqual(logistic, fixture('unit-6.json'));
+assert.deepEqual(tree, fixture('unit-8.json'));
 assert.deepEqual(bike, JSON.parse(fs.readFileSync(
   path.join(root, 'labs/classification-regression-metrics/data/bikeshare_metrics.json'), 'utf8'
 )));
@@ -133,10 +135,10 @@ const spamExample = logistic.rows.validation.find(row => row.id === logistic.exa
 assert.deepEqual(spamExample, { id: 'E17', x: 0.428, y: 1 });
 assert.equal(spamProbability(spamExample).toFixed(4), '0.4866');
 
-function confusion(rows, threshold) {
+function confusion(rows, threshold, probability = spamProbability) {
   const counts = { tp: 0, fp: 0, fn: 0, tn: 0 };
   for (const row of rows) {
-    const predicted = spamProbability(row) >= threshold;
+    const predicted = probability(row) >= threshold;
     if (predicted) counts[row.y ? 'tp' : 'fp'] += 1;
     else counts[row.y ? 'fn' : 'tn'] += 1;
   }
@@ -195,9 +197,98 @@ const highEnough = confusion(logistic.rows.validation, tiedScore);
 assert.equal(highEnough.tp, actualSpam.filter(row => row.score > tiedScore).length + 1);
 assert.equal(highEnough.fp, actualLegitimate.filter(row => row.score > tiedScore).length + 1);
 
+assert.equal(tree.source_sha256, logistic.source_sha256);
+assert.deepEqual(tree.features.map(({ key, column }) => [key, column]), [['x', 51], ['uppercase', 55]]);
+for (const [fold, rows] of Object.entries(tree.rows)) {
+  assert.deepEqual(rows.map(({ id, x, y }) => ({ id, x, y })), logistic.rows[fold]);
+  assert.ok(rows.every(row => Number.isInteger(row.uppercase) && row.uppercase >= 1));
+}
+
+function checkNodeSummary(summary, rows) {
+  const spam = sum(rows.map(row => row.y));
+  const legitimate = rows.length - spam;
+  assert.deepEqual([summary.n, summary.spam, summary.legitimate], [rows.length, spam, legitimate]);
+  close(summary.impurity, 1 - (spam / rows.length) ** 2 - (legitimate / rows.length) ** 2);
+}
+
+function checkSplit(split, rows, left, right) {
+  const yes = rows.filter(row => row[split.feature] <= split.threshold);
+  const no = rows.filter(row => row[split.feature] > split.threshold);
+  checkNodeSummary(left, yes);
+  checkNodeSummary(right, no);
+  close(split.threshold, (Math.max(...yes.map(row => row[split.feature]))
+    + Math.min(...no.map(row => row[split.feature]))) / 2);
+  const weighted = (yes.length * left.impurity + no.length * right.impurity) / rows.length;
+  close(split.weightedImpurity, weighted);
+  return [yes, no];
+}
+
+function checkTree(node, rows, depth, visited) {
+  visited.set(node.id, { node, rows });
+  checkNodeSummary(node, rows);
+  close(node.score, node.spam / rows.length);
+  assert.equal(node.prediction, Number(node.score >= 0.5));
+  if (!node.feature) return;
+  assert.ok(depth > 0);
+  assert.equal(node.left.id, node.id + 'L');
+  assert.equal(node.right.id, node.id + 'R');
+  const [yes, no] = checkSplit(node, rows, node.left, node.right);
+  close(node.gain, node.impurity - node.weightedImpurity);
+  assert.ok(node.gain > 0);
+  checkTree(node.left, yes, depth - 1, visited);
+  checkTree(node.right, no, depth - 1, visited);
+}
+
+function leafScore(root, row) {
+  let node = root;
+  while (node.feature) node = row[node.feature] <= node.threshold ? node.left : node.right;
+  return node.score;
+}
+
+const matrixOf = ({ tp, fp, fn, tn }) => ({ tp, fp, fn, tn });
+const treeDepths = Object.keys(tree.trees).map(Number);
+assert.deepEqual(treeDepths, [1, 2, 3, 4]);
+const deepestNodes = new Map();
+for (const depth of treeDepths) {
+  const { root } = tree.trees[depth];
+  checkTree(root, tree.rows.train, depth, depth === 4 ? deepestNodes : new Map());
+  for (const fold of ['train', 'validation']) {
+    const reported = tree.trees[depth][fold];
+    assert.deepEqual(matrixOf(reported), confusion(tree.rows[fold], 0.5, row => leafScore(root, row)));
+    close(reported.accuracy, (reported.tp + reported.tn) / tree.rows[fold].length);
+  }
+}
+assert.deepEqual(tree.splitExamples.map(({ nodeId, parent }) => [nodeId, parent.n]), [['root', 2654], ['rootL', 1502]]);
+for (const { nodeId, parent, candidates: splits } of tree.splitExamples) {
+  const { node, rows } = deepestNodes.get(nodeId);
+  checkNodeSummary(parent, rows);
+  assert.equal(splits.length, 2);
+  assert.equal(splits[0].feature, node.feature);
+  assert.equal(splits[0].threshold, node.threshold);
+  assert.ok(splits[0].gain > splits[1].gain);
+  for (const split of splits) {
+    checkSplit(split, rows, split.left, split.right);
+    close(split.gain, parent.impurity - split.weightedImpurity);
+  }
+}
+const bestValidationAccuracy = Math.max(...treeDepths.map(depth => tree.trees[depth].validation.accuracy));
+assert.equal(tree.selectedDepth, treeDepths.find(depth => tree.trees[depth].validation.accuracy === bestValidationAccuracy));
+assert.equal(tree.selectedDepth, 3);
+assert.equal(tree.trees[3].validation.accuracy, tree.trees[4].validation.accuracy);
+assert.ok(tree.trees[4].train.accuracy > tree.trees[3].train.accuracy);
+const selectedTree = tree.trees[tree.selectedDepth].root;
+const logisticTwoFeatureProbability = row => sigmoid(tree.logistic.intercept
+  + tree.logistic.weights.x * row.x + tree.logistic.weights.uppercase * row.uppercase);
+const logisticTreeMatrix = confusion(tree.rows.test, 0.5, logisticTwoFeatureProbability);
+assert.deepEqual(matrixOf(tree.logistic.validation), confusion(tree.rows.validation, 0.5, logisticTwoFeatureProbability));
+assert.deepEqual(matrixOf(tree.test.logistic), logisticTreeMatrix);
+assert.deepEqual(matrixOf(tree.test.tree), confusion(tree.rows.test, 0.5, row => leafScore(selectedTree, row)));
+assert.deepEqual(matrixOf(tree.test.tree), { tp: 243, fp: 55, fn: 109, tn: 529 });
+assert.deepEqual(logisticTreeMatrix, { tp: 172, fp: 37, fn: 180, tn: 547 });
+
 const downloads = embedded('foundation-downloads');
 const notebookNames = fs.readdirSync(path.join(lab, 'notebooks')).filter(name => name.endsWith('.ipynb'));
-assert.equal(notebookNames.length, 7);
+assert.equal(notebookNames.length, 8);
 for (const name of notebookNames) {
   assert.equal(page.includes('colab.research.google.com/github/sharanharsoor/ml-learning-lab/blob/main/labs/ml-foundations/notebooks/' + name), true);
   assert.deepEqual(Buffer.from(downloads[name].data, 'base64'), fs.readFileSync(path.join(lab, 'notebooks', name)));
@@ -205,16 +296,20 @@ for (const name of notebookNames) {
 const csv = Buffer.from(downloads['bike-share-starter-rows.csv'].data, 'base64').toString('utf8').trim().split('\n');
 assert.equal(csv.length, first.history.length + 2);
 assert.equal(csv.at(-1), '15928,2012-11-01,8,1,680,held_out_example');
-assert.equal(page.match(/class="lab-quiz"/g).length, 16);
+assert.equal(page.match(/class="lab-quiz"/g).length, 20);
 for (const label of ['Show options', 'What is the right answer?', 'Show explanation']) {
-  assert.equal(page.split(`<summary>${label}</summary>`).length - 1, 16);
+  assert.equal(page.split(`<summary>${label}</summary>`).length - 1, 20);
 }
 assert.ok(home.indexOf('href="./ml-foundations/" aria-label="Open ML Foundations"') <
   home.indexOf('href="./bagging/" aria-label='));
 assert.ok(home.includes('./ml-foundations/#unit-1'));
 assert.ok(page.includes('href="#unit-6"') && page.includes('value="unit-6"'));
 assert.ok(page.includes('href="#unit-7"') && page.includes('value="unit-7"'));
-const metricsLesson = page.slice(page.indexOf('<section class="course-page" id="unit-7"'), page.indexOf('<section class="course-page" id="course"'));
+assert.ok(page.includes('href="#unit-8"') && page.includes('value="unit-8"'));
+const metricsLesson = page.slice(page.indexOf('<section class="course-page" id="unit-7"'), page.indexOf('<section class="course-page" id="unit-8"'));
 assert.ok(metricsLesson.includes('href="https://sharanharsoor.github.io/ml-learning-lab/classification-regression-metrics/#classification"'));
+const treeLesson = page.slice(page.indexOf('<section class="course-page" id="unit-8"'), page.indexOf('<section class="course-page" id="course"'));
+assert.ok(treeLesson.includes('href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#split"'));
+assert.ok(treeLesson.includes('href="https://sharanharsoor.github.io/ml-learning-lab/decision-trees/#tree"'));
 assert.doesNotMatch(page, /\{\{[A-Z0-9_]+\}\}/);
-console.log('Verified Foundations model fits, held-out metrics, cutoff selection, ROC ranking, notebooks, quizzes, and course links.');
+console.log('Verified Foundations model fits, held-out metrics, ROC ranking, tree splits, notebooks, quizzes, and course links.');

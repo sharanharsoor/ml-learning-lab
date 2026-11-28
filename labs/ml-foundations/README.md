@@ -9,6 +9,7 @@ The ML Foundations course opens with one held-out hour from the Capital Bikeshar
 5. **Linear regression.** Drag a line through real pairs of hourly counts, work through squared errors, and compare the fitted rule with the calendar baseline.
 6. **Logistic regression.** Follow a real email from measurement to probability, calculate log loss, and lock a spam threshold before opening the test fold.
 7. **Classification metrics.** Place emails in a confusion matrix, choose a cutoff under a validation constraint, and trace ROC and AUC with the same model and scores from Unit 6.
+8. **Decision trees.** Trace a spam prediction, calculate Gini for competing splits, and compare the fitted tree with logistic regression on the same inputs and test fold.
 
 Each unit has a Colab notebook and a downloadable copy on the course page. The starter CSV contains a few observed past rows and one held-out row for practice. The fitted group uses the full training period.
 

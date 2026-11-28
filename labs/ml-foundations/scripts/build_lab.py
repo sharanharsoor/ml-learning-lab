@@ -20,6 +20,7 @@ UNITS = {
     5: ("Linear regression", "05-linear-regression.ipynb"),
     6: ("Logistic regression", "06-logistic-regression.ipynb"),
     7: ("Classification metrics", "07-classification-metrics.ipynb"),
+    8: ("Decision trees", "08-decision-trees.ipynb"),
 }
 COLAB = ("https://colab.research.google.com/github/sharanharsoor/ml-learning-lab/"
          "blob/main/labs/ml-foundations/notebooks/")
@@ -91,6 +92,7 @@ def build():
         "UNIT_3_DATA": compact_json(data_file("unit-3.json")),
         "UNIT_5_DATA": compact_json(data_file("unit-5.json")),
         "UNIT_6_DATA": compact_json(data_file("unit-6.json")),
+        "UNIT_8_DATA": compact_json(data_file("unit-8.json")),
         "DOWNLOADS": compact_json(downloads),
         "EXTRA_DATA": '<script id="foundations-unit-4-data" type="application/json">'
                       + compact_json(data_file("unit-4.json")) + "</script>",
